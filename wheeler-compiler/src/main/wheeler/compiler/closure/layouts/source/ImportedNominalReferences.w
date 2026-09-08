@@ -1,6 +1,8 @@
-//! Rewrites resolved imported nominal ranges and appends their temporary declarations.
+//! Rewrites resolved imported nominal ranges and inserts declarations before first use.
 
 module wheeler.compiler.closure.imported_nominal_references;
+
+import wheeler.compiler.closure.imported_nominal_stubs;
 
 classical class ImportedNominalReferences {
   private const long AGGREGATE_ROWS = 36864;
@@ -20,77 +22,6 @@ classical class ImportedNominalReferences {
   /// Reports the exact primitive-carrier source extent.
   public record ImportedNominalCarrierPlan(long length, long referenceCount) {}
 
-  private boolean prefixMatches(
-    borrow byteview source,
-    long start,
-    long end,
-    long length,
-    long[18] expected
-  ) {
-    if (end - start < length) {
-      return false;
-    }
-
-    long offset = 0;
-    while (offset < length) limit 18 {
-      if (source[start + offset] != expected[offset]) {
-        return false;
-      }
-
-      offset += 1;
-    }
-
-    return true;
-  }
-
-  private boolean reservedPrefixAt(borrow byteview source, long start, long end) {
-    long[18] generated = new long[18](
-      87,
-      104,
-      101,
-      101,
-      108,
-      101,
-      114,
-      78,
-      111,
-      109,
-      105,
-      110,
-      97,
-      108,
-      0,
-      0,
-      0,
-      0
-    );
-    if (prefixMatches(source, start, end, /* length= */ 14, generated)) {
-      return true;
-    }
-
-    long[18] internal = new long[18](
-      95,
-      95,
-      119,
-      104,
-      101,
-      101,
-      108,
-      101,
-      114,
-      95,
-      110,
-      111,
-      109,
-      105,
-      110,
-      97,
-      108,
-      95
-    );
-    return prefixMatches(source, start, end, /* length= */ 18, internal);
-  }
-
   private long decimalDigits(long value) {
     assert(-1 < value);
     if (value < 10) {
@@ -106,39 +37,6 @@ classical class ImportedNominalReferences {
     }
 
     return 4;
-  }
-
-  private long writeName(long target, borrow mut bytes output, long cursor) {
-    assert(-1 < target);
-    assert(target < MAX_AGGREGATES);
-    assert(cursor < MAX_SOURCE_BYTES - 18);
-    writeAscii(output, cursor, "WheelerNominal");
-    cursor += 14;
-    long divisor = 1;
-    while (divisor < target / 10 + 1) limit 4 {
-      divisor = divisor * 10;
-    }
-
-    if (target < divisor) {
-      divisor = divisor / 10;
-    }
-
-    if (divisor == 0) {
-      divisor = 1;
-    }
-
-    boolean writing = true;
-    while (writing) limit 4 {
-      setByte(output, cursor, target / divisor % 10 + 48);
-      cursor += 1;
-      if (divisor == 1) {
-        writing = false;
-      } else {
-        divisor = divisor / 10;
-      }
-    }
-
-    return cursor;
   }
 
   private long writeRange(
@@ -223,11 +121,7 @@ classical class ImportedNominalReferences {
     assert(bufferLength(aggregateRows) == AGGREGATE_ROWS);
     assert(bufferLength(output) == MAX_SOURCE_BYTES);
 
-    long scan = sourceStart;
-    while (scan < sourceStart + sourceLength) limit MAX_SOURCE_BYTES {
-      assert(reservedPrefixAt(authoredSource, scan, sourceStart + sourceLength) == false);
-      scan += 1;
-    }
+    requireImportedNominalNamespace(authoredSource, sourceStart, sourceLength);
 
     region staging = new region(/* bytes= */ 33280, /* allocations= */ 2);
     bytes stagedSource = allocateBytes(staging, MAX_SOURCE_BYTES);
@@ -355,11 +249,7 @@ classical class ImportedNominalReferences {
     assert(bufferLength(projectionRows) == PROJECTION_ROWS);
     assert(bufferLength(output) == MAX_SOURCE_BYTES);
 
-    long scan = sourceStart;
-    while (scan < sourceStart + sourceLength) limit MAX_SOURCE_BYTES {
-      assert(reservedPrefixAt(authoredSource, scan, sourceStart + sourceLength) == false);
-      scan += 1;
-    }
+    requireImportedNominalNamespace(authoredSource, sourceStart, sourceLength);
 
     region staging = new region(/* bytes= */ STAGING_BYTES, /* allocations= */ 5);
     bytes stagedSource = allocateBytes(staging, MAX_SOURCE_BYTES);
@@ -424,7 +314,7 @@ classical class ImportedNominalReferences {
         stagedSource,
         cursor
       );
-      cursor = writeName(referenceRows[128 + reference], stagedSource, cursor);
+      cursor = writeImportedNominalName(referenceRows[128 + reference], stagedSource, cursor);
       callableCursor = adjustedWriteStart + referenceRows[64 + reference];
       reference += 1;
     }
@@ -448,44 +338,18 @@ classical class ImportedNominalReferences {
 
     assert(opening < cursor);
 
-    long declarationCursor = 0;
-    long recordTypeId = firstRecordTypeId;
-    long variantTypeId = firstVariantTypeId;
-    long projectionCount = 0;
-    long emittedTarget = 0;
-    while (emittedTarget < MAX_AGGREGATES) limit MAX_AGGREGATES {
-      if (selectedTargets[emittedTarget] == 1) {
-        long selectedKind = aggregateRows[emittedTarget];
-        long sourceCode = 0;
-        if (selectedKind == 1) {
-          writeAscii(declarations, declarationCursor, " private record ");
-          declarationCursor += 16;
-          declarationCursor = writeName(emittedTarget, declarations, declarationCursor);
-          writeAscii(declarations, declarationCursor, "(long value) {}");
-          declarationCursor += 15;
-          sourceCode = 268435456 + recordTypeId;
-          recordTypeId += 1;
-        }
-
-        if (selectedKind == 4) {
-          writeAscii(declarations, declarationCursor, " private variant ");
-          declarationCursor += 17;
-          declarationCursor = writeName(emittedTarget, declarations, declarationCursor);
-          writeAscii(declarations, declarationCursor, " { case Value(long value); }");
-          declarationCursor += 28;
-          sourceCode = 536870912 + variantTypeId;
-          variantTypeId += 1;
-        }
-
-        assert(0 < sourceCode);
-        set(stagedProjections, projectionCount, moduleOwner);
-        set(stagedProjections, 16384 + projectionCount, sourceCode);
-        set(stagedProjections, 32768 + projectionCount, emittedTarget);
-        projectionCount += 1;
-      }
-
-      emittedTarget += 1;
-    }
+    ImportedNominalDeclarationFragment fragment = writeImportedNominalDeclarations(
+      moduleOwner,
+      firstRecordTypeId,
+      firstVariantTypeId,
+      selectedTargets,
+      aggregateRows,
+      stagedProjections,
+      declarations,
+      0
+    );
+    long declarationCursor = fragment.length;
+    long projectionCount = fragment.projectionCount;
 
     long finalLength = cursor + declarationCursor;
     assert(finalLength < MAX_SOURCE_BYTES + 1);

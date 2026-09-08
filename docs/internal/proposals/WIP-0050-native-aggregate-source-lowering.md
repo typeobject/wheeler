@@ -10,7 +10,7 @@
 | Depends on | WIP-0013, WIP-0028, WIP-0046, WIP-0047, WIP-0049 |
 | Supersedes | None |
 | Superseded by | None |
-| Follow-up | WIP-0505 |
+| Follow-up | WIP-0505, WIP-0508 |
 
 ## Summary
 
@@ -134,6 +134,13 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [x] `ImportedNominalStubs.w` emits collision-checked record and variant declarations in target-row order and publishes owner-scoped temporary source-code projections. Input arrival order cannot change names, descriptor order, or projections.
 - [x] `ImportedNominalReferences.w` rewrites sorted resolved type ranges after imported-call rewriting, accounts for every prior call-name width change, and inserts declarations before their first use. Its bounded-core projection uses nonretained signed carriers for primitive body compilation. An overlap, stale transformed range, kind mismatch, duplicate namespace, or capacity failure publishes nothing.
 - [x] `InstructionOwnershipProducts.w` derives instruction-ordered events from primitive and supplemental artifacts through validated composition selectors. Supplemental aggregate creation can enter callable body identity without reading the primitive artifact at the same offset. `AggregateOwnerProjections.w` maps create, move, loan, release, and drop event locals to unique aggregate and member rows. A move requires identical source and destination projections, and failure leaves caller rows untouched.
+[WIP-0508](WIP-0508-checked-imported-nominal-fragments.md) gives both imported
+source writers one checked declaration-fragment owner. Complete type-ID windows
+must fit below the kind tag before any fragment byte or projection cell changes.
+The reference writer calls that owner while retaining insertion before first use.
+The standalone writer retains insertion before class close. This replaces their
+duplicate encoders, not the remaining source-to-final nominal join.
+
 [WIP-0505](WIP-0505-nominal-carrier-frame-coordinates.md) repairs the final
 conversion from frame-local carrier coordinates to serialized type positions.
 The optional result word is not local zero. Original carrier evidence below did

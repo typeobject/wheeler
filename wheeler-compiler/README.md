@@ -90,6 +90,12 @@ The final type linker preserves that result prefix and rejects carriers outside
 the actual frame. Type-linker artifact and execution checks do not assemble the
 complete nominal source compiler.
 
+Imported nominal source writers share checked generated names and declaration
+fragments. A complete temporary type-ID window must fit below its kind tag.
+Invalid selections, kinds, or extents change no caller byte or projection cell.
+The standalone writer inserts before class close. Reference rewriting inserts
+before first use. Their shared fragments remain temporary scaffolding.
+
 Call matching preserves local shadowing and rejects ambiguous imports. Qualified
 calls restrict matching to the written dependency. Parameter types, loan modes,
 results, effects, and public visibility must agree. Imported relocations resolve

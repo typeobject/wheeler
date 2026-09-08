@@ -102,6 +102,11 @@ optional serialized function result type. Final type linking preserves that
 result and rejects carriers outside the frame. Complete type-linker artifacts
 and typed-call execution remain distinct from nominal source compilation.
 
+Imported nominal source writers share a checked declaration encoder. Temporary
+IDs cannot overwrite their record or variant kind tag. Complete selection, type,
+and byte windows validate before any caller storage changes. These fragments
+remain scaffolding, not retained semantic artifacts.
+
 The final product publisher measures section extents before allocating artifact
 storage. It verifies the complete private container before changing caller
 output. Invalid code, types, entry, or proofs leave every caller byte unchanged.

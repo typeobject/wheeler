@@ -139,6 +139,19 @@ and container-publication changes. It does not cover the member-front overlay,
 complete physical source-to-artifact compilation, or stage equality. The later
 passing shard 6 does not explain its predecessor's timeout.
 
+[WIP-0508](WIP-0508-checked-imported-nominal-fragments.md) gives imported nominal
+source writers one checked declaration encoder. The reference writer calls that
+owner instead of duplicating its names, declarations, and temporary projections.
+Complete type-ID windows cannot overwrite kind tags. Both insertion positions
+retain their complete source and projection results. An independently compiled
+rewritten record fixture executes and rewinds. This is scaffolding adoption, not
+a complete nominal artifact pipeline or hosted acceptance of the member overlay.
+The unfinished member-front overlay still has four unreachable physical owners:
+aggregate operand projections, aggregate owner projections, imported
+nominal product resolution, and source aggregate strings. Its intact mixed-member
+runner still rejects in `requireMinimalProgram`. The separate primitive control
+does not replace either gate.
+
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.

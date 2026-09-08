@@ -36,6 +36,7 @@ refer to the required products, not a demand that every umbrella finish first.
 | [WIP-0503](WIP-0503-retained-region-and-map-call-loans.md) | Bind retained storage loans without widening buffer operations |
 | [WIP-0504](WIP-0504-complete-retained-call-statement-windows.md) | Validate complete call statements and remove qualified width replacement |
 | [WIP-0505](WIP-0505-nominal-carrier-frame-coordinates.md) | Restore nominal frame locals without consuming serialized result types |
+| [WIP-0508](WIP-0508-checked-imported-nominal-fragments.md) | Share nominal fragments without kind-tag aliases or partial publication |
 
 Keep the distinction between implementation and evidence. WIP-0049 owns source
 lowering, WIP-0054 owns its artifact integration, and WIP-0048 owns final linking.

@@ -10,6 +10,7 @@
 | Depends on | WIP-0050, WIP-0051, WIP-0186 |
 | Supersedes | Full-capacity local reference and imported stub projection copies |
 | Superseded by | None |
+| Follow-up | WIP-0508 |
 
 ## Summary
 
@@ -58,6 +59,14 @@ No capacity changes:
 - 32,768 generated source bytes
 
 Worst-case work remains identical.
+
+## Checked fragment follow-up
+
+[WIP-0508](WIP-0508-checked-imported-nominal-fragments.md) shares the declaration
+encoder with imported reference rewriting. It adds complete kind-tag and byte
+window checks before fragment publication while preserving these counted columns.
+The source writers retain their distinct insertion positions. The evidence below
+belongs to the original sparse-publication milestone.
 
 ## Evidence
 
