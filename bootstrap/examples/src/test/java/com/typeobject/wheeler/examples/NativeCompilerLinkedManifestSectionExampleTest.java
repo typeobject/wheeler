@@ -168,9 +168,11 @@ final class NativeCompilerLinkedManifestSectionExampleTest {
             secondName = finalFunctionNames[4];
             set(moduleFirstFunctions, 0, 3);
             set(moduleFunctionCounts, 0, %d);
+            ModuleManifestProduct manifest = readCompiledModuleManifest(
+              source, bufferLength(source)
+            );
             long manifestBytes = emitLinkedManifestSection(
-              source,
-              bufferLength(source),
+              manifest,
               /* rootModule= */ 0,
               /* rootStringBase= */ 0,
               strings.stringCount,

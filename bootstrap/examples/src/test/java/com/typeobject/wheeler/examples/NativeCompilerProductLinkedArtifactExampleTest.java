@@ -23,7 +23,14 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
 
     assertEquals(1, machine.global("published"));
     assertArrayEquals(artifact, machine.hostOutput());
-    new BytecodeReader().read(machine.hostOutput());
+    var execution = new VirtualMachine(new BytecodeReader().read(machine.hostOutput()));
+    var initial = execution.snapshot();
+    execution.run();
+    assertEquals(-9, execution.global("marker"));
+    while (execution.historySize() > 0) {
+      execution.rewindOne();
+    }
+    assertEquals(initial, execution.snapshot());
   }
 
   static byte[] artifact() {
@@ -108,6 +115,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
         import wheeler.compiler.closure.identity_relocation_emitter;
         import wheeler.compiler.closure.linked_instruction_code;
         import wheeler.compiler.closure.linked_local_types;
+        import wheeler.compiler.closure.linked_manifest_section;
         import wheeler.compiler.opcodes;
         import wheeler.core.encoding.binary;
 
@@ -383,9 +391,11 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
             assert(proofCount == 1);
             set(moduleFirstFunctions, 0, 0);
             set(moduleFunctionCounts, 0, 3);
+            ModuleManifestProduct rootManifest = readCompiledModuleManifest(
+              source, bufferLength(source)
+            );
             CanonicalProductSections emitted = emitCanonicalProductSections(
-              source,
-              bufferLength(source),
+              rootManifest,
               /* rootModule= */ 0,
               /* rootStringBase= */ 0,
               stringPlan.stringCount,

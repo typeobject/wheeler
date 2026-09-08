@@ -102,6 +102,12 @@ copying them to caller output. Invalid code, types, or proofs leave every caller
 byte unchanged. Raw container framing alone is not semantic verification. These
 checks do not establish native lowering for every compiler body.
 
+`ModuleManifestProduct` carries root name, entry, kind, and limit words without a
+borrowed artifact. Source-local emission and final linking share one checked
+manifest encoder. Final section emission no longer rereads these facts from a
+root artifact. Other retained byte ranges still need their owning storage until
+copied. Complete nominal body composition remains open.
+
 ### Retained calls
 
 Ordinary root and loop calls admit zero through 64 ordered identifier

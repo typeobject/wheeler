@@ -19,11 +19,11 @@ classical class CanonicalProductEmitter {
 
   /// Emits final semantic sections without publishing the container output.
   ///
-  /// The caller may drop source artifacts and large product windows after this call. It then
-  /// invokes `publishCanonicalProductContainer` with only this section archive and directory.
+  /// The root manifest is a closed product, not an artifact view. The caller may release
+  /// source artifacts once their remaining string, type, and instruction ranges are copied.
+  /// After this call it publishes only the section archive and directory.
   public CanonicalProductSections emitCanonicalProductSections(
-    borrow byteview rootArtifact,
-    long rootArtifactLength,
+    ModuleManifestProduct rootManifest,
     long rootModule,
     long rootStringBase,
     long rootStringCount,
@@ -90,8 +90,7 @@ classical class CanonicalProductEmitter {
     set(sectionTypes, 0, 1);
     set(sectionStarts, 0, 0);
     long manifestBytes = emitLinkedManifestSection(
-      rootArtifact,
-      rootArtifactLength,
+      rootManifest,
       rootModule,
       rootStringBase,
       rootStringCount,

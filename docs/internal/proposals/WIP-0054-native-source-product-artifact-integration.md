@@ -73,6 +73,7 @@ pre-link target IDs are not inputs.
 | Logical values to physical frame and scratch windows | WIP-0055, WIP-0056, WIP-0067 |
 | Contiguous typed local windows | `CallableLocalTypePlans.w`, `CallableSourceComposition.w` |
 | Calls, aggregate operands, proofs, and ownership identities | `CallableProductIdentityPlans.w`, WIP-0057 |
+| Closed manifest facts and shared manifest encoding | `LinkedManifestSection.w` |
 | Source-local sections, verification, identity, and publication | `SourceModuleProductArtifact.w`, `SourceProductArtifact.w` |
 | Final IDs, complete semantic sections, and container publication | WIP-0048 |
 
@@ -88,8 +89,8 @@ Only WIP-0048 assigns final closure IDs.
 
 ## Emission and failure
 
-Feed counted globals, aggregates, functions, local types, code, proofs, and strings
-to the canonical section emitters. The result must match stage 0 byte for byte for
+Feed counted globals, aggregates, functions, local types, code, proofs, strings,
+and a closed `ModuleManifestProduct` to the canonical section emitters. The result must match stage 0 byte for byte for
 the shared source profile. Both the independent reader and native verifier accept
 it before `CompiledBodyArchive.w` retains it.
 
@@ -152,6 +153,8 @@ protects. Expansion needs measured evidence and a separate patch.
 - [x] WIP-0502 through WIP-0504 cover retained arity, storage loans, complete call
   windows, and the shared 256-local frame boundary.
 - [x] WIP-0505 separates carrier frame coordinates from serialized result prefixes.
+- [x] Retained source-local emission and final linking share a manifest product and
+  encoder. Final section emission no longer rereads a root artifact for these facts.
 
 These are scoped milestones. The former blanket check for every physical
 multi-statement-loop module was not a complete-closure acceptance result. The

@@ -108,6 +108,11 @@ output. Invalid code, types, entry, or proofs leave every caller byte unchanged.
 Accepted publication preserves the unused output tail. Framing checks alone do
 not establish executable validity.
 
+Root manifest facts now reach final emission as an immutable product, not a
+borrowed artifact view. Source-local emission shares its byte encoder. Name and
+entry binding validate complete owner windows before rebasing. This closes one
+metadata handoff, not complete nominal source compilation.
+
 Source keywords, Boolean literals, primitive types, intrinsics, and native test
 metadata now use exact word codes instead of token hashes. The fixed vocabulary
 contains 58 spellings and does not limit identifier length. This corrects lexical

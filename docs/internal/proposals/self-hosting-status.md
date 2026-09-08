@@ -121,6 +121,15 @@ check remains separate from maximum-size semantic artifact acceptance.
 [WIP-0048](WIP-0048-canonical-native-product-linker.md#container-publication-regression)
 owns this repair. It does not close the source-to-nominal join in
 [WIP-0054](WIP-0054-native-source-product-artifact-integration.md).
+Hosted run [34186361333](https://github.com/typeobject/wheeler/actions/runs/34186361333)
+on `13f7622f9` finishes 51 of 52 jobs successfully. Native shard 6 exceeds the
+unchanged twelve-minute deadline. That commit has no full package acceptance.
+
+Final manifest emission now consumes a closed product instead of rereading the
+root artifact. Retained source-local emission uses the same word encoder. Complete
+binding windows and output bytes are checked before publication. This removes
+one artifact dependency. It does not supply the missing nominal bodies or their
+complete source-to-final composition.
 
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with

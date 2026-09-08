@@ -34,6 +34,7 @@ The linker consumes only published products:
 - counted aggregate, function, local-type, and instruction windows.
 - local, imported-call, and aggregate-operand relocation rows.
 - result-slot flags and exact forward and inverse extents.
+- closed root-manifest name, entry, kind, history, and split step-limit words.
 
 A missing product is an error. An empty table is valid only when its published count is zero.
 
@@ -132,7 +133,7 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `CompiledStringProducts.w` validates source-local string directories, sorted ASCII names, exact extents, removes exact verifier-stub suffixes, and appends counted artifact ranges for linked emission.
 - [x] `CompiledGlobalProducts.w` appends source-local global rows with split 64-bit initial values. `LinkedAggregateSections.w` emits final globals, records, arrays, slices, variants, cases, and fields. Descriptor-compatible source products and copied source-string products feed the same emitter without a temporary aggregate artifact.
 - [x] `CompiledFunctionNames.w` retains closure string references and resolves final function-name IDs.
-- [x] `LinkedManifestSection.w` resolves the root program name and rebases its entry through counted module function windows.
+- [x] `LinkedManifestSection.w` binds an immutable `ModuleManifestProduct` through complete string and function windows. Source-local and linked emission share one manifest encoder. Final section emission no longer takes a root-artifact view.
 - [x] `LinkedContainer.w` emits format 1.0 headers, sorted directories, eight-byte alignment, zero padding, and bounded optional section types.
 - [x] The assembled container verifies its header, directory, extents, and padding before the caller publishes output length or identity.
 - [x] `CanonicalProductEmitter.w` emits final semantic sections, returns an immutable section plan, and publishes a verified container in a separate lifetime after callers may drop large source and product windows. Artifact storage uses the measured extent and remains private until semantic verification passes.
@@ -151,6 +152,57 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
   [status map](self-hosting-status.md) for the current evidence inventory. A valid
   subset container does not prove complete compiler emission.
 - [ ] The complete physical compiler closure emits without dependency source.
+
+## Manifest products
+
+`ModuleManifestProduct` retains the source-local program name and entry, program
+kind, history word, and both step-limit words. Entry `-1` means no classical entry.
+Only byte emission converts it to the format's unsigned sentinel.
+`readCompiledModuleManifest` extracts these facts while an indexed artifact is
+live. `SourceModuleProductArtifact.w` constructs its own product from retained
+source-module facts. Neither route needs a template artifact to emit the manifest.
+
+`emitCanonicalProductSections` takes the product instead of a root-artifact view.
+The old artifact-taking interface and the separate source-module manifest writer
+are gone. Other products may still borrow string, type, or instruction ranges.
+They must copy those ranges before releasing their artifact storage.
+
+On clean `13f7622f9`, the old emitter accepts a negative function base and emits
+entry 0 instead of rejecting the alias. It also accepts a root string window
+extending beyond the closure. Both probes publish a 24-byte manifest section.
+These are section-binding counterexamples, not accepted executable artifacts.
+
+`writeModuleManifestProduct` checks every field and the complete destination
+window before writing. Binding checks the whole root string and function windows,
+not merely the selected name and entry. It validates bounds before addition.
+The existing 16,384 strings, 512 modules, and 4,096 closure functions remain fixed.
+
+`NativeCompilerManifestProductBoundaryExampleTest` checks exact words, nonzero
+rebasing, absent entry, last coordinates, first excess, malformed directories,
+noncanonical columns, preserved output tails, and complete accepted/rejected
+rewind. It releases the captured artifact before emitting retained facts. Complete
+output buffers and every binding cell are compared. Six restored mutants expose
+late word validation, an early interior write, negative function bases, incomplete
+string windows, changed absent-entry coordinates, and lost upper step bits.
+Unsigned word tests prove encoding only. The final verifier still owns executable
+limits and entry semantics. No runtime bound is widened.
+
+The restored patch passes 154 isolated JUnit identities and eleven integration-only
+identities, 165 distinct tests. The physical run takes 12m04s. It checks the small
+function-closure transport, callable-free source emission, 29 imported entry
+targets, and all 451 archive bindings. It is not complete physical compiler
+emission. The compiler archive is 3,384,034 bytes with SHA-256
+`c41fca33302e49af63deba1f69d316aaa5ebaa7eb8f286829eff8c14643a4acc`.
+Graph validation takes 88,852,766 transitions under the unchanged 89-million
+ceiling. All 713 canonical package inputs match the measured files.
+
+The fresh workspace emits 497 artifacts. Locks, source and formatter gates,
+proposal and link checks, five main-root API checks, and site rendering pass.
+The locked minimum-state consumer retains its 568-byte artifact, 772-byte coverage
+report, seven tested steps, and final state 7. These checks close the manifest
+handoff, not the nominal source composition or physical compiler emission required
+by WIP-0054. The intact mixed-member runner still rejects in
+`compiler_core::requireMinimalProgram`.
 
 ## Container publication regression
 

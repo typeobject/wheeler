@@ -380,9 +380,11 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
             long manifestStart = linkedCodeLength
               + linkedStringSectionLength
               + linkedFunctionSectionLength;
+            ModuleManifestProduct rootManifest = readCompiledModuleManifest(
+              rootArtifact, rootArtifactLength
+            );
             linkedManifestLength = emitLinkedManifestSection(
-              rootArtifact,
-              rootArtifactLength,
+              rootManifest,
               rootOwner,
               rootStringBase,
               rootStringCount,

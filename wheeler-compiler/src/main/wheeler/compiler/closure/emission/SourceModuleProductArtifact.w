@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.source_module_product_artifact;
 
+import wheeler.compiler.closure.linked_manifest_section;
 import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.encoding;
@@ -272,12 +273,17 @@ classical class SourceModuleProductArtifact {
     long cursor = 0;
 
     set(sectionStarts, 0, cursor);
-    writeUnsigned(sectionArchive, cursor, 4, 1);
-    writeUnsigned(sectionArchive, cursor + 4, 4, callableCount + stubCount);
-    writeUnsigned(sectionArchive, cursor + 8, 8, 4000000);
-    writeUnsigned(sectionArchive, cursor + 16, 8, 4000000);
-    set(sectionLengths, 0, 24);
-    cursor += 24;
+    ModuleManifestProduct manifest = new ModuleManifestProduct(
+      /* nameString= */ 1,
+      /* entryFunction= */ callableCount + stubCount,
+      /* maxHistory= */ 4000000,
+      /* kind= */ 0,
+      /* maxStepsLow= */ 4000000,
+      /* maxStepsHigh= */ 0
+    );
+    long manifestBytes = writeModuleManifestProduct(manifest, sectionArchive, cursor);
+    set(sectionLengths, 0, manifestBytes);
+    cursor += manifestBytes;
 
     set(sectionStarts, 1, cursor);
     long stringSectionLength = writeStringSection(
