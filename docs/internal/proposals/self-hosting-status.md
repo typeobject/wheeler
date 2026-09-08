@@ -175,6 +175,14 @@ name search and the fixed-width wrapper. Full sections, counted ID maps, rejecti
 storage, and small-case rewind pass direct boundary checks. The independent row,
 name-byte, section-byte, and executable limits remain unchanged.
 
+Hosted run [34240882904](https://github.com/typeobject/wheeler/actions/runs/34240882904)
+on `78d28ea97` passes all 52 jobs and all sixteen native compiler-package rows.
+Every selected method executes under the unchanged twelve-minute deadline.
+Audited method-to-build-success upper bounds range from 365.999613 to 670.502182
+seconds. This supplies same-commit package acceptance for counted string linking.
+It does not cover the uncommitted library-entry tests, source-data composition,
+member fronts, complete physical compiler emission, or stage equality.
+
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.
