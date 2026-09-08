@@ -42,6 +42,9 @@ final class LocalRegisters {
   LocalRegisters with(int index, long value) {
     checkIndex(index);
     int chunk = index / CHUNK_SIZE;
+    if (chunks[chunk][index % CHUNK_SIZE] == value) {
+      return this;
+    }
     long[][] updated = chunks.clone();
     updated[chunk] = chunks[chunk].clone();
     updated[chunk][index % CHUNK_SIZE] = value;

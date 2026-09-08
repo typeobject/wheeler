@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, verifier, VM, and library maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-28 |
+| Updated | 2026-09-08 |
 | Area | Types, functions, locals, control flow, storage, bootstrap |
 | Depends on | WIP-0001, WIP-0005, WIP-0007, WIP-0012 |
 | Supersedes | None |
@@ -258,6 +258,15 @@ Registered and provided buffers remain bounded affine resources. Native queue en
 - [ ] Reversible protected control forms generate checked inverses.
 - [x] A bounded manifest-linked Wheeler scanner and parser read explicit UTF-8 source input. The scanner writes identifier, number, punctuation, printable ASCII literal, and comment metadata into owned buffers. Signed-decimal overflow is checked. A dependency parser validates one typed local declaration through simultaneous exclusive borrows and returns a closed value-or-error result. The entry publishes the parsed token through a bounded output borrow with a checked rewindable length. A separate writer expands bounded ASCII literals into checked output for the canonical string table. Complete grammar parsing and recovery sets remain WIP-0007.
 - [x] The Wheeler-written verifier and interpreter compare the accepted bounded owned-storage profile against stage 0. Coverage includes region, word-buffer, and byte-buffer allocation, mutation, lengths, reads, byte ranges, strict UTF-8 validation and decoding, freezing, nested read-only UTF-8 borrows, mutable region, word, byte, and map borrows, owner-carrying parameters and results, signed-map operations, drop order, malformed index locals, and exact outer rewind. Returned loans and closure-wide native trace parity remain.
+
+## Register storage reuse
+
+An unchanged single-register write reuses its immutable storage version. Index
+checks still run first. Changed writes copy their chunk. Older frames retain
+independent values. This does not remove an instruction: its program counter,
+observation, step accounting, and rewind record remain. History and step ceilings
+are unchanged. `LocalRegistersTest` checks persistent versions and chunk edges.
+`UnchangedLocalTransitionTest` checks execution, budget traps, and complete rewind.
 
 ## Testing and acceptance
 

@@ -152,6 +152,14 @@ nominal product resolution, and source aggregate strings. Its intact mixed-membe
 runner still rejects in `requireMinimalProgram`. The separate primitive control
 does not replace either gate.
 
+Hosted run [34220715075](https://github.com/typeobject/wheeler/actions/runs/34220715075)
+on `571c5166a` passes all 52 jobs and all sixteen native compiler-package rows.
+Every selected method executes under the unchanged twelve-minute deadline. The
+audited method-to-build-success upper bounds range from 277.499765 to 675.176708
+seconds. This supplies same-commit package acceptance for the checked nominal
+fragments. It does not cover later register-storage changes, the unfinished
+source-data composition, the member overlay, or whole-compiler self-hosting.
+
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.
