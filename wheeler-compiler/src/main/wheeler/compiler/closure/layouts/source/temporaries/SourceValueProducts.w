@@ -7,12 +7,12 @@ import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.source_call_argument_layouts;
+import wheeler.compiler.closure.source_call_argument_products;
 import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.source_scalars;
-import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
@@ -244,7 +244,7 @@ classical class SourceValueProducts {
 
       long parameterCount = 0;
       long parameterToken = openParameters + 1;
-      while (parameterToken < closeParameters) limit 256 {
+      while (parameterToken < closeParameters) limit MAX_COMPILER_TOKENS {
         if (tokenKinds[parameterToken] == 1) {
           boolean parameterName = parameterToken + 1 == closeParameters;
           if (parameterToken + 1 < closeParameters) {
@@ -521,7 +521,16 @@ classical class SourceValueProducts {
                 if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 1) {
                   localWidth = 3;
                   if (-1 < statementCall) {
-                    localWidth = callRows[512 + statementCall] * 2 + 1;
+                    long guardedArity = callRows[512 + statementCall];
+                    if (guardedArity < 0) {
+                      valid = false;
+                    } else {
+                      if (SOURCE_CALL_ARITY_LIMIT < guardedArity) {
+                        valid = false;
+                      } else {
+                        localWidth = guardedArity * 2 + 1;
+                      }
+                    }
                   }
 
                   resultLocal = -1;
@@ -545,17 +554,6 @@ classical class SourceValueProducts {
                 }
               }
 
-              if (-1 < statementCall) {
-                localWidth = callRows[512 + statementCall] * 2 + 2;
-                resultLocal = localBase + localWidth - 1;
-              }
-            }
-
-            if (valueWordCode == TOKEN_BOOLEAN) {
-              if (-1 < statementCall) {
-                localWidth = callRows[512 + statementCall] * 2 + 2;
-                resultLocal = localBase + localWidth - 1;
-              }
             }
 
             if (valueWordCode == TOKEN_ASSERT) {
@@ -580,35 +578,7 @@ classical class SourceValueProducts {
             }
 
             if (valueWordCode == TOKEN_RETURN) {
-              if (opcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
-                long returnArity = -1;
-                long returnCallMatches = 0;
-                long returnCall = 0;
-                while (returnCall < callCount) limit 256 {
-                  if (callStatements[returnCall] == statement) {
-                    returnArity = callRows[512 + returnCall];
-                    returnCallMatches += 1;
-                  }
-
-                  returnCall += 1;
-                }
-
-                if (returnCallMatches != 1) {
-                  valid = false;
-                } else {
-                  if (returnArity < 0) {
-                    valid = false;
-                  } else {
-                    if (SOURCE_CALL_ARITY_LIMIT < returnArity) {
-                      valid = false;
-                    } else {
-                      localWidth = returnArity * 2 + 1;
-                    }
-                  }
-                }
-
-                resultLocal = -1;
-              } else {
+              if (statementCall < 0) {
                 if (
                   punctuationAt(
                     source,
@@ -652,16 +622,63 @@ classical class SourceValueProducts {
           }
 
           if (-1 < statementCall) {
-            if (callRows[statementCall] == statementStart) {
+            if (-1 < statementToken) {
               long callArity = callRows[512 + statementCall];
-              if (callArity < 0) {
-                valid = false;
+              boolean completeCall = sourceCallStatementValid(
+                source,
+                tokenKinds,
+                tokenStarts,
+                tokenLengths,
+                semanticCount,
+                statementToken,
+                statementRows[statementLengthRow + statement],
+                callRows[statementCall],
+                callRows[256 + statementCall],
+                callArity,
+                /* headTokens= */ 0
+              );
+              if (completeCall) {
+                localWidth = callArity * 2;
+                resultLocal = -1;
               } else {
-                if (SOURCE_CALL_ARITY_LIMIT < callArity) {
-                  valid = false;
-                } else {
-                  localWidth = callArity * 2;
-                  resultLocal = -1;
+                long word = sourceTokenCode(source, tokenStarts, tokenLengths, statementToken);
+                if (word != TOKEN_IF) {
+                  long headTokens = -1;
+                  if (word == TOKEN_RETURN) {
+                    headTokens = 1;
+                  }
+
+                  if (word == TOKEN_LONG) {
+                    headTokens = 3;
+                  }
+
+                  if (word == TOKEN_BOOLEAN) {
+                    headTokens = 3;
+                  }
+
+                  completeCall = sourceCallStatementValid(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    tokenLengths,
+                    semanticCount,
+                    statementToken,
+                    statementRows[statementLengthRow + statement],
+                    callRows[statementCall],
+                    callRows[256 + statementCall],
+                    callArity,
+                    headTokens
+                  );
+                  if (completeCall) {
+                    localWidth = callArity * 2 + 1;
+                    resultLocal = -1;
+                    if (headTokens == 3) {
+                      localWidth += 1;
+                      resultLocal = localBase + localWidth - 1;
+                    }
+                  } else {
+                    valid = false;
+                  }
                 }
               }
             }

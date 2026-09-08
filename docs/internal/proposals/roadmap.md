@@ -34,6 +34,7 @@ refer to the required products, not a demand that every umbrella finish first.
 | [WIP-0501](WIP-0501-native-signed-ordering-assertions.md) | Resolve signed assertion operands without local-only identity ranges |
 | [WIP-0502](WIP-0502-sixty-four-argument-retained-source-calls.md) | Review the wider call profile and its same-commit package acceptance |
 | [WIP-0503](WIP-0503-retained-region-and-map-call-loans.md) | Bind retained storage loans without widening buffer operations |
+| [WIP-0504](WIP-0504-complete-retained-call-statement-windows.md) | Validate complete call statements and remove qualified width replacement |
 
 Keep the distinction between implementation and evidence. WIP-0049 owns source
 lowering, WIP-0054 owns its artifact integration, and WIP-0048 owns final linking.

@@ -152,6 +152,12 @@ four input pools, rejects an unconsumed local 256, gaps, and duplicate origins,
 and checks every output cell. Small accepted and rejected compositions rewind.
 This corrects frame admission, not the separate call-arity contract in [WIP-0502](WIP-0502-sixty-four-argument-retained-source-calls.md).
 
+WIP-0504's eight-kind mixed signature exposed a separate parameter scan using
+256 iterations for tokens rather than locals. Its 64 parameters need more than
+256 tokens. The scan now uses the existing 4,096-token bound. Argument and frame
+limits do not change. Complete 64-argument artifacts cover all eight scalar/loan
+kinds, and restoring the old scan bound fails that fixture.
+
 ## Failure behavior
 
 The compiler traps before product publication for:

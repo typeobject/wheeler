@@ -5,12 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, linker, and ownership maintainers |
 | Created | 2026-08-14 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-07 |
 | Area | Self-hosting compiler, calls, relocation, ownership, callable layout |
 | Depends on | WIP-0045, WIP-0047, WIP-0055, WIP-0056 |
 | Supersedes | Call and ownership coordinate work embedded in WIP-0055 and WIP-0056 |
 | Superseded by | None |
-| Follow-up | WIP-0058, WIP-0059, WIP-0496 |
+| Follow-up | WIP-0058, WIP-0059, WIP-0496, WIP-0504 |
 
 ## Summary
 
@@ -156,14 +156,17 @@ Rejected. Decoded ownership verifies an artifact. It cannot replace the source p
 
 ## Remaining call fronts
 
-WIP-0502 extends the retained arity to 64. WIP-0503 adds mutable region and map
-loans without treating them as buffers. Neither closes qualified forwarded
-returns. `return dep.alpha::remote(number);` passes stage 0 with a direct public
-dependency but fails retained value planning. The same control with storage
-loans also rejects. Qualified imported initializer and void calls pass.
+WIP-0502 extends retained arity to 64. WIP-0503 adds mutable region and map loans
+without treating them as buffers. [WIP-0504](WIP-0504-complete-retained-call-statement-windows.md)
+validates complete ordinary call statements and removes the qualified width
+override. Signed and storage-loan qualified forwarded returns now match complete
+independent artifacts. Their source syntax, value binding, frame widths, and
+relocations retain separate owners.
 
-A repair must validate the complete return window. Finding one call inside a
-statement does not authorize dropping arithmetic or other tokens after it.
+Finding a call does not authorize dropping arithmetic or other tokens after it.
+The retained route rejects unsupported call tails before publication. General
+argument expressions, conditional returns, and aggregate artifact composition
+retain their own lowering work.
 
 ## References
 

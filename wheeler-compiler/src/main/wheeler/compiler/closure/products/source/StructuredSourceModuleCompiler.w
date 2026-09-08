@@ -12,7 +12,6 @@ import wheeler.compiler.closure.loop_call_products;
 import wheeler.compiler.closure.loop_instruction_products;
 import wheeler.compiler.closure.loop_local_type_products;
 import wheeler.compiler.closure.physical_loop_body_products;
-import wheeler.compiler.closure.qualified_source_call_products;
 import wheeler.compiler.closure.referenced_source_call_targets;
 import wheeler.compiler.closure.resolved_loop_body_products;
 import wheeler.compiler.closure.resolved_loop_products;
@@ -424,16 +423,6 @@ classical class StructuredSourceModuleCompiler {
       measuredStatement += 1;
     }
 
-    boolean qualifiedWidthsValid = materializeQualifiedCallStatementWidths(
-      source,
-      resolvedCallCount,
-      loopPlan.statementCount,
-      calls,
-      callStatements,
-      retainedTargetResultTypes,
-      statementPhysicalWidths
-    );
-    assert(qualifiedWidthsValid);
     SourceCallLayoutPlan callLayoutPlan = materializeSourceCallLayoutProducts(
       resolvedCallCount,
       calls,

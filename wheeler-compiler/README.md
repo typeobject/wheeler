@@ -100,8 +100,10 @@ not establish native lowering for every compiler body.
 
 Ordinary root and loop calls admit zero through 64 ordered identifier
 arguments. Signed and Boolean values, UTF-8 and byte-view loans, and mutable byte,
-word, region, and map loans keep exact types. Qualified imported initializer and
-void calls pass. Qualified forwarded returns remain a separate source-shape gap.
+word, region, and map loans keep exact types. Qualified imported initializer,
+void, and forwarded-result calls pass. One complete statement window owns the
+call width. Unsupported expression tails reject rather than disappear from the
+artifact.
 `compiler/closure/layouts/source/calls/SourceCallArgumentLayouts.w` owns 256 calls and two
 32,768-word argument tables. Each column holds 16,384 arguments. Binding, final
 returns, typed layout, code planning, loop emission, and imported stubs use the

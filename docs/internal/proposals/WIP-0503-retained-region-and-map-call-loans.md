@@ -10,6 +10,7 @@
 | Depends on | WIP-0057, WIP-0502 |
 | Supersedes | None |
 | Superseded by | None |
+| Follow-up | WIP-0504 |
 
 ## Boundary
 
@@ -113,15 +114,18 @@ bytes unchanged, but changes the archive to 3,376,184 bytes and SHA-256
 `d5d9bac8442b5d2e4fb36ae512a9b97257e82f509780c3daad4ca15407ca70d5`.
 The repaired graph takes 88,834,648 transitions under the same ceiling.
 
-Hosted native-package acceptance must pass on the repaired inputs. WIP-0502's
-accepted run at `76b211806` does not cover this change.
+Run 34166510984 on the formatting repair `7e63b4721` passes 51 jobs. Native shard
+15 exceeds the unchanged twelve-minute method deadline. The repaired inputs do
+not have hosted native-package acceptance. WIP-0502's accepted run at `76b211806`
+does not cover them.
 
 WIP-0049 and WIP-0054 still own source-product and aggregate artifact composition.
 The aggregate helper currently returns a primitive artifact and separate composed
 instruction products. Connecting that helper alone to the native test runner
 would not produce the complete nominal artifact. Qualified forwarded returns
-also remain outside this source profile. WIP-0057 owns their complete-window
-admission. A signed-only control fails independently of storage types.
+were outside this milestone, including a signed-only control independent of
+storage types. [WIP-0504](WIP-0504-complete-retained-call-statement-windows.md)
+closes their complete-window and width handoff.
 
 Do not remove the nominal test's declarations or replace its selected body to
 bypass that join.

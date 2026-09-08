@@ -139,8 +139,9 @@ later loan-typing changes.
 complete physical compiler composition. Region and map arguments failed type
 binding at this milestone. [WIP-0503](WIP-0503-retained-region-and-map-call-loans.md)
 extends that loan profile. Qualified imported initializer and void calls have
-artifact evidence. Qualified forwarded returns still reject, including a control with only signed
-parameters. Arity admission does not remove that source-shape boundary.
+artifact evidence. Qualified forwarded returns rejected at this milestone,
+including a signed-only control. [WIP-0504](WIP-0504-complete-retained-call-statement-windows.md)
+closes that separate source-window and width boundary.
 
 This stage does not compile the 55-parameter aggregate owner, repair general
 returns, finish WIP-0498's intact nominal test runner, or establish stage equality,

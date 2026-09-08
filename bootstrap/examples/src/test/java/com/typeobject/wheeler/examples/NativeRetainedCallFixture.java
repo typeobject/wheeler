@@ -148,8 +148,10 @@ final class NativeRetainedCallFixture {
   private static Probe machine(
       String source, boolean imported, int[] callerTypes, int[] targetTypes,
       int resultType, int effect) throws Exception {
-    int bodyStart = source.indexOf('{', source.indexOf("recurse("));
-    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    int bodyOpen = source.indexOf('{', source.indexOf("recurse("));
+    int bodyClose = SourceRanges.matchingClose(source, bodyOpen) + 1;
+    int bodyStart = source.substring(0, bodyOpen).getBytes(StandardCharsets.UTF_8).length;
+    int bodyLength = source.substring(bodyOpen, bodyClose).getBytes(StandardCharsets.UTF_8).length;
     Program driver = StructuredCallSourceProductDriver.driverWithParameters(
         bodyStart, bodyLength, callerTypes, imported, targetTypes, resultType, effect,
         StructuredCallSourceProductDriver.SymbolProduct.none());

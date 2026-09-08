@@ -129,6 +129,290 @@ classical class SourceCallArgumentProducts {
     return selected;
   }
 
+  private boolean completeCallTokenWindow(
+    long first,
+    long last,
+    long end,
+    borrow mut words kinds,
+    borrow mut words starts,
+    borrow mut words lengths
+  ) {
+    long previousEnd = starts[first];
+    long token = first;
+    while (token < last + 1) limit MAX_COMPILER_TOKENS {
+      long start = starts[token];
+      long length = lengths[token];
+      if (start < previousEnd) {
+        return false;
+      }
+
+      if (end < start) {
+        return false;
+      }
+
+      if (length < 1) {
+        return false;
+      }
+
+      if (end - start < length) {
+        return false;
+      }
+
+      if (kinds[token] == 3) {
+        if (length != 1) {
+          return false;
+        }
+      }
+
+      previousEnd = start + length;
+      token += 1;
+    }
+
+    return previousEnd == end;
+  }
+
+  private boolean callPrefixValid(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    long first,
+    long name
+  ) {
+    if (first == name) {
+      return true;
+    }
+
+    if (name - first < 3) {
+      return false;
+    }
+
+    long cursor = first;
+    while (cursor < name - 2) limit MAX_COMPILER_TOKENS {
+      if (kinds[cursor] != 1) {
+        return false;
+      }
+
+      cursor += 1;
+      if (cursor < name - 2) {
+        if (punctuationAt(source, kinds, starts, cursor, PUNCTUATION_DOT) == false) {
+          return false;
+        }
+
+        cursor += 1;
+        if (name - 2 < cursor + 1) {
+          return false;
+        }
+      }
+    }
+
+    if (cursor != name - 2) {
+      return false;
+    }
+
+    if (punctuationAt(source, kinds, starts, cursor, PUNCTUATION_COLON) == false) {
+      return false;
+    }
+
+    return punctuationAt(source, kinds, starts, cursor + 1, PUNCTUATION_COLON);
+  }
+
+  /// Checks a complete call statement against its retained call-name and arity rows.
+  ///
+  /// Heads contain zero tokens for a call, one for a return, or three for a scalar declaration.
+  /// Scanner columns own token spelling and trivia. Target and value binding remain separate.
+  public boolean sourceCallStatementValid(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long count,
+    long first,
+    long statementLength,
+    long callStart,
+    long callLength,
+    long arity,
+    long headTokens
+  ) {
+    boolean headValid = headTokens == 0;
+    if (headTokens == 1) {
+      headValid = true;
+    }
+
+    if (headTokens == 3) {
+      headValid = true;
+    }
+
+    if (headValid == false) {
+      return false;
+    }
+
+    if (bufferLength(kinds) != MAX_COMPILER_TOKENS) {
+      return false;
+    }
+
+    if (bufferLength(starts) != MAX_COMPILER_TOKENS) {
+      return false;
+    }
+
+    if (bufferLength(lengths) != MAX_COMPILER_TOKENS) {
+      return false;
+    }
+
+    if (count < 1) {
+      return false;
+    }
+
+    if (MAX_COMPILER_TOKENS < count) {
+      return false;
+    }
+
+    if (first < 0) {
+      return false;
+    }
+
+    if (count - 1 < first) {
+      return false;
+    }
+
+    if (arity < 0) {
+      return false;
+    }
+
+    if (SOURCE_CALL_ARITY_LIMIT < arity) {
+      return false;
+    }
+
+    long start = starts[first];
+    if (start < 0) {
+      return false;
+    }
+
+    if (bufferLength(source) < start) {
+      return false;
+    }
+
+    if (statementLength < 1) {
+      return false;
+    }
+
+    if (bufferLength(source) - start < statementLength) {
+      return false;
+    }
+
+    long end = start + statementLength;
+    if (callStart < start) {
+      return false;
+    }
+
+    if (end < callStart) {
+      return false;
+    }
+
+    if (callLength < 1) {
+      return false;
+    }
+
+    if (end - callStart < callLength) {
+      return false;
+    }
+
+    long name = tokenAtRange(callStart, callLength, count, kinds, starts, lengths);
+    if (name < first + headTokens) {
+      return false;
+    }
+
+    long close = name + 2;
+    if (0 < arity) {
+      close = name + 1 + arity * 2;
+    }
+
+    long last = close + 1;
+    if (count - 1 < last) {
+      return false;
+    }
+
+    if (last + 1 < count) {
+      if (starts[last + 1] < end) {
+        return false;
+      }
+    }
+
+    if (completeCallTokenWindow(first, last, end, kinds, starts, lengths) == false) {
+      return false;
+    }
+
+    if (kinds[first] != 1) {
+      return false;
+    }
+
+    if (headTokens == 1) {
+      if (sourceTokenCode(source, starts, lengths, first) != TOKEN_RETURN) {
+        return false;
+      }
+    }
+
+    if (headTokens == 3) {
+      long word = sourceTokenCode(source, starts, lengths, first);
+      boolean scalar = word == TOKEN_LONG;
+      if (word == TOKEN_BOOLEAN) {
+        scalar = true;
+      }
+
+      if (scalar == false) {
+        return false;
+      }
+
+      if (kinds[first + 1] != 1) {
+        return false;
+      }
+
+      if (
+        punctuationAt(source, kinds, starts, first + 2, PUNCTUATION_ASSIGN) == false
+      ) {
+        return false;
+      }
+    }
+
+    if (callPrefixValid(source, kinds, starts, first + headTokens, name) == false) {
+      return false;
+    }
+
+    if (
+      punctuationAt(source, kinds, starts, name + 1, PUNCTUATION_OPEN_PAREN) == false
+    ) {
+      return false;
+    }
+
+    if (
+      punctuationAt(source, kinds, starts, close, PUNCTUATION_CLOSE_PAREN) == false
+    ) {
+      return false;
+    }
+
+    if (punctuationAt(source, kinds, starts, last, PUNCTUATION_SEMICOLON) == false) {
+      return false;
+    }
+
+    long argument = 0;
+    while (argument < arity) limit SOURCE_CALL_ARITY_LIMIT {
+      long token = name + 2 + argument * 2;
+      if (kinds[token] != 1) {
+        return false;
+      }
+
+      argument += 1;
+      if (argument < arity) {
+        if (
+          punctuationAt(source, kinds, starts, token + 1, PUNCTUATION_COMMA) == false
+        ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   private long argumentType(
     borrow utf8 source,
     long owner,

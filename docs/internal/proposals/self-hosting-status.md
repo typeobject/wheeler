@@ -83,10 +83,18 @@ acceptance does not cover the later storage-loan changes.
 loan binding without widening buffer operations. Local and imported artifacts
 match stage 0. A native-produced caller invokes an independent callee that
 allocates through its region loan and mutates its map loan. The complete execution
-rewinds. Owned storage arguments and qualified forwarded returns remain separate
-gaps. Qualified initializer and void calls pass. A signed-only forwarded control
-also rejects. Local physical, archive, and workspace checks pass. Hosted package
-acceptance for these loan inputs remains open.
+rewinds. Owned storage arguments remain excluded. Local physical, archive, and
+workspace checks pass. The formatting repair at `7e63b4721` passes 51 hosted jobs,
+but native shard 15 exceeds the unchanged twelve-minute method deadline in run
+34166510984. Hosted package acceptance for these loan inputs remains open.
+
+[WIP-0504](WIP-0504-complete-retained-call-statement-windows.md) validates complete
+ordinary call windows and removes the second qualified-call width pass. Qualified
+signed and Boolean forwarding now matches complete artifacts, including exact
+mixed-loan arguments. A native-produced qualified caller executes allocation and
+map mutation through an independent callee and rewinds. Unsupported call tails
+reject without publication instead of silently losing their values. Complete
+compiler composition and the intact nominal runner remain separate work.
 
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with

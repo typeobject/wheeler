@@ -50,10 +50,10 @@ or a proof bound. Native execution and report identities bind this retained coun
 
 The retained source route admits 64 ordered identifier arguments in ordinary
 root and loop calls. Mixed scalars, UTF-8 and byte-view loans, and mutable word,
-byte, region, and map loans retain exact types. Qualified imported initializer
-and void calls pass. Qualified forwarded returns remain outside this source
-profile. Its 256 call rows share 16,384 argument entries per
-column. Argument 65 rejects before argument or artifact publication. The
+byte, region, and map loans retain exact types. Qualified imported initializer,
+void, and forwarded-result calls pass. A forwarded return must be exactly
+`return callee(arguments);`. Unsupported expression tails reject before
+publication. Its 256 call rows share 16,384 argument entries per column. Argument 65 rejects before argument or artifact publication. The
 separate bounded helper compiler still admits at most seven arguments per call.
 Generated inverses still reject argument-bearing calls. These are implementation
 bounds, not language arity rules.

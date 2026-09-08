@@ -83,7 +83,7 @@ final class NativeCompilerRetainedStorageCallExampleTest {
   }
 
   @Test
-  void keepsQualifiedForwardingIndependentOfStorageLoanAdmission() throws Exception {
+  void compilesTheFormerQualifiedForwardingRejectionsByteForByte() throws Exception {
     for (String parameters : List.of("long number", PARAMETERS)) {
       String arguments = parameters.equals(PARAMETERS) ? ARGUMENTS : "number";
       int[] types = parameters.equals(PARAMETERS) ? TYPES : new int[] {1};
@@ -95,7 +95,7 @@ final class NativeCompilerRetainedStorageCallExampleTest {
           + parameters + ") { return number; } }";
       new WheelerCompiler().compileLibraryModuleFiles(
           Map.of("Call.w", root, "Remote.w", dependency), NativeRetainedCallFixture.MODULE);
-      NativeRetainedCallFixture.assertRejected(source, true, types, types, 1, 0);
+      NativeRetainedCallFixture.assertImported(source, "dep.alpha::remote", types, 1);
     }
   }
 
@@ -119,9 +119,16 @@ final class NativeCompilerRetainedStorageCallExampleTest {
 
   @Test
   void executesRegionAllocationAndMapMutationThroughTheNativeCallerAndRewinds() throws Exception {
-    String source = source("long", "return remote(" + ARGUMENTS + ");");
-    Program retained = NativeRetainedCallFixture.assertImported(source, "remote", TYPES, 1);
-    String wrapper = source.substring(0, source.lastIndexOf('}')) + """
+    for (String target : List.of("remote", "dep.alpha::remote")) {
+      executeNativeCaller(target);
+    }
+  }
+
+  private static void executeNativeCaller(String target) throws Exception {
+    String source = source("long", "return " + target + "(" + ARGUMENTS + ");");
+    Program retained = NativeRetainedCallFixture.assertImported(source, target, TYPES, 1);
+    String local = source.replace(target + "(", "remote(");
+    String wrapper = local.substring(0, local.lastIndexOf('}')) + """
         private long remote(borrow mut region arena, borrow mut longmap values,
             long number, boolean flag) {
           bytes scratch = allocateBytes(arena, 1);
