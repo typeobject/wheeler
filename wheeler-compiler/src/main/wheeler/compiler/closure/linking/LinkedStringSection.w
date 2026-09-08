@@ -8,25 +8,47 @@ classical class LinkedStringSection {
 
   private long compareStrings(
     borrow byteview archive,
-    long leftStart,
-    long leftLength,
-    long rightStart,
-    long rightLength
+    borrow mut words starts,
+    borrow mut words lengths,
+    borrow mut words heads,
+    borrow mut words tails,
+    long left,
+    long right
   ) {
+    if (heads[left] < heads[right]) {
+      return -1;
+    }
+
+    if (heads[right] < heads[left]) {
+      return 1;
+    }
+
+    if (tails[left] < tails[right]) {
+      return -1;
+    }
+
+    if (tails[right] < tails[left]) {
+      return 1;
+    }
+
+    long leftStart = starts[left];
+    long leftLength = lengths[left];
+    long rightStart = starts[right];
+    long rightLength = lengths[right];
     long shared = leftLength;
     if (rightLength < shared) {
       shared = rightLength;
     }
 
-    long index = 0;
+    long index = 16;
     while (index < shared) limit 4096 {
-      long left = archive[leftStart + index];
-      long right = archive[rightStart + index];
-      if (left < right) {
+      long leftByte = archive[leftStart + index];
+      long rightByte = archive[rightStart + index];
+      if (leftByte < rightByte) {
         return -1;
       }
 
-      if (right < left) {
+      if (rightByte < leftByte) {
         return 1;
       }
 
@@ -85,40 +107,69 @@ classical class LinkedStringSection {
       assert(0 < stringLength);
       assert(start < archiveBytes + 1);
       assert(stringLength < archiveBytes - start + 1);
-      long stringByte = 0;
-      while (stringByte < stringLength) limit 4096 {
-        long value = archive[start + stringByte];
-        assert(0 < value);
-        assert(value < 128);
-        stringByte += 1;
-      }
-
       string += 1;
     }
 
-    region staging = new region(/* bytes= */ 262144, /* allocations= */ 2);
+    region staging = new region(/* bytes= */ 524288, /* allocations= */ 4);
     words sortedStrings = allocate(staging, MAX_STRINGS);
     words stagedRows = allocate(staging, MAX_STRINGS);
+    words heads = allocate(staging, MAX_STRINGS);
+    words tails = allocate(staging, MAX_STRINGS);
+    // Nonzero ASCII bytes give two exact, zero-padded big-endian prefixes.
+    // Their sign bits stay clear. Equal prefixes still require suffix comparison.
+    string = 0;
+    while (string < stringCount) limit MAX_STRINGS {
+      long prefixStart = stringStarts[string];
+      long prefixLength = stringLengths[string];
+      long head = 0;
+      long tail = 0;
+      long headPlace = 72057594037927936;
+      long tailPlace = 72057594037927936;
+      long stringByte = 0;
+      while (stringByte < prefixLength) limit 4096 {
+        long value = archive[prefixStart + stringByte];
+        assert(0 < value);
+        assert(value < 128);
+        if (stringByte < 8) {
+          head += value * headPlace;
+          headPlace = headPlace / 256;
+        } else {
+          if (stringByte < 16) {
+            tail += value * tailPlace;
+            tailPlace = tailPlace / 256;
+          }
+        }
+
+        stringByte += 1;
+      }
+
+      set(heads, string, head);
+      set(tails, string, tail);
+      string += 1;
+    }
+
     long uniqueCount = 0;
     string = 0;
     while (string < stringCount) limit MAX_STRINGS {
       long low = 0;
       long high = uniqueCount;
       boolean equal = false;
-      long equalId = -1;
       while (low < high) limit MAX_STRINGS {
         long middle = low + (high - low) / 2;
         long selected = sortedStrings[middle];
         long comparison = compareStrings(
           archive,
-          stringStarts[string],
-          stringLengths[string],
-          stringStarts[selected],
-          stringLengths[selected]
+          stringStarts,
+          stringLengths,
+          heads,
+          tails,
+          string,
+          selected
         );
         if (comparison == 0) {
+          // Keep the source row, not the sorted position that later insertions move.
+          set(stagedRows, string, -1 - selected);
           equal = true;
-          equalId = middle;
           low = high;
         } else {
           if (comparison < 0) {
@@ -129,9 +180,7 @@ classical class LinkedStringSection {
         }
       }
 
-      if (equal) {
-        set(stagedRows, string, equalId);
-      } else {
+      if (!equal) {
         long insertion = low;
         long shift = uniqueCount;
         while (insertion < shift) limit MAX_STRINGS {
@@ -146,36 +195,11 @@ classical class LinkedStringSection {
       string += 1;
     }
 
-    string = 0;
-    while (string < stringCount) limit MAX_STRINGS {
-      long mapLow = 0;
-      long mapHigh = uniqueCount;
-      long selectedId = -1;
-      while (mapLow < mapHigh) limit MAX_STRINGS {
-        long mapMiddle = mapLow + (mapHigh - mapLow) / 2;
-        long mapSelected = sortedStrings[mapMiddle];
-        long mapComparison = compareStrings(
-          archive,
-          stringStarts[string],
-          stringLengths[string],
-          stringStarts[mapSelected],
-          stringLengths[mapSelected]
-        );
-        if (mapComparison == 0) {
-          selectedId = mapMiddle;
-          mapLow = mapHigh;
-        } else {
-          if (mapComparison < 0) {
-            mapHigh = mapMiddle;
-          } else {
-            mapLow = mapMiddle + 1;
-          }
-        }
-      }
-
-      assert(-1 < selectedId);
-      set(stagedRows, string, selectedId);
-      string += 1;
+    // Unique source rows receive final IDs. Negative rows still name representatives.
+    long finalId = 0;
+    while (finalId < uniqueCount) limit MAX_STRINGS {
+      set(stagedRows, sortedStrings[finalId], finalId);
+      finalId += 1;
     }
 
     long sectionBytes = 4;
@@ -213,37 +237,21 @@ classical class LinkedStringSection {
 
     string = 0;
     while (string < stringCount) limit MAX_STRINGS {
-      set(finalStringRows, string, stagedRows[string]);
+      long finalRow = stagedRows[string];
+      if (finalRow < 0) {
+        finalRow = stagedRows[-1 - finalRow];
+      }
+
+      set(finalStringRows, string, finalRow);
       string += 1;
     }
 
     assert(cursor == outputStart + sectionBytes);
+    drop(tails);
+    drop(heads);
     drop(stagedRows);
     drop(sortedStrings);
     drop(staging);
     return sectionBytes;
-  }
-
-  /// Emits into the historical fixed-width section buffer.
-  public long emitLinkedStringSection(
-    borrow byteview archive,
-    long archiveBytes,
-    long stringCount,
-    borrow mut words stringStarts,
-    borrow mut words stringLengths,
-    borrow mut words finalStringRows,
-    borrow mut bytes output
-  ) {
-    assert(bufferLength(output) == MAX_STRING_BYTES);
-    return emitLinkedStringSectionAt(
-      archive,
-      archiveBytes,
-      stringCount,
-      stringStarts,
-      stringLengths,
-      finalStringRows,
-      output,
-      /* outputStart= */ 0
-    );
   }
 }

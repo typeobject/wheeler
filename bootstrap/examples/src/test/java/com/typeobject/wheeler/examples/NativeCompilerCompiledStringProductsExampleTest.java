@@ -123,14 +123,15 @@ final class NativeCompilerCompiledStringProductsExampleTest {
               lengths
             );
             stringCount = plan.stringCount;
-            long sectionBytes = emitLinkedStringSection(
+            long sectionBytes = emitLinkedStringSectionAt(
               source,
               bufferLength(source),
               plan.closureStringCount,
               starts,
               lengths,
               finalRows,
-              output
+              output,
+              /* outputStart= */ 0
             );
             published = 1;
             setOutputLength(output, sectionBytes);

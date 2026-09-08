@@ -76,14 +76,15 @@ final class NativeCompilerLinkedStringSectionExampleTest {
             set(lengths, 1, 5);
             set(starts, 2, 9);
             set(lengths, 2, 4);
-            long sectionBytes = emitLinkedStringSection(
+            long sectionBytes = emitLinkedStringSectionAt(
               source,
               bufferLength(source),
               /* stringCount= */ 3,
               starts,
               lengths,
               finalRows,
-              output
+              output,
+              /* outputStart= */ 0
             );
             firstId = finalRows[0];
             secondId = finalRows[1];

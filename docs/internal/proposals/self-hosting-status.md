@@ -150,7 +150,9 @@ The unfinished member-front overlay still has four unreachable physical owners:
 aggregate operand projections, aggregate owner projections, imported
 nominal product resolution, and source aggregate strings. Its intact mixed-member
 runner still rejects in `requireMinimalProgram`. The separate primitive control
-does not replace either gate.
+does not replace either gate. Separate, uncommitted source-data work now calls the
+aggregate string owner, leaving the other three owners unreachable in that
+experiment. Callable-free data artifacts do not supply the missing nominal bodies.
 
 Hosted run [34220715075](https://github.com/typeobject/wheeler/actions/runs/34220715075)
 on `571c5166a` passes all 52 jobs and all sixteen native compiler-package rows.
@@ -159,6 +161,19 @@ audited method-to-build-success upper bounds range from 277.499765 to 675.176708
 seconds. This supplies same-commit package acceptance for the checked nominal
 fragments. It does not cover later register-storage changes, the unfinished
 source-data composition, the member overlay, or whole-compiler self-hosting.
+
+Hosted run [34230344433](https://github.com/typeobject/wheeler/actions/runs/34230344433)
+on `8f1b65f04` passes all 52 jobs and all sixteen native compiler-package rows.
+Each selected method executes under the unchanged twelve-minute deadline. Audited
+method-to-build-success upper bounds range from 286.499954 to 678.999894 seconds.
+This accepts the unchanged-register storage patch on its own commit. It does not
+cover later string-linking changes or the unfinished source-data and member work.
+
+The [WIP-0048](WIP-0048-canonical-native-product-linker.md) string emitter now reuses
+exact spelling prefixes and stable duplicate representatives. It drops the second
+name search and the fixed-width wrapper. Full sections, counted ID maps, rejection
+storage, and small-case rewind pass direct boundary checks. The independent row,
+name-byte, section-byte, and executable limits remain unchanged.
 
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with

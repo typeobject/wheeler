@@ -153,6 +153,54 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
   subset container does not prove complete compiler emission.
 - [ ] The complete physical compiler closure emits without dependency source.
 
+## Counted string names
+
+`emitLinkedStringSectionAt` validates every name byte before sorting or publishing.
+It caches the first sixteen bytes as two exact, zero-padded big-endian words.
+Nonzero ASCII keeps their sign bits clear and places a shorter prefix before its
+extensions. Equal words still require complete suffix and length comparison.
+These are spelling bytes, not hashes.
+
+Duplicate rows retain their original representative's source row. Later sorted
+insertions cannot change that identity. Once ordering is final, each representative
+receives its canonical ID. Duplicates read that ID directly. The second name search
+and the unused fixed-width wrapper are gone. Both former wrapper callers use the
+counted, offset-taking emitter.
+
+The private four-column arena uses 524,288 bytes. Public limits remain 16,384 name
+rows, 4,096 bytes per name, and a 1 MiB string section. A larger output buffer does
+not widen the section limit. Caller rows and bytes change only after complete
+validation and extent measurement.
+
+`NativeCompilerLinkedStringBoundaryExampleTest` compares complete sections, all
+three caller columns, output prefixes and tails, and small-case rewind. Cases
+cross bytes 7/8/9 and 15/16/17, retain differing long suffixes, and deduplicate
+names whose sorted positions move. Later malformed bytes and ranges, short or
+long columns, and first-excess extents reject without publication. Eight restored
+mutants expose lost prefix bytes, skipped suffixes, unstable representatives,
+missing ASCII or dimension checks, early publication, and a widened section cap.
+
+Separate history-free fixtures admit row 16,383 and the exact 1 MiB section, then
+reject its first excess byte with enough caller backing. Large outputs use sparse
+canaries while every byte is compared. These fixtures do not establish simultaneous
+maximum occupancy, retained-history capacity, or maximum-size executable artifacts.
+
+On identical inputs and a 1 GiB heap, the complete 64-name qualified fixture falls
+from 1,245,878 to 917,967 transitions and rewinds fully. The repeated-name 16,384-row
+fixture falls from 6,318,577 to 5,384,699 transitions without history. These counts
+include fixture preparation. They are not tested program steps or evidence of
+source-to-nominal artifact compilation.
+
+The focused gate passes 55 JUnit identities. Three physical identities compare
+111 selected source-module artifacts, 57 retained callable owners, the resulting
+linked closure, malformed transports, and all 451 archive bindings. The parent
+and changed string emitters produce the same complete 600,096-byte container from
+the current retained transport. The independent reader accepts it and its synthetic
+entry runs and rewinds. This is selected-owner linking, not whole self-hosting.
+Current pins remain in tests and locks. The workspace emits 497 artifacts, and the
+locked minimum-state consumer retains its artifact, coverage, seven steps, and
+final state 7.
+
 ## Manifest products
 
 `ModuleManifestProduct` retains the source-local program name and entry, program
