@@ -174,3 +174,4 @@ Each record appears in one catalog. Cross-cutting work links its other owners fr
 | [WIP-0502](../WIP-0502-sixty-four-argument-retained-source-calls.md) | Draft | Sixty-four-argument retained source calls |
 | [WIP-0503](../WIP-0503-retained-region-and-map-call-loans.md) | Draft | Retained region and map call loans |
 | [WIP-0504](../WIP-0504-complete-retained-call-statement-windows.md) | Draft | Complete retained call statement windows |
+| [WIP-0505](../WIP-0505-nominal-carrier-frame-coordinates.md) | Draft | Nominal carrier frame coordinates |

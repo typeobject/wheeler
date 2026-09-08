@@ -95,6 +95,15 @@ mixed-loan arguments. A native-produced qualified caller executes allocation and
 map mutation through an independent callee and rewinds. Unsupported call tails
 reject without publication instead of silently losing their values. Complete
 compiler composition and the intact nominal runner remain separate work.
+Hosted run 34173276816 on `ae690860a` passes 51 jobs, but native shard 15 again
+exceeds the unchanged twelve-minute deadline. It is not package acceptance.
+
+[WIP-0505](WIP-0505-nominal-carrier-frame-coordinates.md) repairs nominal carrier
+frame coordinates in final type linking. Value-returning functions have a
+serialized result-type prefix, not an extra frame local. Complete type tables
+and reconstructed artifacts preserve that distinction. Independent typed callers
+execute the restored callees and rewind. This does not supply complete nominal
+source artifacts or repair the intact mixed-member runner.
 
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with

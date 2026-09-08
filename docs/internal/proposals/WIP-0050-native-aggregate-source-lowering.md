@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, aggregate, ownership, bytecode, and bootstrap maintainers |
 | Created | 2026-08-09 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-07 |
 | Area | Self-hosting, aggregate lowering, ownership, relocation, compiler products |
 | Depends on | WIP-0013, WIP-0028, WIP-0046, WIP-0047, WIP-0049 |
 | Supersedes | None |
 | Superseded by | None |
+| Follow-up | WIP-0505 |
 
 ## Summary
 
@@ -133,6 +134,11 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [x] `ImportedNominalStubs.w` emits collision-checked record and variant declarations in target-row order and publishes owner-scoped temporary source-code projections. Input arrival order cannot change names, descriptor order, or projections.
 - [x] `ImportedNominalReferences.w` rewrites sorted resolved type ranges after imported-call rewriting, accounts for every prior call-name width change, and inserts declarations before their first use. Its bounded-core projection uses nonretained signed carriers for primitive body compilation. An overlap, stale transformed range, kind mismatch, duplicate namespace, or capacity failure publishes nothing.
 - [x] `InstructionOwnershipProducts.w` derives instruction-ordered events from primitive and supplemental artifacts through validated composition selectors. Supplemental aggregate creation can enter callable body identity without reading the primitive artifact at the same offset. `AggregateOwnerProjections.w` maps create, move, loan, release, and drop event locals to unique aggregate and member rows. A move requires identical source and destination projections, and failure leaves caller rows untouched.
+[WIP-0505](WIP-0505-nominal-carrier-frame-coordinates.md) repairs the final
+conversion from frame-local carrier coordinates to serialized type positions.
+The optional result word is not local zero. Original carrier evidence below did
+not cover value-returning functions or the first nonexistent frame local.
+
 - [x] `LinkedLocalTypes.w` consumes temporary owner, source-code, and aggregate-row projections before final descriptor emission. `ImportedNominalCarrierProjections.w` adds exact module, local-function, and local-type coordinates for nonretained signed carriers. The linker validates every coordinate and signed source slot before replacing it with the target record or variant descriptor. Missing, duplicate, or kind-inconsistent projections fail before publication.
 - [x] `AggregateOperandProjections.w` maps temporary owner, kind, and type IDs to aggregate rows and stable product identities. Duplicate projections leave relocation rows and identities untouched.
 - [x] Counted aggregate archival accepts exact generated suffix counts, validates every retained case and member range before mutation, and excludes the generated aggregate, case, and member suffixes. Native evidence covers successful prefix retention and failure before publication.

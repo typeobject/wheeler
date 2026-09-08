@@ -5,11 +5,12 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, bootstrap, and conformance maintainers |
 | Created | 2026-08-08 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-07 |
 | Area | Self-hosting, canonical linking, bytecode emission, bootstrap |
 | Depends on | WIP-0038, WIP-0041, WIP-0044, WIP-0045, WIP-0046, WIP-0047 |
 | Supersedes | Final artifact emission work in WIP-0047 |
 | Superseded by | None |
+| Follow-up | WIP-0505 |
 
 ## Summary
 
@@ -115,6 +116,7 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `AggregateDescriptorRows.w` assigns per-kind final IDs in closure order and resolves stable module identity, kind, and source-type triples. Duplicate or missing products publish nothing.
 - [x] `LinkedLocalTypes.w` emits exact closure function type windows and rewrites nominal codes through owner-scoped final descriptor rows.
 - [x] `LinkedFunctionSection.w` emits exact function descriptors and final local-type rows after code and type extent validation.
+- [x] [WIP-0505](WIP-0505-nominal-carrier-frame-coordinates.md) separates nominal carrier frame locals from serialized result-type prefixes. Complete type windows and reconstructed artifacts match independent oracles. Typed callees execute and rewind. This repairs local-type linking, not the missing source-to-artifact composition.
 - [x] `LinkedStringSection.w` sorts and deduplicates counted ASCII bootstrap names, emits canonical bytes, and publishes every source-to-final ID.
 - [x] `CompiledStringProducts.w` validates source-local string directories, sorted ASCII names, exact extents, removes exact verifier-stub suffixes, and appends counted artifact ranges for linked emission.
 - [x] `CompiledGlobalProducts.w` appends source-local global rows with split 64-bit initial values. `LinkedAggregateSections.w` emits final globals, records, arrays, slices, variants, cases, and fields. Descriptor-compatible source products and copied source-string products feed the same emitter without a temporary aggregate artifact.

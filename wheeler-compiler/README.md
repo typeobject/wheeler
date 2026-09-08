@@ -85,6 +85,10 @@ Callable plans join direct and loop instruction windows in source order and
 publish matching local-type windows. Aggregate owners retain nominal identities,
 resolve constructors and projections, and splice aggregate instructions into
 primitive body products. Temporary scalar carriers are not final nominal types.
+Their frame-local coordinates exclude the optional serialized result-type word.
+The final type linker preserves that result prefix and rejects carriers outside
+the actual frame. Type-linker artifact and execution checks do not assemble the
+complete nominal source compiler.
 
 Call matching preserves local shadowing and rejects ambiguous imports. Qualified
 calls restrict matching to the written dependency. Parameter types, loan modes,

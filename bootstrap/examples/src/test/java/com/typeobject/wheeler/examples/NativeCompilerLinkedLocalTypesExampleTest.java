@@ -111,10 +111,12 @@ final class NativeCompilerLinkedLocalTypesExampleTest {
             set(artifactLengths, 0, bufferLength(source));
             set(functions, 0, 1);
             set(functions, 12288, 0);
+            set(functions, 36864, 1);
             set(functions, 40960, 0);
             set(functions, 45056, 1);
             set(functions, 1, 3);
             set(functions, 12289, 0);
+            set(functions, 36865, 1);
             set(functions, 40961, 4);
             set(functions, 45057, 1);
             set(aggregates, 0, 1);

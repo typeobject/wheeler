@@ -136,11 +136,17 @@ classical class LinkedLocalTypes {
     return tag + finalDescriptorRows[selected];
   }
 
+  private long resultTypeCount(long flags) {
+    assert(-1 < flags);
+    assert(flags < 16);
+    return flags / 4 % 2;
+  }
+
   private long linkedCarrierTypeCode(
     long sourceCode,
     long moduleOwner,
     long localFunction,
-    long localType,
+    long frameLocal,
     long aggregateCount,
     borrow mut words closureAggregateRows,
     borrow mut words finalDescriptorRows,
@@ -154,7 +160,7 @@ classical class LinkedLocalTypes {
     while (projection < carrierProjectionCount) limit MAX_CARRIER_PROJECTIONS {
       if (carrierProjectionRows[projection] == moduleOwner) {
         if (carrierProjectionRows[16384 + projection] == localFunction) {
-          if (carrierProjectionRows[32768 + projection] == localType) {
+          if (carrierProjectionRows[32768 + projection] == frameLocal) {
             assert(selected == -1);
             selected = carrierProjectionRows[49152 + projection];
           }
@@ -277,6 +283,11 @@ classical class LinkedLocalTypes {
       long artifactRank = closureFunctionRows[12288 + function];
       long typeStart = closureFunctionRows[40960 + function];
       long functionTypeCount = closureFunctionRows[45056 + function];
+      long localCount = closureFunctionRows[36864 + function];
+      long resultCount = resultTypeCount(closureFunctionRows[8192 + function]);
+      assert(-1 < localCount);
+      assert(localCount < 257);
+      assert(functionTypeCount == localCount + resultCount);
       assert(-1 < owner);
       assert(owner < MAX_MODULES);
       assert(-1 < artifactRank);
@@ -297,7 +308,7 @@ classical class LinkedLocalTypes {
           sourceCode,
           owner,
           closureFunctionRows[4096 + function],
-          localType,
+          localType - resultCount,
           aggregateCount,
           closureAggregateRows,
           finalDescriptorRows,
@@ -324,14 +335,18 @@ classical class LinkedLocalTypes {
       while (carrierCandidate < functionCount) limit MAX_CLOSURE_FUNCTIONS {
         if (closureFunctionRows[carrierCandidate] == selectedCarrierOwner) {
           if (closureFunctionRows[4096 + carrierCandidate] == selectedCarrierFunction) {
-            long carrierTypeCount = closureFunctionRows[45056 + carrierCandidate];
-            if (selectedCarrierLocal < carrierTypeCount) {
+            long carrierLocalCount = closureFunctionRows[36864 + carrierCandidate];
+            if (selectedCarrierLocal < carrierLocalCount) {
               long carrierArtifact = closureFunctionRows[12288 + carrierCandidate];
               long carrierTypeStart = closureFunctionRows[40960 + carrierCandidate];
+              long carrierResultCount = resultTypeCount(
+                closureFunctionRows[8192 + carrierCandidate]
+              );
+              long carrierType = selectedCarrierLocal + carrierResultCount;
               assert(
                 readUnsigned(
                   archive,
-                  artifactStarts[carrierArtifact] + carrierTypeStart + selectedCarrierLocal * 4,
+                  artifactStarts[carrierArtifact] + carrierTypeStart + carrierType * 4,
                   4
                 ) == 1
               );
@@ -354,6 +369,7 @@ classical class LinkedLocalTypes {
       long selectedArtifact = closureFunctionRows[12288 + function];
       long selectedTypeStart = closureFunctionRows[40960 + function];
       long selectedTypeCount = closureFunctionRows[45056 + function];
+      long selectedResultCount = resultTypeCount(closureFunctionRows[8192 + function]);
       long selectedType = 0;
       while (selectedType < selectedTypeCount) limit 257 {
         long selectedCode = readUnsigned(
@@ -368,7 +384,7 @@ classical class LinkedLocalTypes {
             selectedCode,
             selectedOwner,
             closureFunctionRows[4096 + function],
-            selectedType,
+            selectedType - selectedResultCount,
             aggregateCount,
             closureAggregateRows,
             finalDescriptorRows,

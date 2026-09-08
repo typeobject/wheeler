@@ -97,6 +97,11 @@ Direct statements and loop limits resolve constants against packed name bytes.
 They do not search raw source for a representative use. Unused names cannot alias
 the module header, and invalid matching products cannot hide behind valid ones.
 
+Nominal carrier coordinates name actual frame locals. They do not count the
+optional serialized function result type. Final type linking preserves that
+result and rejects carriers outside the frame. Complete type-linker artifacts
+and typed-call execution remain distinct from nominal source compilation.
+
 Source keywords, Boolean literals, primitive types, intrinsics, and native test
 metadata now use exact word codes instead of token hashes. The fixed vocabulary
 contains 58 spellings and does not limit identifier length. This corrects lexical
