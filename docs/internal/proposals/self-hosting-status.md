@@ -131,6 +131,14 @@ binding windows and output bytes are checked before publication. This removes
 one artifact dependency. It does not supply the missing nominal bodies or their
 complete source-to-final composition.
 
+Hosted run [34191525605](https://github.com/typeobject/wheeler/actions/runs/34191525605)
+on `7aae570bf` passes all 52 jobs, including all sixteen native compiler-package
+rows. Every selected method executes under the unchanged twelve-minute deadline.
+This supplies same-commit package acceptance for the committed manifest-product
+and container-publication changes. It does not cover the member-front overlay,
+complete physical source-to-artifact compilation, or stage equality. The later
+passing shard 6 does not explain its predecessor's timeout.
+
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.
