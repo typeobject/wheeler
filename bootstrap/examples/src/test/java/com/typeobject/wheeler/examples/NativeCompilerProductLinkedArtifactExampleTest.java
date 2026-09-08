@@ -26,7 +26,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
     new BytecodeReader().read(machine.hostOutput());
   }
 
-  private static byte[] artifact() {
+  static byte[] artifact() {
     String dependency = """
         module fixture.product_linked_helper;
 

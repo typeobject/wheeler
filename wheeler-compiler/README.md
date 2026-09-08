@@ -96,9 +96,11 @@ results, effects, and public visibility must agree. Imported relocations resolve
 before code mutation. Verifier stubs stay outside retained callable products.
 
 Product owners stage private work and publish measured rows and bytes, not entire
-capacity-sized arenas. Canonical emission checks code, types, section extents,
-proofs, and identity before caller-visible artifact publication. These checks do
-not establish native lowering for every compiler body.
+capacity-sized arenas. The final semantic publisher measures the complete aligned
+container before allocating artifact storage. It verifies private bytes before
+copying them to caller output. Invalid code, types, or proofs leave every caller
+byte unchanged. Raw container framing alone is not semantic verification. These
+checks do not establish native lowering for every compiler body.
 
 ### Retained calls
 

@@ -113,6 +113,15 @@ call-window, and carrier changes. It does not cover the unfinished member-front
 overlay, complete compiler composition, or a fixed point. Shard 15 passes this
 run, but that does not explain the two predecessor timeouts.
 
+The final semantic container publisher now checks capacity before artifact
+allocation, verifies private bytes, and copies only the measured artifact extent.
+Complete-buffer failures cover invalid code, entry, types, and proofs. Accepted
+artifacts preserve unused caller bytes, execute, and rewind. The 16 MiB extent
+check remains separate from maximum-size semantic artifact acceptance.
+[WIP-0048](WIP-0048-canonical-native-product-linker.md#container-publication-regression)
+owns this repair. It does not close the source-to-nominal join in
+[WIP-0054](WIP-0054-native-source-product-artifact-integration.md).
+
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.

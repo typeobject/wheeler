@@ -102,6 +102,12 @@ optional serialized function result type. Final type linking preserves that
 result and rejects carriers outside the frame. Complete type-linker artifacts
 and typed-call execution remain distinct from nominal source compilation.
 
+The final product publisher measures section extents before allocating artifact
+storage. It verifies the complete private container before changing caller
+output. Invalid code, types, entry, or proofs leave every caller byte unchanged.
+Accepted publication preserves the unused output tail. Framing checks alone do
+not establish executable validity.
+
 Source keywords, Boolean literals, primitive types, intrinsics, and native test
 metadata now use exact word codes instead of token hashes. The fixed vocabulary
 contains 58 spellings and does not limit identifier length. This corrects lexical

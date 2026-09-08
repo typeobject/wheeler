@@ -189,7 +189,7 @@ classical class CanonicalProductEmitter {
     return new CanonicalProductSections(cursor, sectionCount);
   }
 
-  /// Assembles and semantically verifies a section archive before length publication.
+  /// Assembles and semantically verifies private bytes before changing caller output.
   public long publishCanonicalProductContainer(
     borrow byteview sectionArchive,
     CanonicalProductSections sections,
@@ -198,16 +198,36 @@ classical class CanonicalProductEmitter {
     borrow mut words sectionLengths,
     borrow mut bytes output
   ) {
-    long artifactBytes = emitCanonicalContainer(
+    long artifactBytes = canonicalContainerLength(
+      sectionArchive,
+      sections.length,
+      sections.sectionCount,
+      sectionTypes,
+      sectionStarts,
+      sectionLengths
+    );
+    assert(artifactBytes < bufferLength(output) + 1);
+    region staging = new region(/* bytes= */ CANONICAL_CONTAINER_BYTE_LIMIT, /* allocations= */ 1);
+    bytes stagedArtifact = allocateBytes(staging, artifactBytes);
+    long emittedBytes = emitCanonicalContainer(
       sectionArchive,
       sections.length,
       sections.sectionCount,
       sectionTypes,
       sectionStarts,
       sectionLengths,
-      output
+      stagedArtifact
     );
-    assert(verifyArtifact(output, artifactBytes) == 1);
+    assert(emittedBytes == artifactBytes);
+    assert(verifyArtifact(stagedArtifact, artifactBytes) == 1);
+    long outputByte = 0;
+    while (outputByte < artifactBytes) limit CANONICAL_CONTAINER_BYTE_LIMIT {
+      setByte(output, outputByte, stagedArtifact[outputByte]);
+      outputByte += 1;
+    }
+
+    drop(stagedArtifact);
+    drop(staging);
     return artifactBytes;
   }
 }

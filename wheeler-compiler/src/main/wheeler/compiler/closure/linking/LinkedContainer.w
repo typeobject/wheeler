@@ -6,7 +6,8 @@ import wheeler.core.encoding.binary;
 
 classical class LinkedContainer {
   private const long DIRECTORY_ROWS = 64;
-  private const long MAX_ARTIFACT_BYTES = 16777216;
+  /// Bounds the complete aligned container, independently of backing-buffer capacity.
+  public const long CANONICAL_CONTAINER_BYTE_LIMIT = 16777216;
   private const long MAX_SECTIONS = 10;
 
   private void writeUnsigned(borrow mut bytes output, long cursor, long width, long value) {
@@ -24,7 +25,7 @@ classical class LinkedContainer {
 
   private long align8(long value) {
     assert(-1 < value);
-    assert(value < MAX_ARTIFACT_BYTES + 1);
+    assert(value < CANONICAL_CONTAINER_BYTE_LIMIT + 1);
     long remainder = value % 8;
     if (remainder == 0) {
       return value;
@@ -164,15 +165,14 @@ classical class LinkedContainer {
     }
   }
 
-  /// Copies all sections only after validating every source range and final extent.
-  public long emitCanonicalContainer(
+  /// Measures the aligned container after validating every section and complete byte extent.
+  public long canonicalContainerLength(
     borrow byteview sections,
     long sectionBytes,
     long sectionCount,
     borrow mut words sectionTypes,
     borrow mut words sectionStarts,
-    borrow mut words sectionLengths,
-    borrow mut bytes output
+    borrow mut words sectionLengths
   ) {
     validateSectionInputs(
       sections,
@@ -186,17 +186,38 @@ classical class LinkedContainer {
     long section = 0;
     while (section < sectionCount) limit MAX_SECTIONS {
       cursor = align8(cursor);
-      assert(sectionLengths[section] < MAX_ARTIFACT_BYTES - cursor + 1);
+      assert(sectionLengths[section] < CANONICAL_CONTAINER_BYTE_LIMIT - cursor + 1);
       cursor += sectionLengths[section];
       section += 1;
     }
 
     long artifactLength = align8(cursor);
-    assert(artifactLength < MAX_ARTIFACT_BYTES + 1);
+    assert(artifactLength < CANONICAL_CONTAINER_BYTE_LIMIT + 1);
+    return artifactLength;
+  }
+
+  /// Copies all sections only after validating every source range and final extent.
+  public long emitCanonicalContainer(
+    borrow byteview sections,
+    long sectionBytes,
+    long sectionCount,
+    borrow mut words sectionTypes,
+    borrow mut words sectionStarts,
+    borrow mut words sectionLengths,
+    borrow mut bytes output
+  ) {
+    long artifactLength = canonicalContainerLength(
+      sections,
+      sectionBytes,
+      sectionCount,
+      sectionTypes,
+      sectionStarts,
+      sectionLengths
+    );
     assert(artifactLength < bufferLength(output) + 1);
 
     long outputByte = 0;
-    while (outputByte < artifactLength) limit MAX_ARTIFACT_BYTES {
+    while (outputByte < artifactLength) limit CANONICAL_CONTAINER_BYTE_LIMIT {
       setByte(output, outputByte, 0);
       outputByte += 1;
     }
@@ -217,8 +238,8 @@ classical class LinkedContainer {
     writeUnsigned(output, 28, 4, 32);
     writeUnsigned(output, 32, 8, 40);
 
-    cursor = align8(40 + sectionCount * 32);
-    section = 0;
+    long cursor = align8(40 + sectionCount * 32);
+    long section = 0;
     while (section < sectionCount) limit MAX_SECTIONS {
       cursor = align8(cursor);
       long directory = 40 + section * 32;
@@ -229,7 +250,7 @@ classical class LinkedContainer {
       writeUnsigned(output, directory + 24, 4, 8);
       writeUnsigned(output, directory + 28, 4, 0);
       long sectionByte = 0;
-      while (sectionByte < sectionLengths[section]) limit MAX_ARTIFACT_BYTES {
+      while (sectionByte < sectionLengths[section]) limit CANONICAL_CONTAINER_BYTE_LIMIT {
         setByte(output, cursor + sectionByte, sections[sectionStarts[section] + sectionByte]);
         sectionByte += 1;
       }

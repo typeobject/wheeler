@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, bootstrap, and conformance maintainers |
 | Created | 2026-08-08 |
-| Updated | 2026-09-07 |
+| Updated | 2026-09-08 |
 | Area | Self-hosting, canonical linking, bytecode emission, bootstrap |
 | Depends on | WIP-0038, WIP-0041, WIP-0044, WIP-0045, WIP-0046, WIP-0047 |
 | Supersedes | Final artifact emission work in WIP-0047 |
@@ -68,6 +68,17 @@ The linker shall:
 
 Validation and planning precede the first output mutation. Final verification precedes visibility.
 
+`LinkedContainer.w::canonicalContainerLength` owns complete aligned extent
+measurement. It validates section windows without allocation or mutation.
+`CanonicalProductEmitter.w::publishCanonicalProductContainer` checks caller
+capacity, allocates one private byte buffer at that measured length, assembles
+and semantically verifies it, then copies only the artifact extent. The region
+retains the existing 16 MiB ceiling. Unused caller bytes stay unchanged.
+
+The raw container assembler checks framing, not executable semantics. Its output
+is private input to the semantic publisher. Rejection by the final verifier must
+not leave a header, directory, code byte, or padding byte in caller output.
+
 ## Bounds
 
 The first implementation admits:
@@ -124,7 +135,7 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `LinkedManifestSection.w` resolves the root program name and rebases its entry through counted module function windows.
 - [x] `LinkedContainer.w` emits format 1.0 headers, sorted directories, eight-byte alignment, zero padding, and bounded optional section types.
 - [x] The assembled container verifies its header, directory, extents, and padding before the caller publishes output length or identity.
-- [x] `CanonicalProductEmitter.w` emits final semantic sections, returns an immutable section plan, and publishes a verified container in a separate lifetime after callers may drop large source and product windows.
+- [x] `CanonicalProductEmitter.w` emits final semantic sections, returns an immutable section plan, and publishes a verified container in a separate lifetime after callers may drop large source and product windows. Artifact storage uses the measured extent and remains private until semantic verification passes.
 - [x] The complete product-linked fixture uses that production emitter, passes `verifyArtifact` before output-length publication, and then passes the independent stage-0 reader.
 - [x] A local-call, global, and aggregate fixture flows through counted strings, globals, layouts, functions, types, code, manifest, and container emission and matches stage 0 byte for byte.
 - [x] `CompiledProofProducts.w` rebases counted certificate names and subjects. `LinkedProofSection.w` emits canonical split arguments.
@@ -140,6 +151,42 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
   [status map](self-hosting-status.md) for the current evidence inventory. A valid
   subset container does not prove complete compiler emission.
 - [ ] The complete physical compiler closure emits without dependency source.
+
+## Container publication regression
+
+On `9094e2dae`, invalid instruction bytes trap after the semantic publisher has
+already overwritten caller output. The complete-buffer regression finds `87`
+(the first magic byte) where the caller left `23`. A zero publication flag does
+not make those writes private.
+
+`NativeCompilerCanonicalPublicationExampleTest` checks every output byte and all
+192 directory cells. Invalid code, entry, local types, and proof subjects reject
+without publication. Bad ranges, counts, and short capacity reject before artifact
+allocation. Accepted scalar and nominal/reversible artifacts match independent
+bytes, execute, and rewind. Reused output tails remain unchanged. Accepted and
+rejected publisher executions also rewind completely.
+
+`NativeCompilerContainerLengthExampleTest` measures the last aligned byte under
+16 MiB and rejects the first excess byte without allocating or changing inputs.
+It reuses section ranges to isolate extent arithmetic. It does not claim a
+maximum-size semantic artifact. Five restored mutants expose omitted semantic
+verification, an early interior write, late capacity checking, capacity-sized
+allocation, and a widened container limit.
+
+The restored patch passes 50 distinct isolated JUnit identities and nine
+integration-only identities, 59 total. Physical linker and archive checks pass
+in 8m11s, following 29 imported entry targets and binding all 451 archive modules.
+The compiler archive is 3,381,221 bytes with SHA-256
+`4bb57f10ef7680ed6746219eeccc87e1ebb2003dd1333230fbb24a6f1bd9fbc3`.
+Graph validation takes 88,823,335 transitions under the unchanged 89-million
+ceiling. All 713 canonical package input hashes match the restored files.
+
+The fresh workspace emits 497 artifacts. Canonical locks, source and formatter
+gates, proposal and link checks, the five published main-root API checks, and
+site rendering pass. The locked minimum-state consumer retains its 568-byte
+artifact, 772-byte coverage report, seven tested steps, and final state 7.
+These are local checks. The unfinished member-front overlay's intact nominal
+runner still fails in `compiler_core::requireMinimalProgram`.
 
 ## Rejected alternatives
 
