@@ -70,7 +70,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
 
   @Test
   void rejectsMultipleCallConditionalChildrenBeforePublication() throws Exception {
-    assertRejected(callConditionalSource("return false;\n      return true;"), 1, 2, 0);
+    assertRejected(callConditionalSource("return false;\n      return true;"), 1, 2, 0, 2);
   }
 
   @Test
@@ -85,7 +85,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     String source = importedCallConditionalSource("return 9223372036854775808;");
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driver(bodyStart, bodyLength, 1, 2, 0, true, 2, 2);
+    Program driver = driver(bodyStart, bodyLength, 1, 2, 0, true, 2, 2, 1);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -116,7 +116,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
     SymbolProduct result = new SymbolProduct("RESULT", 1, 4, 1);
     Program driver = driverWithSymbol(
-        bodyStart, bodyLength, 1, 2, 0, true, 2, 2, 0, result);
+        bodyStart, bodyLength, 1, 2, 0, true, 2, 2, 0, result, 1);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -135,7 +135,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
     SymbolProduct result = new SymbolProduct("RESULT", 2, 1, 1);
     Program driver = driverWithSymbol(
-        bodyStart, bodyLength, 1, 2, 0, false, 1, 1, 0, result);
+        bodyStart, bodyLength, 1, 2, 0, false, 1, 1, 0, result, 2);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -181,7 +181,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     String source = importedCallConditionalSource("return " + expected + ";");
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driver(bodyStart, bodyLength, 1, 2, 0, true, 2, 2);
+    Program driver = driver(bodyStart, bodyLength, 1, 2, 0, true, 2, 2, 1);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -226,7 +226,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
         """;
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driverWithEffect(bodyStart, bodyLength, 1, 2, 1, false, 1, 1, 2);
+    Program driver = driverWithEffect(bodyStart, bodyLength, 1, 2, 1, false, 1, 1, 2, 2);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -252,7 +252,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
         """;
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driverWithEffect(bodyStart, bodyLength, 0, 0, 0, false, 1, 1, 2);
+    Program driver = driverWithEffect(bodyStart, bodyLength, 0, 0, 0, false, 1, 1, 2, 0);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -280,7 +280,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
         """;
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driverWithEffect(bodyStart, bodyLength, 0, 0, 0, true, 0, 0, 2);
+    Program driver = driverWithEffect(bodyStart, bodyLength, 0, 0, 0, true, 0, 0, 2, 0);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -306,7 +306,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
         "\n\n  theorem recurseInverse proves inverse(recurse);\n}");
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driverWithEffect(bodyStart, bodyLength, 1, 1, 0, false, 1, 1, 2);
+    Program driver = driverWithEffect(bodyStart, bodyLength, 1, 1, 0, false, 1, 1, 2, 1);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -325,7 +325,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             "long first = remote(value);\n    long result = remote(first);");
     int bodyStart = source.indexOf("{", source.indexOf("caller("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driver(bodyStart, bodyLength, 1, 1, 0, true);
+    Program driver = driver(bodyStart, bodyLength, 1, 1, 0, true, 1);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -341,7 +341,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
         .replace("public long recurse", "public long caller");
     int bodyStart = source.indexOf("{", source.indexOf("caller("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driver(bodyStart, bodyLength, 1, 1, 0, true);
+    Program driver = driver(bodyStart, bodyLength, 1, 1, 0, true, 1);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -463,7 +463,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
         "long nested = recurse(missing);\n      index += 1;")
         .replace("long result = recurse(value);\n    return result;", "return value;");
 
-    assertRejected(malformed, 1, 1, 0);
+    assertRejected(malformed, 1, 1, 0, 1);
   }
 
   @Test
@@ -482,7 +482,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             + "      }")
         .replace("long result = recurse(value);\n    return result;", "return value;");
 
-    assertRejected(tooDeep, 1, 1, 0);
+    assertRejected(tooDeep, 1, 1, 0, 1);
   }
 
   @Test
@@ -533,7 +533,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
         }
         """;
 
-    assertRejected(source, 2, 10, 1);
+    assertRejected(source, 2, 10, 1, 2);
   }
 
   @Test
@@ -592,6 +592,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
         0,
         true,
         parameterType,
+        resultType,
         resultType);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
@@ -606,10 +607,12 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
       String source,
       int parameterCount,
       int firstType,
-      int secondType) throws Exception {
+      int secondType,
+      int resultType) throws Exception {
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driver(bodyStart, bodyLength, parameterCount, firstType, secondType);
+    Program driver = driver(
+        bodyStart, bodyLength, parameterCount, firstType, secondType, resultType);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -626,7 +629,13 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
       int secondType) throws Exception {
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driver(bodyStart, bodyLength, parameterCount, firstType, secondType);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("StructuredCall.w", source), MODULE);
+    var callable = expected.functions().stream()
+        .filter(function -> function.name().equals(MODULE + "::recurse")).findFirst().orElseThrow();
+    int resultType = callable.returnsValue() ? callable.resultType().code() : 0;
+    Program driver = driver(
+        bodyStart, bodyLength, parameterCount, firstType, secondType, resultType);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -644,8 +653,6 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
           exception);
     }
 
-    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("StructuredCall.w", source), MODULE);
     byte[] expectedBytes = new BytecodeWriter().write(expected);
     assertEquals(1, machine.global("valid"));
     assertEquals(expectedBytes.length, machine.global("artifactLength"));
@@ -705,7 +712,8 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
     Program driver = driverWithEffect(
-        bodyStart, bodyLength, parameterCount, parameterType, 1, false, 1, 1, 2);
+        bodyStart, bodyLength, parameterCount, parameterType, 1, false, 1, 1, 2,
+        returnType.equals("boolean") ? 2 : 1);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 

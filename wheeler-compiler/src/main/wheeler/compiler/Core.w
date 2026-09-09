@@ -33,7 +33,6 @@ import wheeler.compiler.closure.resolved_loop_products;
 import wheeler.compiler.closure.source_call_argument_products;
 import wheeler.compiler.closure.source_call_instruction_products;
 import wheeler.compiler.closure.source_call_layout_products;
-import wheeler.compiler.closure.source_callable_result_products;
 import wheeler.compiler.closure.source_callable_type_products;
 import wheeler.compiler.closure.source_loop_products;
 import wheeler.compiler.closure.source_module_call_products;

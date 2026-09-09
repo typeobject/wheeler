@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, linker, and bootstrap maintainers |
 | Created | 2026-08-13 |
-| Updated | 2026-09-08 |
+| Updated | 2026-09-09 |
 | Area | Self-hosting compiler, source products, artifact emission, bootstrap closure |
 | Depends on | WIP-0045, WIP-0046, WIP-0047, WIP-0048, WIP-0049, WIP-0050, WIP-0051, WIP-0052, WIP-0055, WIP-0056, WIP-0057, WIP-0067 |
 | Supersedes | WIP-0052 physical-closure adoption tasks |
@@ -49,6 +49,37 @@ The existing aggregate fixture also uses direct variant-field syntax rejected by
 stage 0. It tests those bounded products, not full source-profile parity. Keep
 that distinction when adding independent accepted-source fixtures. Do not replace
 the intact mixed-member runner case with a primitive control or a projected body.
+
+### Closed result types
+
+The structured compiler consumes local-order result products rather than
+rescanning source signatures. The archive adapter copies the selected global
+callable rows into a 64-word result table. Calls, direct statements, return
+planning, frame composition, and artifact emission use those types. A zero result
+means declared `void`, not permission to infer a value result from the body.
+Direct products may still infer results for their separate standalone API, but
+composition rejects any change to the closed signature before publication.
+
+`SourceCallableResultProducts.w`, its backward signature walk, and its scanner
+arena are deleted. The archive adapter adds 512 bytes for retained local results.
+The retired pass allocated 98,832 bytes across four buffers and rescanned the
+complete source. No parser fallback or compatibility overload replaces it.
+
+`NativeCompilerRetainedResultExampleTest` first demonstrated that changing a
+closed signed result to void or Boolean still published a signed artifact. Both
+cases now reject. Positive tests compare complete artifacts, SHA-256 identities,
+caller input and metadata, and all output tails. They cover each admitted result
+kind and the last global callable and parameter rows. Direct preflight checks
+short and excess backing, the last consumed result, and callable-count excess
+without allocating compiler scratch. These are separate boundary fixtures, not
+maximum simultaneous artifact occupancy.
+
+One case retains and rewinds compilation and cleanup after discarding preparation
+history. Other archive cases are history-free. Each synthetic library entry also
+executes and rewinds independently. That entry check does not execute the authored
+helper. Existing byte, comparison, call, reversible, storage-loan, and CoreParsing
+fixtures check the migrated composition. Nominal results and the complete driver
+join remain open.
 
 ## Inputs and ownership
 

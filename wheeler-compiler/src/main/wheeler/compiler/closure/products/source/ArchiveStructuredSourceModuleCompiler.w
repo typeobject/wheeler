@@ -393,7 +393,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     );
     assert(copiedSourceLength == sourceLength);
     utf8 source = freezeUtf8(sourceBytes);
-    region metadata = new region(/* bytes= */ 1021440, /* allocations= */ 16);
+    region metadata = new region(/* bytes= */ 1021952, /* allocations= */ 17);
     words symbolOwners = allocate(metadata, /* length= */ 16384);
     words symbolStarts = allocate(metadata, /* length= */ 16384);
     words symbolLengths = allocate(metadata, /* length= */ 16384);
@@ -402,6 +402,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     words symbolResolved = allocate(metadata, /* length= */ 16384);
     words signatureTypes = allocate(metadata, /* length= */ 12288);
     words localParameterCounts = allocate(metadata, /* length= */ 64);
+    words localResultTypes = allocate(metadata, /* length= */ 64);
     bytes strings = allocateBytes(metadata, /* length= */ 32768);
     words stringStarts = allocate(metadata, /* length= */ 256);
     words stringLengths = allocate(metadata, /* length= */ 256);
@@ -447,6 +448,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
       long localResultType = callableResultTypes[sourceCallable];
       assert(-1 < localResultType);
       assert(localResultType < 3);
+      set(localResultTypes, callable, localResultType);
       set(localParameterCounts, callable, ownedParameters);
       long firstParameter = callableFirstParameters[sourceCallable];
       long parameter = 0;
@@ -554,6 +556,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
       signatureTypeCount,
       signatureTypes,
       localParameterCounts,
+      localResultTypes,
       strings,
       stringCursor,
       callableCount + 2,
@@ -575,6 +578,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     drop(stringLengths);
     drop(stringStarts);
     drop(strings);
+    drop(localResultTypes);
     drop(localParameterCounts);
     drop(signatureTypes);
     drop(symbolResolved);

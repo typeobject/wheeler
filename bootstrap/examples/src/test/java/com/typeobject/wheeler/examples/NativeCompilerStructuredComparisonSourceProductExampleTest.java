@@ -326,7 +326,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
                     "    return length;\n",
                     "    return result == length;\n");
 
-    assertNoArtifact(booleanReturn);
+    assertNoArtifact(booleanReturn, 2);
   }
 
   @Test
@@ -340,7 +340,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
                     "    return length;\n",
                     "    return result < result;\n");
 
-    assertNoArtifact(booleanReturn);
+    assertNoArtifact(booleanReturn, 2);
   }
 
   @Test
@@ -364,7 +364,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             "    return source;\n");
 
     assertTrue(byteViewReturn.contains("public byteview copyOffset("));
-    assertNoArtifact(byteViewReturn);
+    assertNoArtifact(byteViewReturn, 13);
   }
 
   @Test
@@ -412,7 +412,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
                     "    return length;\n",
                     "    return length < sourceStart;\n");
 
-    assertNoArtifact(malformed);
+    assertNoArtifact(malformed, 2);
   }
 
   @Test
@@ -428,7 +428,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
                     "    return length;\n",
                     "    return length < sourceStart;\n");
 
-    assertNoArtifact(malformed);
+    assertNoArtifact(malformed, 2);
   }
 
   @Test
@@ -536,7 +536,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   void rejectsNonSignedLocalRightGuard() throws Exception {
     assertNoArtifact(localRightGuardSource().replace(
         "if (index < sourceStart)",
-        "if (index < same)"));
+        "if (index < same)"), 2);
   }
 
   @Test
@@ -674,11 +674,18 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
     int parameterCount = source.contains("boolean result") ? 6 : 5;
     int sourceType = source.contains("borrow utf8 source") ? 8 : 13;
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("StructuredComparison.w", source), MODULE);
+    var callable = expected.functions().stream()
+        .filter(function -> function.name().equals(MODULE + "::copyOffset"))
+        .findFirst().orElseThrow();
+    int resultType = callable.returnsValue() ? callable.resultType().code() : 0;
     Program driver = driver(
         body,
         matchingClose(source, body) - body + 1,
         parameterCount,
-        sourceType);
+        sourceType,
+        resultType);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -696,8 +703,6 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
           exception);
     }
 
-    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("StructuredComparison.w", source), MODULE);
     byte[] expectedBytes = new BytecodeWriter().write(expected);
     assertEquals(1, machine.global("valid"));
     assertEquals(expectedBytes.length, machine.global("artifactLength"));
@@ -705,6 +710,10 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   private static void assertNoArtifact(String source) throws Exception {
+    assertNoArtifact(source, 1);
+  }
+
+  private static void assertNoArtifact(String source, int resultType) throws Exception {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
     int parameterCount = source.contains("boolean result") ? 6 : 5;
     int sourceType = source.contains("borrow utf8 source") ? 8 : 13;
@@ -712,7 +721,8 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
         body,
         matchingClose(source, body) - body + 1,
         parameterCount,
-        sourceType);
+        sourceType,
+        resultType);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -767,7 +777,8 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
       int bodyStart,
       int bodyLength,
       int parameterCount,
-      int sourceType) throws Exception {
+      int sourceType,
+      int resultType) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.local_structured_source_module_compiler"));
@@ -786,7 +797,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
           state long artifactLength = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1200000, /* allocations= */ 16);
+            region products = new region(/* bytes= */ 1200512, /* allocations= */ 17);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words symbolOwners = allocate(products, /* length= */ 16384);
@@ -797,6 +808,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             words symbolResolved = allocate(products, /* length= */ 16384);
             words signatureTypes = allocate(products, /* length= */ 12288);
             words parameterCounts = allocate(products, /* length= */ 64);
+            words declaredResultTypes = allocate(products, /* length= */ 64);
             bytes strings = allocateBytes(products, /* length= */ 32768);
             words stringStarts = allocate(products, /* length= */ 256);
             words stringLengths = allocate(products, /* length= */ 256);
@@ -831,6 +843,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             set(signatureTypes, 4101, 5);
             set(signatureTypes, 8197, 2);
             set(parameterCounts, 0, %d);
+            set(declaredResultTypes, 0, DECLARED_RESULT);
             writeAscii(strings, 0, "$library");
             writeAscii(strings, 8, "StructuredComparison");
             writeAscii(strings, 28, "example.structured_comparison::copyOffset");
@@ -860,6 +873,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
               /* signatureTypeCount= */ %d,
               signatureTypes,
               parameterCounts,
+              declaredResultTypes,
               strings,
               /* stringBytes= */ 69,
               /* stringCount= */ 3,
@@ -884,6 +898,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             drop(stringLengths);
             drop(stringStarts);
             drop(strings);
+            drop(declaredResultTypes);
             drop(parameterCounts);
             drop(signatureTypes);
             drop(symbolResolved);
@@ -902,7 +917,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             bodyLength,
             sourceType,
             parameterCount,
-            parameterCount));
+            parameterCount).replace("DECLARED_RESULT", Integer.toString(resultType)));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.structured_comparison_source_product");
   }

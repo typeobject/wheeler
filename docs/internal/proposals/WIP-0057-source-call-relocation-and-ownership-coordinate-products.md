@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, linker, and ownership maintainers |
 | Created | 2026-08-14 |
-| Updated | 2026-09-07 |
+| Updated | 2026-09-09 |
 | Area | Self-hosting compiler, calls, relocation, ownership, callable layout |
 | Depends on | WIP-0045, WIP-0047, WIP-0055, WIP-0056 |
 | Supersedes | Call and ownership coordinate work embedded in WIP-0055 and WIP-0056 |
@@ -120,7 +120,9 @@ buffers. No pass allocates per call or per event.
 - [x] `ownershipCoordinatesAgree` requires exact source and decoded statement, instruction, destination, and source rows. The native fixture covers moves, balanced loans, creation, destruction, boundary releases, and explicit disagreement.
 - [x] `OwnershipCheckedBodyArchive.w` compares independent source and decoded event counts and all four coordinate rows before it calls the sole bounded archive append. Event-count or coordinate disagreement publishes no rank, table row, or artifact byte. The native ownership fixture archives a real canonical artifact only after agreement and retains sentinels on malformed planned rows or source disagreement.
 - [x] `SourceModuleCallProducts.w` scans retained callable body ranges directly, publishes absolute call ranges in callable order, and binds every local call to one exact statement without another source copy.
-- [x] `SourceCallableResultProducts.w` establishes signed, Boolean, and void result kinds before call layout. Direct return emission checks the same retained table.
+- [x] Closed callable result products feed call layout, direct statements, and
+  final emission. [WIP-0054](WIP-0054-native-source-product-artifact-integration.md#closed-result-types)
+  removes signature reparsing and rejects body results that change the closed type.
 - [x] `SourceCallLayoutProducts.w` validates target arity, ordered parameter types, result kinds, and exact source-measured statement widths before callable coordinate publication. Shared layout functions now define the sole call instruction, byte, and local widths.
 - [x] `CallableInstructionPrefixes.w` includes preceding root calls when it plans loop instructions. `SourceCallInstructionProducts.w` then publishes root-call instruction and code windows from direct, loop, and call products in source order.
 - [x] `LoopCallProducts.w` now consumes preplanned statement widths, publishes owner-local-type rows, and cannot add a second width after coordinate publication. `CallableReturnProducts.w` includes calls before it places implicit void returns.

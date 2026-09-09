@@ -24,15 +24,14 @@ final class StructuredCallSourceProductDriver {
     }
   }
 
+  record ResultProduct(int callableCount, int capacity, int row, int type) {}
+
   private StructuredCallSourceProductDriver() {}
 
-  static Program driver(
-      int bodyStart,
-      int bodyLength,
-      int parameterCount,
-      int firstType,
-      int secondType) throws Exception {
-    return driver(bodyStart, bodyLength, parameterCount, firstType, secondType, false);
+  static Program driverWithResultProduct(int bodyStart, int bodyLength, ResultProduct result)
+      throws Exception {
+    return driverWithProducts(bodyStart, bodyLength, new int[] {1}, false, new int[] {1},
+        1, 0, SymbolProduct.none(), result);
   }
 
   static Program driver(
@@ -41,7 +40,18 @@ final class StructuredCallSourceProductDriver {
       int parameterCount,
       int firstType,
       int secondType,
-      boolean imported) throws Exception {
+      int resultType) throws Exception {
+    return driver(bodyStart, bodyLength, parameterCount, firstType, secondType, false, resultType);
+  }
+
+  static Program driver(
+      int bodyStart,
+      int bodyLength,
+      int parameterCount,
+      int firstType,
+      int secondType,
+      boolean imported,
+      int resultType) throws Exception {
     return driver(
         bodyStart,
         bodyLength,
@@ -50,7 +60,8 @@ final class StructuredCallSourceProductDriver {
         secondType,
         imported,
         1,
-        1);
+        1,
+        resultType);
   }
 
   static Program driver(
@@ -61,7 +72,8 @@ final class StructuredCallSourceProductDriver {
       int secondType,
       boolean imported,
       int importedParameterType,
-      int importedResultType) throws Exception {
+      int importedResultType,
+      int resultType) throws Exception {
     return driverWithEffect(
         bodyStart,
         bodyLength,
@@ -71,7 +83,8 @@ final class StructuredCallSourceProductDriver {
         imported,
         importedParameterType,
         importedResultType,
-        0);
+        0,
+        resultType);
   }
 
   static Program driverWithEffect(
@@ -83,10 +96,11 @@ final class StructuredCallSourceProductDriver {
       boolean imported,
       int importedParameterType,
       int importedResultType,
-      int callableEffect) throws Exception {
+      int callableEffect,
+      int resultType) throws Exception {
     return driverWithSymbol(
         bodyStart, bodyLength, parameterCount, firstType, secondType, imported,
-        importedParameterType, importedResultType, callableEffect, SymbolProduct.none());
+        importedParameterType, importedResultType, callableEffect, SymbolProduct.none(), resultType);
   }
 
   static Program driverWithSymbol(
@@ -99,7 +113,8 @@ final class StructuredCallSourceProductDriver {
       int importedParameterType,
       int importedResultType,
       int callableEffect,
-      SymbolProduct symbol) throws Exception {
+      SymbolProduct symbol,
+      int resultType) throws Exception {
     int[] parameterTypes = new int[parameterCount];
     Arrays.fill(parameterTypes, firstType);
     if (1 < parameterCount) {
@@ -109,7 +124,7 @@ final class StructuredCallSourceProductDriver {
     Arrays.fill(importedTypes, importedParameterType);
     return driverWithParameters(
         bodyStart, bodyLength, parameterTypes, imported, importedTypes,
-        importedResultType, callableEffect, symbol);
+        importedResultType, callableEffect, symbol, resultType);
   }
 
   static Program driverWithParameters(
@@ -120,7 +135,16 @@ final class StructuredCallSourceProductDriver {
       int[] importedTypes,
       int importedResultType,
       int callableEffect,
-      SymbolProduct symbol) throws Exception {
+      SymbolProduct symbol,
+      int resultType) throws Exception {
+    return driverWithProducts(bodyStart, bodyLength, parameterTypes, imported, importedTypes,
+        importedResultType, callableEffect, symbol, new ResultProduct(1, 64, 0, resultType));
+  }
+
+  private static Program driverWithProducts(
+      int bodyStart, int bodyLength, int[] parameterTypes, boolean imported, int[] importedTypes,
+      int importedResultType, int callableEffect, SymbolProduct symbol, ResultProduct result)
+      throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.structured_source_module_compiler"));
@@ -160,7 +184,7 @@ final class StructuredCallSourceProductDriver {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             region publication = new region(/* bytes= */ 32800, /* allocations= */ 2);
-            region products = new region(/* bytes= */ 2903904, /* allocations= */ 19);
+            region products = new region(/* bytes= */ PRODUCT_BYTES, /* allocations= */ 20);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words symbolOwners = allocate(products, /* length= */ 16384);
@@ -171,6 +195,7 @@ final class StructuredCallSourceProductDriver {
             words symbolResolved = allocate(products, /* length= */ 16384);
             words signatureTypes = allocate(products, /* length= */ 12288);
             words parameterCounts = allocate(products, /* length= */ 64);
+            words declaredResultTypes = allocate(products, /* length= */ RESULT_CAPACITY);
             words callableEffects = allocate(products, /* length= */ 4096);
             bytes strings = allocateBytes(products, /* length= */ 32768);
             words stringStarts = allocate(products, /* length= */ 256);
@@ -197,6 +222,7 @@ final class StructuredCallSourceProductDriver {
             set(bodyLengths, 0, BODY_LENGTH);
             SIGNATURE_SETUP
             set(parameterCounts, 0, PARAMETER_COUNT);
+            set(declaredResultTypes, RESULT_ROW, DECLARED_RESULT);
             set(callableEffects, 0, CALLABLE_EFFECT);
             writeAscii(strings, 0, "$library");
             writeAscii(strings, 8, "StructuredCall");
@@ -214,7 +240,7 @@ final class StructuredCallSourceProductDriver {
               /* archiveSourceStart= */ 0,
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,
-              /* callableCount= */ 1,
+              /* callableCount= */ CALLABLE_COUNT,
               callableEffects,
               /* importedTargetCount= */ IMPORTED_COUNT,
               importedRows,
@@ -237,6 +263,7 @@ final class StructuredCallSourceProductDriver {
               /* signatureTypeCount= */ PARAMETER_COUNT,
               signatureTypes,
               parameterCounts,
+              declaredResultTypes,
               strings,
               /* stringBytes= */ 54,
               /* stringCount= */ 3,
@@ -363,6 +390,7 @@ final class StructuredCallSourceProductDriver {
             drop(stringStarts);
             drop(strings);
             drop(callableEffects);
+            drop(declaredResultTypes);
             drop(parameterCounts);
             drop(signatureTypes);
             drop(symbolResolved);
@@ -380,6 +408,11 @@ final class StructuredCallSourceProductDriver {
             .replace("BODY_LENGTH", Integer.toString(bodyLength))
             .replace("PARAMETER_COUNT", Integer.toString(parameterTypes.length))
             .replace("SIGNATURE_SETUP", signatureRows(parameterTypes))
+            .replace("PRODUCT_BYTES", Integer.toString(2903904 + result.capacity() * 8))
+            .replace("RESULT_CAPACITY", Integer.toString(result.capacity()))
+            .replace("RESULT_ROW", Integer.toString(result.row()))
+            .replace("DECLARED_RESULT", Integer.toString(result.type()))
+            .replace("CALLABLE_COUNT", Integer.toString(result.callableCount()))
             .replace("CALLABLE_EFFECT", Integer.toString(callableEffect))
             .replace("IMPORTED_COUNT", imported ? "2" : "0")
             .replace("IMPORTED_SETUP", imported

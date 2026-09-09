@@ -104,7 +104,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
           state long artifactLength = 0;
 
           entry void main(borrow utf8 source, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1024992, /* allocations= */ 16);
+            region products = new region(/* bytes= */ 1025504, /* allocations= */ 17);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words symbolOwners = allocate(products, /* length= */ 16384);
@@ -115,6 +115,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
             words symbolResolved = allocate(products, /* length= */ 16384);
             words signatureTypes = allocate(products, /* length= */ 12288);
             words parameterCounts = allocate(products, /* length= */ 64);
+            words declaredResultTypes = allocate(products, /* length= */ 64);
             bytes strings = allocateBytes(products, /* length= */ 32768);
             words stringStarts = allocate(products, /* length= */ 256);
             words stringLengths = allocate(products, /* length= */ 256);
@@ -136,6 +137,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
             set(signatureTypes, 4099, 3);
             set(signatureTypes, 8195, 1);
             set(parameterCounts, 0, 4);
+            set(declaredResultTypes, 0, 1);
             writeAscii(strings, 0, "$library");
             writeAscii(strings, 8, "ByteLoop");
             writeAscii(strings, 16, "example.byte_loop::copyAndRead");
@@ -165,6 +167,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
               /* signatureTypeCount= */ 4,
               signatureTypes,
               parameterCounts,
+              declaredResultTypes,
               strings,
               /* stringBytes= */ 46,
               /* stringCount= */ 3,
@@ -191,6 +194,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
             drop(stringLengths);
             drop(stringStarts);
             drop(strings);
+            drop(declaredResultTypes);
             drop(parameterCounts);
             drop(signatureTypes);
             drop(symbolResolved);

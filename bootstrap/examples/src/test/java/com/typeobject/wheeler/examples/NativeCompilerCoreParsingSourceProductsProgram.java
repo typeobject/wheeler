@@ -215,6 +215,8 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             words artifactLengths = allocate(products, /* length= */ 512);
             bytes bodyArchive = allocateBytes(products, /* length= */ 16777216);
             words unusedCallInstructionStarts = allocate(products, /* length= */ 256);
+            set(functionResultTypes, 0, 1);
+            set(functionResultTypes, 1, 1);
             set(functionResultTypes, 63, 91);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
@@ -551,6 +553,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
               /* signatureTypeCount= */ 9,
               signatureTypes,
               parameterCounts,
+              functionResultTypes,
               strings,
               /* stringBytes= */ 122,
               /* stringCount= */ 4,

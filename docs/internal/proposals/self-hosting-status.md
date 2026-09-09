@@ -311,6 +311,20 @@ After manifest composition, the remaining physical compiler modules must enter
 the same product route. Final linking and the fixed-point comparison remain
 separate gates. Do not mark either complete from a subset count.
 
+[WIP-0054](WIP-0054-native-source-product-artifact-integration.md#closed-result-types)
+now carries closed signed, Boolean, and void results through structured calls,
+direct statements, and artifact emission. The backward signature parser and its
+scanner arena are deleted. Damaged result products reject before publication.
+Complete caller-storage comparisons, direct preflight without scratch allocation,
+and compilation rewind cover the join. Nominal result products remain outside
+this scalar composition. Local validation executes 163 distinct JUnit identities,
+binds all 449 compiler-target modules, and checks 711 canonical package inputs in
+four owning test-task audits. Five main API roots, all six root policy gates, the
+497-artifact workspace and site, a locked consumer, and the native ordering and
+spine targets pass. The graph identity takes 73,374,451 transitions under the
+unchanged 89-million ceiling. These are scoped gates, not compilation of every
+physical main source or stage equality.
+
 ## Evidence locations
 
 Paths below are authoritative inventories and executable checks, not another

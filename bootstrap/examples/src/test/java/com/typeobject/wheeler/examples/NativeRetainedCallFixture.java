@@ -33,11 +33,14 @@ final class NativeRetainedCallFixture {
   }
 
   static Program assertLocal(String source, int[] types) throws Exception {
-    Probe probe = machine(source, false, types, types, 1, 0);
-    VirtualMachine machine = probe.machine();
-    run(probe, source);
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
         Map.of("StructuredCall.w", source), MODULE);
+    var callable = expected.functions().stream()
+        .filter(function -> function.name().equals(MODULE + "::recurse")).findFirst().orElseThrow();
+    int resultType = callable.returnsValue() ? callable.resultType().code() : 0;
+    Probe probe = machine(source, false, types, types, resultType, 0);
+    VirtualMachine machine = probe.machine();
+    run(probe, source);
     assertEquals(1, machine.global("valid"));
     assertArrayEquals(new BytecodeWriter().write(expected), machine.hostOutput());
     return new BytecodeReader().read(machine.hostOutput());
@@ -154,7 +157,7 @@ final class NativeRetainedCallFixture {
     int bodyLength = source.substring(bodyOpen, bodyClose).getBytes(StandardCharsets.UTF_8).length;
     Program driver = StructuredCallSourceProductDriver.driverWithParameters(
         bodyStart, bodyLength, callerTypes, imported, targetTypes, resultType, effect,
-        StructuredCallSourceProductDriver.SymbolProduct.none());
+        StructuredCallSourceProductDriver.SymbolProduct.none(), resultType);
     return new Probe(driver, new VirtualMachine(driver, source.getBytes(StandardCharsets.UTF_8), 32_768));
   }
 }

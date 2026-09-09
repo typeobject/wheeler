@@ -21,7 +21,6 @@ import wheeler.compiler.closure.source_call_instruction_products;
 import wheeler.compiler.closure.source_call_layout_products;
 import wheeler.compiler.closure.source_call_target_table;
 import wheeler.compiler.closure.source_callable_coordinate_products;
-import wheeler.compiler.closure.source_callable_result_products;
 import wheeler.compiler.closure.source_generated_inverse_proofs;
 import wheeler.compiler.closure.source_loop_products;
 import wheeler.compiler.closure.source_module_call_products;
@@ -39,7 +38,8 @@ classical class StructuredSourceModuleCompiler {
   private const long MAX_STATEMENTS = 4096;
   private const long PRODUCT_ARENA_BYTES = 4967424 + SOURCE_CALL_ARGUMENT_ROWS * 16;
 
-  /// Publishes one verified artifact against closed imported target products.
+  /// Publishes one verified artifact against closed imports and local-order result types.
+  /// Rejects any body result that conflicts with its declared signed, Boolean, or void type.
   public SourceProductArtifactPlan compileStructuredSourceModuleWithTargets(
     borrow utf8 source,
     borrow byteview symbolNames,
@@ -69,6 +69,7 @@ classical class StructuredSourceModuleCompiler {
     long signatureTypeCount,
     borrow mut words signatureTypes,
     borrow mut words parameterCounts,
+    borrow mut words declaredResultTypes,
     borrow byteview strings,
     long stringBytes,
     long stringCount,
@@ -118,6 +119,14 @@ classical class StructuredSourceModuleCompiler {
     assert(signatureTypeCount < 4097);
     assert(bufferLength(signatureTypes) == 12288);
     assert(bufferLength(parameterCounts) == 64);
+    assert(bufferLength(declaredResultTypes) == MAX_CALLABLES);
+    long resultCallable = 0;
+    while (resultCallable < callableCount) limit MAX_CALLABLES {
+      assert(-1 < declaredResultTypes[resultCallable]);
+      assert(declaredResultTypes[resultCallable] < 3);
+      resultCallable += 1;
+    }
+
     assert(bufferLength(stringStarts) == 256);
     assert(bufferLength(stringLengths) == 256);
     assert(bufferLength(functionNameIds) == 64);
@@ -247,18 +256,11 @@ classical class StructuredSourceModuleCompiler {
     );
     assert(localTargets.valid);
 
-    SourceCallableResultPlan resultPlan = materializeSourceCallableResultProducts(
-      source,
-      archiveSourceStart,
-      firstCallable,
-      callableCount,
-      bodyStarts,
-      functionResultTypes
-    );
-    assert(resultPlan.valid);
     long resultTarget = 0;
     while (resultTarget < callableCount) limit MAX_CALLABLES {
-      set(localTargetResultTypes, resultTarget, functionResultTypes[resultTarget]);
+      long resultType = declaredResultTypes[resultTarget];
+      set(functionResultTypes, resultTarget, resultType);
+      set(localTargetResultTypes, resultTarget, resultType);
       resultTarget += 1;
     }
 
@@ -629,6 +631,13 @@ classical class StructuredSourceModuleCompiler {
     assert(directPlan.failureCode == 0);
     assert(directPlan.failureStatement == -1);
     assert(directPlan.valid);
+    // Direct products may infer an unseeded result, but cannot change a closed signature.
+    resultCallable = 0;
+    while (resultCallable < callableCount) limit MAX_CALLABLES {
+      assert(functionResultTypes[resultCallable] == declaredResultTypes[resultCallable]);
+      resultCallable += 1;
+    }
+
     CallableInstructionPrefixPlan instructionPrefixPlan = materializeCallableInstructionPrefixes(
       resolvedPlan.loopCount,
       resolvedLoops,
