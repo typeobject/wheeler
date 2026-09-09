@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, aggregate, ownership, bytecode, and bootstrap maintainers |
 | Created | 2026-08-09 |
-| Updated | 2026-09-07 |
+| Updated | 2026-09-08 |
 | Area | Self-hosting, aggregate lowering, ownership, relocation, compiler products |
 | Depends on | WIP-0013, WIP-0028, WIP-0046, WIP-0047, WIP-0049 |
 | Supersedes | None |
@@ -147,7 +147,7 @@ The optional result word is not local zero. Original carrier evidence below did
 not cover value-returning functions or the first nonexistent frame local.
 
 - [x] `LinkedLocalTypes.w` consumes temporary owner, source-code, and aggregate-row projections before final descriptor emission. `ImportedNominalCarrierProjections.w` adds exact module, local-function, and local-type coordinates for nonretained signed carriers. The linker validates every coordinate and signed source slot before replacing it with the target record or variant descriptor. Missing, duplicate, or kind-inconsistent projections fail before publication.
-- [x] `AggregateOperandProjections.w` maps temporary owner, kind, and type IDs to aggregate rows and stable product identities. Duplicate projections leave relocation rows and identities untouched.
+- [x] `AggregateOperandRelocations.w` maps temporary owner, kind, and type IDs to aggregate rows and stable product identities. Strict local resolution and filtered imported projection share one lookup and atomic publisher. WIP-0184 records the boundary checks and deletion of the separate projection implementation. Duplicate projections leave relocation rows and identities untouched.
 - [x] Counted aggregate archival accepts exact generated suffix counts, validates every retained case and member range before mutation, and excludes the generated aggregate, case, and member suffixes. Native evidence covers successful prefix retention and failure before publication.
 - [x] The aggregate product linker reproduces a stage-0 record-bearing source artifact byte for byte. Focused source-product fixtures cover record and variant constructors, fixed arrays, slices, field chains, ownership, and malformed nonpublication. WIP-0051 owns physical frontend publication.
 

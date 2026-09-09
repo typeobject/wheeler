@@ -146,12 +146,12 @@ Complete type-ID windows cannot overwrite kind tags. Both insertion positions
 retain their complete source and projection results. An independently compiled
 rewritten record fixture executes and rewinds. This is scaffolding adoption, not
 a complete nominal artifact pipeline or hosted acceptance of the member overlay.
-The unfinished member-front overlay still has four unreachable physical owners:
-aggregate operand projections, aggregate owner projections, imported
-nominal product resolution, and source aggregate strings. Its intact mixed-member
-runner still rejects in `requireMinimalProgram`. The separate primitive control
-does not replace either gate. Separate, uncommitted source-data work now calls the
-aggregate string owner, leaving the other three owners unreachable in that
+At that fragment milestone, the unfinished member-front overlay had four
+unreachable physical owners: aggregate operand projections, aggregate owner
+projections, imported nominal product resolution, and source aggregate strings.
+Its intact mixed-member runner rejected in `requireMinimalProgram`. The separate
+primitive control did not replace either gate. Later uncommitted source-data work
+called the aggregate string owner, leaving three module orphans in that
 experiment. Callable-free data artifacts do not supply the missing nominal bodies.
 
 Hosted run [34220715075](https://github.com/typeobject/wheeler/actions/runs/34220715075)
@@ -182,6 +182,20 @@ Audited method-to-build-success upper bounds range from 365.999613 to 670.502182
 seconds. This supplies same-commit package acceptance for counted string linking.
 It does not cover the uncommitted library-entry tests, source-data composition,
 member fronts, complete physical compiler emission, or stage equality.
+
+[WIP-0184](WIP-0184-sparse-aggregate-ownership-projection.md#shared-operand-owner)
+consolidates aggregate operand projection and local resolution. Both APIs share
+one lookup and atomic publisher, with parent/replacement boundary parity and no
+separate projection module. Strict lookup still rejects missing descriptors.
+Filtered lookup still leaves unmatched constructors outside its product.
+`Driver.w` imports this owner but calls neither API. This is a proved code
+replacement, not production adoption or the missing source-to-final nominal join.
+Rooted module membership cannot establish that join. Local acceptance covers 98
+distinct JUnit identities, 450 physical archive bindings, selected source-artifact
+and complete retained-callable parity, four refreshed consumer locks, and a
+497-artifact workspace. The locked minimum-state consumer retains its complete
+artifact and coverage bytes. These are local checks, not same-commit hosted
+package acceptance or compilation of every physical source owner.
 
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with

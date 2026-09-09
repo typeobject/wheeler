@@ -2,7 +2,6 @@
 
 module wheeler.compiler.closure.source_aggregate_products;
 
-import wheeler.compiler.closure.aggregate_operand_projections;
 import wheeler.compiler.closure.aggregate_owner_projections;
 import wheeler.compiler.closure.imported_nominal_products;
 import wheeler.compiler.closure.source_aggregate_layouts;

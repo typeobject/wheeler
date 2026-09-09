@@ -47,11 +47,11 @@ final class NativeCompilerAggregateOperandProjectionsExampleTest {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.aggregate_operand_projections"));
+        "wheeler.compiler.closure.aggregate_operand_relocations"));
     sources.put("AggregateOperandProjectionsExample.w", """
         module example.aggregate_operand_projections;
 
-        import wheeler.compiler.closure.aggregate_operand_projections;
+        import wheeler.compiler.closure.aggregate_operand_relocations;
 
         classical class AggregateOperandProjectionsExample {
           state long projectionValid = 0;

@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, bootstrap, and conformance maintainers |
 | Created | 2026-08-08 |
-| Updated | 2026-08-08 |
+| Updated | 2026-09-08 |
 | Area | Self-hosting, aggregates, layouts, compiler products |
 | Depends on | WIP-0013, WIP-0028, WIP-0044, WIP-0045 |
 | Supersedes | Aggregate-layout work in WIP-0045 |
@@ -138,7 +138,7 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] `InstructionOwnershipProducts.w` derives owner creation, move, drop, shared-loan, and function-boundary release rows from canonical instructions. Invalid instruction ranges publish nothing. WIP-0185 publishes source and decoded ownership coordinates through exact event counts.
 - [x] `OwnershipProductIdentities.w` binds each function's canonical instruction-derived rows into the callable body identity. An independent Java digest matches.
 - [x] `AggregateOwnerProjections.w` maps instruction-local create, move, loan, release, and drop rows to unique aggregate and member projections before verification. WIP-0184 publishes only active ownership and operand relocation rows and identity bytes.
-- [x] `ImportedNominalProducts.w` resolves qualified and unqualified public nominal names from counted aggregate rows and artifact-string products without dependency source. `LinkedLocalTypes.w` now consumes validated temporary nominal projections before final descriptor emission. `AggregateOperandProjections.w` also maps temporary construction operands to aggregate rows and stable product identities. `ImportedNominalReferences.w` rewrites resolved source ranges and inserts temporary declarations after accounting for imported-call width changes. `ImportedNominalCarrierProjections.w` identifies each nonretained signed carrier by module, local function, and local-type slot so final linking cannot confuse two imported nominal targets.
+- [x] `ImportedNominalProducts.w` resolves qualified and unqualified public nominal names from counted aggregate rows and artifact-string products without dependency source. `LinkedLocalTypes.w` now consumes validated temporary nominal projections before final descriptor emission. The projected interface in `AggregateOperandRelocations.w` maps temporary construction operands to aggregate rows and stable product identities. WIP-0184 records its shared lookup and publication with strict local resolution. `ImportedNominalReferences.w` rewrites resolved source ranges and inserts temporary declarations after accounting for imported-call width changes. `ImportedNominalCarrierProjections.w` identifies each nonretained signed carrier by module, local function, and local-type slot so final linking cannot confuse two imported nominal targets.
 - [x] WIP-0050 generates deterministic imported record and variant compile scaffolding plus temporary source-code projections from aggregate rows.
 - [ ] The complete physical compiler closure compiles from scalar, callable, and aggregate products.
 
