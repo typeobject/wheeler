@@ -67,10 +67,10 @@ The linked container remained byte-identical with SHA-256 `3d6e88c426f12d34912a1
 
 ### Complete current callable-free inventory
 
-`compilesEveryCallableFreePhysicalOwnerByteForByte` derives the selected owners
-from the complete independently compiled compiler, not the hand-picked physical
-product list. Each selected owner has no authored callable. The current inventory
-contains twenty-one import-free constant authorities. The test asserts that their
+`compilesEveryCallableFreeCompilerTargetOwnerByteForByte` derives owners from the
+complete independently compiled `compiler` target, not the hand-picked physical
+product list. Its root is `wheeler.compiler.main`. Each selected owner has no
+authored callable. That inventory contains twenty-one import-free constant authorities. The test asserts that their
 independent library artifacts contain no globals or aggregate descriptors.
 
 One native archive pass emits all twenty-one products. The test compares the
@@ -84,6 +84,10 @@ executes one HALT transition, and rewinds to its initial snapshot.
 Archive compilation remains history-free. Entry rewind is not compilation rewind.
 The complete test passes in 3 minutes and 52 seconds without raising a resource
 limit. It adds no Wheeler source, package input, identity, or lock change.
+
+This target is not the entire main-source tree. `CompilerLibrary.w` and
+`compiler/verification/Codec.w` belong to the package but are outside the rooted
+compiler target. Their separate source-product coverage remains required.
 
 These physical owners do not exercise nominal declarations or authored bodies.
 Their empty type sections cannot justify discarding either. WIP-0054 still owns

@@ -21,16 +21,17 @@ import java.util.List;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Compares every physical callable-free compiler product, not just the first authority. */
+/** Compares every callable-free owner in the rooted compiler target, not just its first authority. */
 final class NativeCompilerCallableFreePhysicalProductExampleTest {
   private record Reference(PhysicalModule module, int owner, byte[] artifact) {}
 
   @Tag("closure-evidence")
   @Test
-  void compilesEveryCallableFreePhysicalOwnerByteForByte() throws Exception {
+  void compilesEveryCallableFreeCompilerTargetOwnerByteForByte() throws Exception {
     var manifest = CompilerSources.bootstrapModuleManifest();
+    assertEquals("wheeler.compiler.main", manifest.root());
     List<Reference> references = references(manifest);
-    assertEquals(21, references.size(), "complete current callable-free inventory");
+    assertEquals(21, references.size(), "complete current compiler-target callable-free inventory");
     byte[] expected = transport(references);
     var selected = references.stream().map(Reference::module).toList();
     var productProgram = NativeCompilerArchiveClosureProgram.program(true, selected, List.of());
@@ -72,7 +73,7 @@ final class NativeCompilerCallableFreePhysicalProductExampleTest {
   }
 
   private static List<Reference> references(BootstrapModuleManifest manifest) throws Exception {
-    // Derive absence from the complete independent compiler, not the hand-selected product list.
+    // Derive absence from the complete compiler target, not the hand-selected product list.
     Program complete = CompilerSources.minimalCompilerProgram();
     List<Reference> references = new ArrayList<>();
     for (int owner = 0; owner < manifest.modules().size(); owner++) {

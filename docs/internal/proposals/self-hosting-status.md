@@ -235,12 +235,14 @@ traversal on that commit, not the dirty nominal overlay or the later physical
 inventory test.
 
 [WIP-0098](WIP-0098-early-callable-free-archive-publication.md#complete-current-callable-free-inventory)
-now checks every current callable-free physical compiler owner in one archive
-pass. All twenty-one are import-free constant authorities. Their complete
+now checks every current callable-free owner in the rooted `compiler` target in
+one archive pass. All twenty-one are import-free constant authorities. Their complete
 8,062-byte transport matches independent artifacts and metadata. Every synthetic
 entry verifies, executes, and rewinds. The archive pass remains history-free.
 This is complete coverage of that inventory, not physical nominal-descriptor or
-nominal-body coverage. The first-authority-only test is deleted.
+nominal-body coverage. The first-authority-only test is deleted. The rooted target
+excludes the package's `CompilerLibrary.w` and `compiler/verification/Codec.w`.
+Every physical main source still requires product evidence, including those two.
 
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
@@ -317,7 +319,7 @@ copy of their generated hashes.
 | Evidence | Source |
 | --- | --- |
 | Selected physical module owners | [NativeCompilerPhysicalSelection.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeCompilerPhysicalSelection.java), [NativeCompilerPhysicalModules.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeCompilerPhysicalModules.java) |
-| Every current callable-free physical owner | [NativeCompilerCallableFreePhysicalProductExampleTest.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeCompilerCallableFreePhysicalProductExampleTest.java) |
+| Every callable-free compiler-target owner | [NativeCompilerCallableFreePhysicalProductExampleTest.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeCompilerCallableFreePhysicalProductExampleTest.java) |
 | Canonical graph and archive derivation | [CompilerSources.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/CompilerSources.java) |
 | Native graph validation and exact transition pin | [NativeBootstrapModulesIdentityExampleTest.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeBootstrapModulesIdentityExampleTest.java) |
 | Wheeler SHA-256 differential evidence | [NativeSha256ExampleTest.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeSha256ExampleTest.java) |
