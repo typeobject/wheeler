@@ -39,11 +39,11 @@ final class NativeCompilerAggregateOwnerProjectionsExampleTest {
   private static Program program(boolean mismatchedMove) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.aggregate_owner_projections"));
+        "wheeler.compiler.closure.frame_local_projections"));
     sources.put("AggregateOwnerProjectionsExample.w", """
         module example.aggregate_owner_projections;
 
-        import wheeler.compiler.closure.aggregate_owner_projections;
+        import wheeler.compiler.closure.frame_local_projections;
 
         classical class AggregateOwnerProjectionsExample {
           state long projectionValid = 0;

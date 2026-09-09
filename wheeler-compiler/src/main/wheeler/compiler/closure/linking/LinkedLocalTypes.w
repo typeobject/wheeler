@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.linked_local_types;
 
+import wheeler.compiler.closure.frame_local_projections;
 import wheeler.core.encoding.binary;
 
 classical class LinkedLocalTypes {
@@ -155,22 +156,15 @@ classical class LinkedLocalTypes {
     long carrierProjectionCount,
     borrow mut words carrierProjectionRows
   ) {
-    long selected = -1;
-    long projection = 0;
-    while (projection < carrierProjectionCount) limit MAX_CARRIER_PROJECTIONS {
-      if (carrierProjectionRows[projection] == moduleOwner) {
-        if (carrierProjectionRows[16384 + projection] == localFunction) {
-          if (carrierProjectionRows[32768 + projection] == frameLocal) {
-            assert(selected == -1);
-            selected = carrierProjectionRows[49152 + projection];
-          }
-        }
-      }
-
-      projection += 1;
-    }
-
-    if (selected < 0) {
+    long selectedProjection = scopedFrameLocalProjection(
+      moduleOwner,
+      localFunction,
+      frameLocal,
+      carrierProjectionCount,
+      carrierProjectionRows
+    );
+    assert(-2 < selectedProjection);
+    if (selectedProjection < 0) {
       return linkedProjectedTypeCode(
         sourceCode,
         moduleOwner,
@@ -182,6 +176,7 @@ classical class LinkedLocalTypes {
       );
     }
 
+    long selected = carrierProjectionRows[49152 + selectedProjection];
     assert(sourceCode == 1);
     assert(selected < aggregateCount);
     long kind = closureAggregateRows[selected];

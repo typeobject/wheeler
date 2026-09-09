@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, aggregate, ownership, bytecode, and bootstrap maintainers |
 | Created | 2026-08-09 |
-| Updated | 2026-09-08 |
+| Updated | 2026-09-09 |
 | Area | Self-hosting, aggregate lowering, ownership, relocation, compiler products |
 | Depends on | WIP-0013, WIP-0028, WIP-0046, WIP-0047, WIP-0049 |
 | Supersedes | None |
@@ -87,7 +87,12 @@ Instruction operands retain source-local aggregate references until `AggregateOp
 
 Aggregate ownership products name the aggregate projection behind each owner-bearing local. Shared and mutable loans are nonescaping. Moves consume the source owner. Releases close the exact loan. Function exit requires every owned aggregate local to be moved, returned, or dropped.
 
-`AggregateLoanVerifier.w` checks the counted event stream before body identity publication. A generated scaffolding owner cannot appear in the retained stream.
+The source-to-final path must pass its counted event stream through
+`AggregateLoanVerifier.w` before body identity publication. That join remains
+open. Instruction coordinates and selected aggregate/member projections do not
+construct or verify the loan stream. Generic instruction events also include
+primitive region, buffer, and map operations. A generated scaffolding owner cannot
+appear in the retained stream.
 
 ## Bounds
 
@@ -133,7 +138,7 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [x] `compileAggregateSourceModuleProductWithImports` projects declarations and aggregate expressions, rewrites classified local nominal carriers, validates imported nominal scaffolding and projections, then compiles primitive body portions through nonretained signed carriers. It withholds nominal and exact function-local carrier projections until compilation succeeds. The carrier artifact contains no generated descriptor. Resolved aggregate instructions now compose with primitive instruction rows through source-artifact selectors. The archive retains both products, counted closure rows retain both ranks, and final linked code emits their canonical order. Complete source-product compilation derives local and splice products from the primitive frontend rather than fixture projections.
 - [x] `ImportedNominalStubs.w` emits collision-checked record and variant declarations in target-row order and publishes owner-scoped temporary source-code projections. Input arrival order cannot change names, descriptor order, or projections.
 - [x] `ImportedNominalReferences.w` rewrites sorted resolved type ranges after imported-call rewriting, accounts for every prior call-name width change, and inserts declarations before their first use. Its bounded-core projection uses nonretained signed carriers for primitive body compilation. An overlap, stale transformed range, kind mismatch, duplicate namespace, or capacity failure publishes nothing.
-- [x] `InstructionOwnershipProducts.w` derives instruction-ordered events from primitive and supplemental artifacts through validated composition selectors. Supplemental aggregate creation can enter callable body identity without reading the primitive artifact at the same offset. `AggregateOwnerProjections.w` maps create, move, loan, release, and drop event locals to unique aggregate and member rows. A move requires identical source and destination projections, and failure leaves caller rows untouched.
+- [x] `InstructionOwnershipProducts.w` derives instruction-ordered events from primitive and supplemental artifacts through validated composition selectors. Supplemental aggregate creation can enter callable body identity without reading the primitive artifact at the same offset. `FrameLocalProjections.w` maps create, move, loan, release, and drop event locals to unique aggregate and member rows. A move requires identical source and destination projections, and failure leaves caller rows untouched.
 [WIP-0508](WIP-0508-checked-imported-nominal-fragments.md) gives both imported
 source writers one checked declaration-fragment owner. Complete type-ID windows
 must fit below the kind tag before any fragment byte or projection cell changes.
@@ -145,6 +150,10 @@ duplicate encoders, not the remaining source-to-final nominal join.
 conversion from frame-local carrier coordinates to serialized type positions.
 The optional result word is not local zero. Original carrier evidence below did
 not cover value-returning functions or the first nonexistent frame local.
+[WIP-0184](WIP-0184-sparse-aggregate-ownership-projection.md#shared-frame-keys)
+shares the frame-key locator with instruction owner projection. It preserves both
+schemas and their separate payload columns. This removes duplicate lookup, not
+the open driver-owned ownership composition.
 
 - [x] `LinkedLocalTypes.w` consumes temporary owner, source-code, and aggregate-row projections before final descriptor emission. `ImportedNominalCarrierProjections.w` adds exact module, local-function, and local-type coordinates for nonretained signed carriers. The linker validates every coordinate and signed source slot before replacing it with the target record or variant descriptor. Missing, duplicate, or kind-inconsistent projections fail before publication.
 - [x] `AggregateOperandRelocations.w` maps temporary owner, kind, and type IDs to aggregate rows and stable product identities. Strict local resolution and filtered imported projection share one lookup and atomic publisher. WIP-0184 records the boundary checks and deletion of the separate projection implementation. Duplicate projections leave relocation rows and identities untouched.

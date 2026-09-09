@@ -197,6 +197,20 @@ and complete retained-callable parity, four refreshed consumer locks, and a
 artifact and coverage bytes. These are local checks, not same-commit hosted
 package acceptance or compilation of every physical source owner.
 
+[WIP-0184](WIP-0184-sparse-aggregate-ownership-projection.md#shared-frame-keys)
+also replaces duplicate function/local searches with one frame projection owner.
+Instruction-local aggregate/member coordinates and module-scoped final carriers
+keep separate schemas. The local-type emitter consumes the shared locator, while
+whole-table, last-row, rejection, rewind, and mutation checks cover both policies.
+The old owner module and passive frontend import are gone. Neither the emitter
+nor owner-event projection has a complete driver-owned nominal path. Generic
+primitive ownership events still cannot be treated as aggregate member loans.
+Local validation covers 83 executed JUnit identities, 450 archive bindings,
+selected physical artifacts and complete retained callable bodies, four refreshed
+consumer locks, and a 497-artifact workspace. All six root policy checks and five
+main-root API checks pass. Conformance entry comments and Effects facets remain
+open. These checks do not supply same-commit hosted package acceptance.
+
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.

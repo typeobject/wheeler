@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, linker, and ownership maintainers |
 | Created | 2026-08-18 |
-| Updated | 2026-09-08 |
+| Updated | 2026-09-09 |
 | Area | Self-hosting compiler, aggregate ownership, operand relocation, bounded publication |
 | Depends on | WIP-0046, WIP-0051, WIP-0183 |
 | Supersedes | Full-capacity aggregate owner and operand projection copies |
@@ -16,8 +16,10 @@
 Publish aggregate ownership projections and aggregate operand relocations through
 exact counts. Unused caller storage is not part of the product.
 
-`AggregateOwnerProjections.w` formerly copied all 16,384 projection words. It now
-publishes two columns through `eventCount`.
+Owner-event projection formerly copied all 16,384 projection words. It now
+publishes two columns through `eventCount`. `FrameLocalProjections.w` owns its
+frame-key lookup together with the final carrier locator. The former
+`AggregateOwnerProjections.w` module and its passive frontend import are deleted.
 
 Operand projection formerly copied all 12,288 relocation words and all 131,072
 identity bytes. `AggregateOperandRelocations.w` now owns strict local resolution
@@ -37,6 +39,30 @@ owner/function/frame-local/aggregate carrier schema. Two output columns retain:
 Move events require the destination projection to agree with the event aggregate
 and member. Create, loan, release, and drop events retain their validated owner
 coordinates.
+
+## Shared frame keys
+
+The two projection schemas stay distinct:
+
+- instruction-local: function, local, aggregate, member
+- final carrier: module owner, function, frame local, aggregate
+
+Both use 16,384-row columns and a 65,536-word backing. One private search selects
+by function and local, adding module scope only for final carriers. It returns a
+row, not either schema's payload. Missing keys return `-1`. Duplicate keys return
+`-2`, even when their payloads agree.
+
+`scopedFrameLocalProjection` checks scope, count, and nonempty backing without
+allocation. Empty products read no rows and retain the final linker's short
+empty-backing convention. The locator does not certify target rows, function
+membership, or local types. `LinkedLocalTypes.w` retains that validation, rejects
+duplicate counted carrier keys, and reads only the selected aggregate column.
+Result prefixes remain outside the frame-local coordinate system.
+
+`projectInstructionOwnerEvents` keeps its API and selected aggregate/member
+checks. Its callers import `wheeler.compiler.closure.frame_local_projections`.
+No compatibility module remains. Sharing key selection does not translate
+instruction events into the aggregate loan verifier's event language.
 
 ## Operand relocations
 
@@ -139,6 +165,26 @@ column preflight, or operand-window checking. Each reaches the intended failing
 assertion or trap. All source hashes and the complete source inventory restore
 after every run.
 
+### Shared frame lookup
+
+The existing owner-projection and final-type tests pass before and after the
+replacement. Five added owner-boundary methods also pass against the original
+implementation. They compare complete caller tables and output columns, preserve
+unused tails, and rewind preparation, the API call, and cleanup. Rejections cover
+late missing or duplicate keys, move aggregate/member disagreement, bad events,
+and every count and backing preflight.
+
+Direct scoped lookup checks all three key fields, absence, duplicate keys, empty
+backing, and count/scope/column rejection. An opaque target value cannot replace
+the selected row. Separate scoped and unscoped controls reach projection 16,383
+with full history and rewind under the unchanged heap limit. These sparse-canary
+fixtures compare complete storage. They do not establish simultaneous maximum
+semantic products or aggregate loan safety.
+
+Nine mutants break column selection, each key field, uniqueness, either last-row
+traversal, carrier payload consumption, or backing preflight. Every mutant reaches
+an executed assertion failure. Source hashes and inventories restore after each.
+
 ## Original acceptance
 
 - [x] Owner projection columns publish exactly `eventCount` rows.
@@ -159,6 +205,13 @@ fixtures exercise both entry points. The proved replacement removes duplicate
 lookup and publication code. It does not implement the source-to-final operand
 join in [WIP-0054](WIP-0054-native-source-product-artifact-integration.md).
 Rooted module membership alone is not production adoption.
+
+`LinkedLocalTypes.w` now calls the shared frame locator instead of a duplicate
+search. Its emitter and `projectInstructionOwnerEvents` still have fixture
+callers, not a complete driver-owned nominal path. Generic instruction ownership
+also covers primitive regions, buffers, and maps. Those events cannot all require
+an aggregate/member projection. Whole-aggregate owners, member owners, and the
+loan verifier's event kinds still need an explicit source-to-final composition.
 
 ## Rejected alternatives
 

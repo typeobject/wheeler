@@ -1,8 +1,8 @@
-//! Maps instruction-local owners to stable aggregate and member rows.
+//! Selects frame-local projections and publishes aggregate owner-event coordinates.
 
-module wheeler.compiler.closure.aggregate_owner_projections;
+module wheeler.compiler.closure.frame_local_projections;
 
-classical class AggregateOwnerProjections {
+classical class FrameLocalProjections {
   private const long EVENT_PROJECTION_ROWS = 16384;
   private const long INSTRUCTION_EVENT_ROWS = 40960;
   private const long MAX_EVENTS = 8192;
@@ -13,28 +13,65 @@ classical class AggregateOwnerProjections {
   public record AggregateOwnerProjectionPlan(long eventCount, boolean valid) {}
 
   private long projectionAt(
+    long moduleOwner,
     long function,
     long local,
     long projectionCount,
     borrow mut words projectionRows
   ) {
+    long functionColumn = 0;
+    if (-1 < moduleOwner) {
+      functionColumn = MAX_PROJECTIONS;
+    }
+
+    long localColumn = functionColumn + MAX_PROJECTIONS;
     long selected = -1;
     long projection = 0;
     while (projection < projectionCount) limit MAX_PROJECTIONS {
-      if (projectionRows[projection] == function) {
-        if (projectionRows[16384 + projection] == local) {
-          if (-1 < selected) {
-            return -2;
-          }
+      boolean matches = projectionRows[functionColumn + projection] == function;
+      if (projectionRows[localColumn + projection] != local) {
+        matches = false;
+      }
 
-          selected = projection;
+      if (-1 < moduleOwner) {
+        if (projectionRows[projection] != moduleOwner) {
+          matches = false;
         }
+      }
+
+      if (matches) {
+        if (-1 < selected) {
+          return -2;
+        }
+
+        selected = projection;
       }
 
       projection += 1;
     }
 
     return selected;
+  }
+
+  /// Selects a row from checked owner/function/frame-local/aggregate carrier columns.
+  /// Returns -1 for absence and -2 for duplicate keys. Result prefixes are not frame locals.
+  /// Empty products do not read backing. The caller validates counted row metadata.
+  public long scopedFrameLocalProjection(
+    long moduleOwner,
+    long function,
+    long local,
+    long projectionCount,
+    borrow mut words projectionRows
+  ) {
+    assert(-1 < moduleOwner);
+    assert(moduleOwner < 512);
+    assert(-1 < projectionCount);
+    assert(projectionCount < MAX_PROJECTIONS + 1);
+    if (0 < projectionCount) {
+      assert(bufferLength(projectionRows) == PROJECTION_ROWS);
+    }
+
+    return projectionAt(moduleOwner, function, local, projectionCount, projectionRows);
   }
 
   /// Publishes aggregate and member rows for one validated instruction event stream.
@@ -85,7 +122,7 @@ classical class AggregateOwnerProjections {
 
       long selected = -1;
       if (valid) {
-        selected = projectionAt(function, ownerLocal, projectionCount, projectionRows);
+        selected = projectionAt(-1, function, ownerLocal, projectionCount, projectionRows);
         if (selected < 0) {
           valid = false;
         }
@@ -111,7 +148,7 @@ classical class AggregateOwnerProjections {
         }
 
         if (kind == 1) {
-          long moved = projectionAt(function, destination, projectionCount, projectionRows);
+          long moved = projectionAt(-1, function, destination, projectionCount, projectionRows);
           if (moved < 0) {
             valid = false;
           } else {
