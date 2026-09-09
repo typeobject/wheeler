@@ -227,6 +227,21 @@ Its graph work falls from 26.3 million to 2.9 million transitions with no additi
 arena. These are bounded graph checks, not accepted overlay locks, native emission
 of every compiler source, nominal execution, or stage equality.
 
+Hosted run [34334217832](https://github.com/typeobject/wheeler/actions/runs/34334217832)
+on `beb49cdbe` passes all 52 jobs and all sixteen native compiler-package methods.
+Audited method-to-build-success upper bounds range from 367.498252 to 672.461070
+seconds under the unchanged twelve-minute deadline. This accepts counted graph
+traversal on that commit, not the dirty nominal overlay or the later physical
+inventory test.
+
+[WIP-0098](WIP-0098-early-callable-free-archive-publication.md#complete-current-callable-free-inventory)
+now checks every current callable-free physical compiler owner in one archive
+pass. All twenty-one are import-free constant authorities. Their complete
+8,062-byte transport matches independent artifacts and metadata. Every synthetic
+entry verifies, executes, and rewinds. The archive pass remains history-free.
+This is complete coverage of that inventory, not physical nominal-descriptor or
+nominal-body coverage. The first-authority-only test is deleted.
+
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.
@@ -302,6 +317,7 @@ copy of their generated hashes.
 | Evidence | Source |
 | --- | --- |
 | Selected physical module owners | [NativeCompilerPhysicalSelection.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeCompilerPhysicalSelection.java), [NativeCompilerPhysicalModules.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeCompilerPhysicalModules.java) |
+| Every current callable-free physical owner | [NativeCompilerCallableFreePhysicalProductExampleTest.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeCompilerCallableFreePhysicalProductExampleTest.java) |
 | Canonical graph and archive derivation | [CompilerSources.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/CompilerSources.java) |
 | Native graph validation and exact transition pin | [NativeBootstrapModulesIdentityExampleTest.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeBootstrapModulesIdentityExampleTest.java) |
 | Wheeler SHA-256 differential evidence | [NativeSha256ExampleTest.java](../../../bootstrap/examples/src/test/java/com/typeobject/wheeler/examples/NativeSha256ExampleTest.java) |
