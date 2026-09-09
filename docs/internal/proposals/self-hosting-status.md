@@ -242,7 +242,9 @@ entry verifies, executes, and rewinds. The archive pass remains history-free.
 This is complete coverage of that inventory, not physical nominal-descriptor or
 nominal-body coverage. The first-authority-only test is deleted. The rooted target
 excludes the package's `CompilerLibrary.w` and `compiler/verification/Codec.w`.
-Every physical main source still requires product evidence, including those two.
+Every physical main source still requires product evidence. The codec now has
+separate source-local evidence below. The facade and complete library closure
+remain open.
 
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
@@ -324,6 +326,29 @@ four owning test-task audits. Five main API roots, all six root policy gates, th
 spine targets pass. The graph identity takes 73,374,451 transitions under the
 unchanged 89-million ceiling. These are scoped gates, not compilation of every
 physical main source or stage equality.
+
+Hosted run [34375785935](https://github.com/typeobject/wheeler/actions/runs/34375785935)
+on `df1a9e014` passes all 52 jobs and all sixteen executed native compiler-package
+methods. Audited method-to-build-success upper bounds range from 258.799221 to
+687.901583 seconds under the unchanged twelve-minute deadline. This accepts the
+retained-result patch, not the dirty nominal overlay or subsequent codec work.
+
+[WIP-0054](WIP-0054-native-source-product-artifact-integration.md#codec-source-product)
+now also checks `Codec.w` outside the rooted compiler target. Its scalar output
+bound admits the complete authored function through direct products. The full
+source-local artifact, frame, instruction body, imported relocation, SHA-256, and
+caller storage match independent expectations. The actual emitted body executes
+and rewinds against an independently compiled verifier and wrapper. This is not
+native compilation of that dependency closure or `CompilerLibrary.w`.
+
+Scoped codec acceptance passes 58 distinct JUnit identities, the 449-module target
+archive binding, six root policy gates, and four owning-task audits of all 711
+canonical package inputs. Five main API roots, the 497-artifact workspace and site,
+the locked minimum consumer, and native ordering 3/3 and spine 7/7 also pass. The
+consumer retains 568 artifact bytes, 772 coverage bytes, seven steps, and state 7.
+The compiler archive and four locks change. Rooted graph and executable identities
+do not. A separate conformance API check still reports fifteen missing comment or
+Effects facets. That failed check is not included in the five passing API roots.
 
 ## Evidence locations
 

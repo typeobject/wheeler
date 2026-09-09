@@ -87,7 +87,10 @@ limit. It adds no Wheeler source, package input, identity, or lock change.
 
 This target is not the entire main-source tree. `CompilerLibrary.w` and
 `compiler/verification/Codec.w` belong to the package but are outside the rooted
-compiler target. Their separate source-product coverage remains required.
+compiler target. [WIP-0054](WIP-0054-native-source-product-artifact-integration.md#codec-source-product)
+now checks the codec's complete source-local product and executes its retained
+body with an independent verifier. The package facade and complete native library
+closure remain separate required work.
 
 These physical owners do not exercise nominal declarations or authored bodies.
 Their empty type sections cannot justify discarding either. WIP-0054 still owns

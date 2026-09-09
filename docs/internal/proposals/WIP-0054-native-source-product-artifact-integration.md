@@ -81,6 +81,34 @@ helper. Existing byte, comparison, call, reversible, storage-loan, and CoreParsi
 fixtures check the migrated composition. Nominal results and the complete driver
 join remain open.
 
+### Codec source product
+
+`compiler/verification/Codec.w` is outside the rooted compiler target. Its source
+now names the output capacity and exclusive bound as scalar declarations. This
+keeps the same capacity check in the existing direct products. It does not add
+nested intrinsic expressions to the assertion grammar. The original expression
+failed value-product admission before any artifact was published.
+
+`NativeCompilerCodecSourceProductExampleTest` compiles the complete physical file
+against closed verifier signature products, without lending dependency source to
+the native compiler. An independently compiled library supplies the expected
+codec body, complete frame, and result. Only function IDs are normalized. That
+body, a typed import stub, and an inert entry form the independent source-local
+artifact oracle. The complete 1,808-byte artifact, SHA-256 identity, relocation,
+and every caller byte and cell match, including publication tails.
+
+The test then relocates the actual emitted body into an independently compiled
+verifier and entry wrapper. It executes the codec, not merely the inert entry.
+Exact and spare capacity preserve the complete input. Empty input, damaged magic,
+invalid code, and short output reject before changing caller storage. All those
+execution paths rewind. Compilation itself is history-free. Four intended
+mutations expose an exclusive capacity bound, excess admission, missing
+verification, and a lost return length.
+
+This is one complete source-local product and mixed-dependency execution. It is
+not native compilation of the verifier closure, `CompilerLibrary.w`, or the whole
+package library. Those products and stage equality remain required.
+
 ## Inputs and ownership
 
 A source-local artifact is a pure function of:
