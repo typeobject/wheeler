@@ -1,11 +1,11 @@
 package com.typeobject.wheeler.examples;
 
+import static com.typeobject.wheeler.examples.NativeBootstrapGraphFixture.program;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -13,18 +13,13 @@ import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest.Module;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /** Differential tests for the bounded Wheeler-native bootstrap module closure. */
 final class NativeBootstrapModulesIdentityExampleTest {
-  private static final Path ROOT = Path.of("../wheeler-conformance/src/main/wheeler/bootstrap");
   private static final String IDENTITY = "ab".repeat(32);
   private static final int DENSE_GRAPH_ROOT_EDGE_ADJUSTMENT = 63;
   private static final int DENSE_GRAPH_IMPORTS_PER_MODULE = 64;
@@ -45,7 +40,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
     }
 
     assertEquals(MachineStatus.HALTED, machine.status());
-    assertEquals(88_665_068, transitions);
+    assertEquals(73_641_840, transitions);
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
     assertEquals(450, machine.global("moduleCount"));
@@ -353,20 +348,6 @@ final class NativeBootstrapModulesIdentityExampleTest {
       }
       assertEquals(initial, machine.snapshot());
     }
-  }
-
-  private static Program program() throws Exception {
-    Map<String, String> sources = new LinkedHashMap<>();
-    sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.module_manifest"));
-    sources.put(
-        "NativeBootstrapModulesIdentity.w",
-        Files.readString(ROOT.resolve("NativeBootstrapModulesIdentity.w")));
-    sources.put("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"));
-    sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
-    return new WheelerCompiler().compileModuleFiles(
-        sources,
-        "wheeler.conformance.bootstrap.modules_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

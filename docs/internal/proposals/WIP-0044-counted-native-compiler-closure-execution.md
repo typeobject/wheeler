@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bootstrap, package, and conformance maintainers |
 | Created | 2026-08-07 |
-| Updated | 2026-09-07 |
+| Updated | 2026-09-09 |
 | Area | Self-hosting, module closure, linking, bootstrap |
 | Depends on | WIP-0007, WIP-0009, WIP-0043 |
 | Supersedes | None |
@@ -152,7 +152,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [x] Three-entry evidence checks physical path and payload offsets. Damaged outer evidence preserves caller columns.
 - [x] `compiler/closure/ModuleManifest.w` owns canonical syntax, binding, root, cycle, and reachability validation. Conformance identity publication calls that owner.
 - [x] `ArchiveModuleSources.w` joins every manifest-selected physical compiler module to exact digest-matching archive ranges. A mismatched source identity leaves publication untouched.
-- [x] The manifest parser materializes counted module, external, import-owner, and resolved-target columns through 512 modules and 3,072 imports.
+- [x] The manifest parser materializes counted module, external, import-owner, and resolved-target columns through 512 modules and 3,072 imports. Graph validation traverses each selected owner's counted edge window instead of rescanning all imports.
 - [x] `ClosurePlan.w` publishes archive source ranges, first-import offsets, direct-import counts, import ranks, leaf-first order, and executable-owner bits only after complete validation.
 - [x] A 257-module chain plans and classifies with its root last. The complete physical compiler closure plans and classifies without truncation.
 - [x] Every physical compiler source is at most 32,768 bytes and classifies within 4,096 semantic tokens. Shared loop-body layouts brought the last oversized source below the archive publication ceiling. Backend statement, compiler-core, and local-type owners replaced the earlier oversized modules.
@@ -188,6 +188,53 @@ The signed-ordering graph exposed the duplicate lookup work. The 451-module,
 updated parser takes 88,834,564 under the unchanged 89-million ceiling. This
 measures graph admission and identity, not native compilation of those modules.
 The owning bootstrap test retains the current input and transition assertions.
+
+### Counted owner windows
+
+The parser appends every module's imports before advancing the module index.
+Counted edge owners are therefore nondecreasing. Binding changes targets, not
+owners or row order. The private graph validator consumes those parser-owned
+columns, not an independently supplied graph.
+
+`firstOwnerEdge` finds the first counted row whose owner is at least the query.
+Two lower bounds delimit one selected owner's half-open edge window. Empty owners
+have empty windows. The key after module 511 locates the end of the table without
+reading a 513th module or a 3,073rd edge. Per-owner traversal remains bounded by
+sixty-four imports, including external edges. Negative external targets do not
+enter local indegrees or reachability.
+
+Candidate selection stops at the first unremoved zero-incoming module, preserving
+the former lowest-index choice. Incoming counts, removal, and rooted reachability
+retain their three 512-word buffers in a 12,288-byte arena. The full-edge scan and
+unused source loan are deleted. No cache, allocation, count, or publication limit
+is added. Cycle and detached-component checks still precede identity publication.
+
+Six focused methods exercise diamonds under every root position, empty and last
+owner windows, external targets, local row zero, reachable and detached cycles,
+512-module chains in both directions, and independent module/import excess.
+Small cases compare complete input and forty-byte output storage, including the
+eight bytes beyond the published identity, then fully rewind. The large chains
+and combined-capacity cases discard all history and claim no rewind evidence.
+Parser columns remain private scratch, not atomic caller products.
+
+A single canonical manifest fills 512 module rows, 3,072 import rows, and all
+sixty-four external declarations. Its graph work falls from 26,333,204 to
+2,908,647 transitions. Complete admission and SHA publication fall from 77,310,207
+to 53,885,648. A four-million-transition regression bound covers the validator and
+both owner-window searches. This is metadata occupancy, not source-artifact or
+function occupancy.
+
+The unchanged 216,281-byte nominal-overlay manifest previously reached the
+89-million ceiling without an identity. With counted windows, the same bytes
+publish the same independently computed digest in 77,181,931 transitions. This
+uses a preserved input, not accepted overlay package identities or lock evidence.
+The 89-million physical graph and 80-million large-fixture limits stay unchanged.
+
+Nine restored mutants break either window bound, the last edge, local-zero
+indegrees, external exclusion, zero-incoming selection, reachability, arena size,
+or the graph-work bound. The local-zero mutant exposed a missing root-zero cycle
+control before that control was added. Full source hashes and inventories restore
+after each final failing run.
 
 ## Acceptance
 

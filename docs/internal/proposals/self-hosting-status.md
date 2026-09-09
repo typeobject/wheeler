@@ -209,7 +209,23 @@ Local validation covers 83 executed JUnit identities, 450 archive bindings,
 selected physical artifacts and complete retained callable bodies, four refreshed
 consumer locks, and a 497-artifact workspace. All six root policy checks and five
 main-root API checks pass. Conformance entry comments and Effects facets remain
-open. These checks do not supply same-commit hosted package acceptance.
+open. These local checks do not themselves supply hosted package acceptance.
+
+Hosted run [34326207343](https://github.com/typeobject/wheeler/actions/runs/34326207343)
+on `198c8563c` passes all 52 jobs and all sixteen native compiler-package methods.
+Each method executes under the unchanged twelve-minute deadline. Audited
+method-to-build-success upper bounds range from 287.603330 to 652.487199 seconds.
+This accepts the committed frame-key replacement, not the dirty nominal overlay
+or the subsequent graph-window change.
+
+[WIP-0044](WIP-0044-counted-native-compiler-closure-execution.md#counted-owner-windows)
+replaces repeated full-edge scans with parser-owned numeric owner windows. The
+same 216,281-byte nominal manifest now publishes its graph identity in 77,181,931
+transitions instead of reaching the unchanged 89-million ceiling without output.
+A combined 512-module/3,072-import control retains complete metadata identity.
+Its graph work falls from 26.3 million to 2.9 million transitions with no additional
+arena. These are bounded graph checks, not accepted overlay locks, native emission
+of every compiler source, nominal execution, or stage equality.
 
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with

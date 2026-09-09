@@ -228,8 +228,23 @@ classical class BootstrapModuleManifestParser {
     return -1;
   }
 
+  // Parsing appends each owner's imports contiguously, in increasing owner order.
+  private long firstOwnerEdge(long owner, long importCount, borrow mut words edgeOwners) {
+    long low = 0;
+    long high = importCount;
+    while (low < high) limit MAX_IMPORTS {
+      long middle = (low + high) / 2;
+      if (edgeOwners[middle] < owner) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+
+    return low;
+  }
+
   private void validateGraph(
-    borrow byteview source,
     long moduleCount,
     long rootModule,
     long importCount,
@@ -258,9 +273,8 @@ classical class BootstrapModuleManifestParser {
       while (module < moduleCount) limit MAX_LOCAL_MODULES {
         if (removed[module] == 0) {
           if (incoming[module] == 0) {
-            if (candidate < 0) {
-              candidate = module;
-            }
+            candidate = module;
+            break;
           }
         }
 
@@ -270,15 +284,14 @@ classical class BootstrapModuleManifestParser {
 
       requireMetadata(-1 < candidate);
       set(removed, candidate, 1);
-      edge = 0;
-      while (edge < importCount) limit MAX_IMPORTS {
-        if (edgeOwners[edge] == candidate) {
-          long dependency = edgeTargets[edge];
-          if (-1 < dependency) {
-            set(incoming, dependency, incoming[dependency] - 1);
-            if (reachable[candidate] == 1) {
-              set(reachable, dependency, 1);
-            }
+      edge = firstOwnerEdge(candidate, importCount, edgeOwners);
+      long edgeEnd = firstOwnerEdge(candidate + 1, importCount, edgeOwners);
+      while (edge < edgeEnd) limit MAX_IMPORTS_PER_MODULE {
+        long dependency = edgeTargets[edge];
+        if (-1 < dependency) {
+          set(incoming, dependency, incoming[dependency] - 1);
+          if (reachable[candidate] == 1) {
+            set(reachable, dependency, 1);
           }
         }
 
@@ -576,7 +589,7 @@ classical class BootstrapModuleManifestParser {
     }
 
     requireMetadata(cursor == bufferLength(source));
-    validateGraph(source, parsedModules, rootModule, parsedImports, edgeOwners, edgeTargets);
+    validateGraph(parsedModules, rootModule, parsedImports, edgeOwners, edgeTargets);
     return new BootstrapModuleManifestPlan(
       parsedModules,
       parsedExternals,
