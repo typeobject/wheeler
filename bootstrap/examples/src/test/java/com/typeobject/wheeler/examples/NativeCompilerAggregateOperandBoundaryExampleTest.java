@@ -3,6 +3,7 @@ package com.typeobject.wheeler.examples;
 import com.typeobject.wheeler.examples.NativeAggregateOperandFixture.Input;
 import org.junit.jupiter.api.Test;
 
+/** Bounds strict and filtered aggregate operand publication and its rewind scope. */
 final class NativeCompilerAggregateOperandBoundaryExampleTest {
   @Test
   void publishesAllConstructorKindsAndWholeIdentitiesWithoutChangingTails() throws Exception {
