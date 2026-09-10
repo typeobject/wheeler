@@ -33,6 +33,13 @@ final class NativeSourceClassicalProofsExampleTest {
     check(input, true, SourceProofFixture.oracle(input));
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"\r", "\r\n"})
+  void bindsClaimsFollowingCarriageReturnTerminatedComments(String ending) {
+    String input = source("// preceding comment" + ending + "theorem bound proves steps(alpha, 8);");
+    check(input, true, SourceProofFixture.oracle(input));
+  }
+
   @Test
   void usesDeclarationFrontsInsteadOfSearchingForTheoremWords() {
     String input = source("""

@@ -391,9 +391,24 @@ counted callable names and effects, and scoped scalar products. It preserves ful
 signed bounds, copied names, and caller tails. The inverse coverage owner shares
 that binding rather than searching for theorem words inside unrelated members.
 A nonempty ordinary module no longer silently loses an unretained claim. Source
-step-artifact publication and the intact runner join are still open.
+step-claim composition and the intact runner join are still open.
 
-The binding milestone checks 55 source-product cases, eleven reusable-workspace
+The artifact publisher now consumes those shared five-column claims for either
+classical rule. It preserves complete arguments, merges names without duplicate
+string IDs, and verifies private final code before publication. Thirty-three
+cases compare complete artifacts, identities, and caller state. The largest
+capacity cases run without rewind history. This replaces the inverse-only
+publisher, not the remaining source-to-composition handoff.
+
+The current archive and both selected physical closure methods pass with 461
+modules, 2,238 constants, and 1,857 callables. Independent archives and graphs
+agree. The independently reconstructed 603,784-byte, 527-function selected
+container is unchanged. A locked consumer publishes a step certificate and
+compares every artifact, identity, and unused output byte. These checks do not
+establish native compilation of the new publisher's physical body or complete
+source step-claim compilation.
+
+The binding milestone at `0b3200203` checked 55 source-product cases, eleven reusable-workspace
 cases, and three physical front-admission cases. The archive pass binds 460
 modules, 2,199 constants, and 1,854 callables. Both selected physical closure
 methods pass after repairing buffer-ID exhaustion and a scanner-window overflow,
@@ -414,6 +429,14 @@ on `dc1c5ad57` exposed an unchanged SHA transition pin for the enlarged manifest
 Commit `ef1f69da5` corrects that test pin. Its bootstrap run
 [34433826526](https://github.com/typeobject/wheeler/actions/runs/34433826526) and
 README, site, and CodeQL workflows pass.
+
+Run [34451894674](https://github.com/typeobject/wheeler/actions/runs/34451894674)
+on `0b3200203` failed the physical CoreParsing archive-name case. New claim
+absence checking exposed the scanner's treatment of a tab as punctuation.
+The scanner now admits source whitespace and terminates line comments at carriage
+return or line feed. Local checks cover the original archive failure, 47 scanner
+cases, and claims following carriage-return-terminated comments. This is a
+separate diagnosed failure, not an explanation for the older timeout.
 
 ## Evidence locations
 

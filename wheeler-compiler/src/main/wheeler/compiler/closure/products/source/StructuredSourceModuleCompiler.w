@@ -137,9 +137,7 @@ classical class StructuredSourceModuleCompiler {
       /* allocations= */ SOURCE_INVERSE_ALLOCATIONS
     );
     bytes proofNames = allocateBytes(sourceProofs, SOURCE_PROOF_NAMES);
-    words proofNameStarts = allocate(sourceProofs, MAX_SOURCE_PROOFS);
-    words proofNameLengths = allocate(sourceProofs, MAX_SOURCE_PROOFS);
-    words proofSubjects = allocate(sourceProofs, MAX_SOURCE_PROOFS);
+    words proofs = allocate(sourceProofs, SOURCE_PROOF_ROWS);
     SourceReversibleCoveragePlan reversibleEvidence = materializeSourceReversibleCoverage(
       source,
       firstCallable,
@@ -152,9 +150,7 @@ classical class StructuredSourceModuleCompiler {
       stringLengths,
       functionNameIds,
       proofNames,
-      proofNameStarts,
-      proofNameLengths,
-      proofSubjects
+      proofs
     );
     assert(reversibleEvidence.valid);
     long reversibleCallableCount = reversibleEvidence.reversibleCallableCount;
@@ -859,9 +855,7 @@ classical class StructuredSourceModuleCompiler {
       stringLengths,
       proofCount,
       proofNames,
-      proofNameStarts,
-      proofNameLengths,
-      proofSubjects,
+      proofs,
       output,
       identity
     );
@@ -951,9 +945,7 @@ classical class StructuredSourceModuleCompiler {
     drop(statements);
     drop(blocks);
     drop(products);
-    drop(proofSubjects);
-    drop(proofNameLengths);
-    drop(proofNameStarts);
+    drop(proofs);
     drop(proofNames);
     drop(sourceProofs);
     drop(retainedTargetEffects);

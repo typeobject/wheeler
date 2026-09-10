@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-18 |
-| Updated | 2026-08-18 |
+| Updated | 2026-09-10 |
 | Area | Self-hosting compiler, structured artifacts, direction selection, bounded publication |
 | Depends on | WIP-0064, WIP-0163, WIP-0165 |
 | Supersedes | Fixed-capacity ordinary structured-artifact copies |
@@ -15,7 +15,7 @@
 
 Publish an ordinary structured artifact through its canonical length. `StructuredArtifactDirections.w` formerly copied all 32,768 bytes from its verified forward staging buffer when no reversible direction was required.
 
-The ordinary branch now copies `forwardResult.length` bytes. The reversible branch remains owned by `ReversibleSourceProductArtifact.w`, which already publishes measured canonical sections.
+The ordinary branch now copies `forwardResult.length` bytes. The reversible branch remains owned by `ClassicalSourceProductArtifact.w`, which already publishes measured canonical sections.
 
 ## Direction boundary
 

@@ -5,6 +5,19 @@ module wheeler.lexer.scanner;
 classical class Scanner {
   /// Caps one source or canonical package-metadata input.
   private const long MAX_SCANNER_INPUT_BYTES = 262144;
+  private const long HORIZONTAL_TAB = 9;
+  private const long LINE_FEED = 10;
+  private const long CARRIAGE_RETURN = 13;
+  private const long INFORMATION_SEPARATOR_FIRST = 28;
+  private const long SPACE = 32;
+  private const long OGHAM_SPACE_MARK = 5760;
+  private const long EN_QUAD = 8192;
+  private const long FIGURE_SPACE = 8199;
+  private const long HAIR_SPACE = 8202;
+  private const long LINE_SEPARATOR = 8232;
+  private const long PARAGRAPH_SEPARATOR = LINE_SEPARATOR + 1;
+  private const long MEDIUM_MATHEMATICAL_SPACE = 8287;
+  private const long IDEOGRAPHIC_SPACE = 12288;
 
   /// Defines immutable `ScanDiagnostic` values for this module.
   public record ScanDiagnostic(long code, long offset, long line, long column) {}
@@ -38,13 +51,48 @@ classical class Scanner {
     return new ScanResult.Error(diagnostic);
   }
 
-  /// Classifies one ASCII or Unicode scalar as a source token kind.
-  public long tokenKind(long scalar) {
-    if (scalar == 10) {
-      return 0;
+  private boolean sourceWhitespace(long scalar) {
+    if (HORIZONTAL_TAB - 1 < scalar) {
+      if (scalar < CARRIAGE_RETURN + 1) {
+        return true;
+      }
     }
 
-    if (scalar == 32) {
+    if (INFORMATION_SEPARATOR_FIRST - 1 < scalar) {
+      if (scalar < SPACE + 1) {
+        return true;
+      }
+    }
+
+    if (scalar == OGHAM_SPACE_MARK) {
+      return true;
+    }
+
+    if (EN_QUAD - 1 < scalar) {
+      if (scalar < HAIR_SPACE + 1) {
+        return scalar != FIGURE_SPACE;
+      }
+    }
+
+    if (scalar == LINE_SEPARATOR) {
+      return true;
+    }
+
+    if (scalar == PARAGRAPH_SEPARATOR) {
+      return true;
+    }
+
+    if (scalar == MEDIUM_MATHEMATICAL_SPACE) {
+      return true;
+    }
+
+    return scalar == IDEOGRAPHIC_SPACE;
+  }
+
+  /// Classifies one scalar using source whitespace, ASCII identifiers, and punctuation.
+  /// Nonbreaking spaces are not source whitespace. Quoted and comment content is separate.
+  public long tokenKind(long scalar) {
+    if (sourceWhitespace(scalar)) {
       return 0;
     }
 
@@ -319,10 +367,15 @@ classical class Scanner {
               boolean scanningComment = true;
               while (scanningComment) limit MAX_SCANNER_INPUT_BYTES {
                 if (cursor < sourceLength) {
-                  if (utf8Scalar(source, cursor) == 10) {
+                  long commentScalar = utf8Scalar(source, cursor);
+                  if (commentScalar == LINE_FEED) {
                     scanningComment = false;
                   } else {
-                    cursor += utf8Width(source, cursor);
+                    if (commentScalar == CARRIAGE_RETURN) {
+                      scanningComment = false;
+                    } else {
+                      cursor += utf8Width(source, cursor);
+                    }
                   }
                 } else {
                   scanningComment = false;

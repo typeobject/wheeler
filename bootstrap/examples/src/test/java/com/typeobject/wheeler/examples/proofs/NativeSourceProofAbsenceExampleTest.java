@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -96,6 +97,24 @@ final class NativeSourceProofAbsenceExampleTest {
     check(source, true, false);
   }
 
+  @Test
+  void admitsPhysicalCoreParsingWithCommentsAndHeaderWhitespace() throws Exception {
+    String module = "wheeler.compiler.core_parsing";
+    String source = CompilerSources.moduleClosure(module).values().stream()
+        .filter(value -> value.contains("module " + module + ";")).findFirst().orElseThrow();
+    check(source, true, false);
+    check(source.replace("module " + module, "module\n" + module), true, false);
+    check(source.replace("classical class CoreParsing", "classical\n/* header */ class\tCoreParsing"), true, false);
+    check("// café 𝄞 module misleading.name; classical class Ghost {}\n" + source, true, false);
+    check("/* module other.name; classical class Other {} */\n" + source, true, false);
+    check(source + "\n// module trailing.name; classical class Last {}\n", true, false);
+    check("// café 𝄞 module misleading.name; classical class Ghost {}\n"
+        + "/* module other.name; classical class Other {} */\n"
+        + source.replace("module " + module, "module\n" + module)
+            .replace("classical class CoreParsing", "classical\n/* header */ class\tCoreParsing")
+        + "\n// module trailing.name; classical class Last {}\n", true, false);
+  }
+
   private static void check(String source, boolean accepted, boolean rewind) {
     VirtualMachine machine = SourceProofFixture.machine(program, source);
     MachineSnapshot initial = machine.snapshot();
@@ -155,6 +174,8 @@ final class NativeSourceProofAbsenceExampleTest {
             + "variant V { case Item(); } }", true),
         Arguments.of("classical class Bound { long f() { return 7; } theorem B proves steps(f, 8); }", false),
         Arguments.of("classical class Bound { rev void f() {} theorem B proves inverse(f); }", false),
+        Arguments.of("classical class Bound { long f() { return 7; } // preceding comment\r"
+            + "theorem B proves steps(f, 8); }", false),
         Arguments.of("classical class Bad { theorem B proves steps(missing,); }", false),
         Arguments.of("classical class Bad { tetU void f() {} }", false),
         Arguments.of("classical class Bad {", false),

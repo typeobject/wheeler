@@ -128,9 +128,18 @@ claims against scoped constants and local callable products. Member fronts locat
 actual declarations, including when unrelated bindings are named `theorem`.
 Five source columns retain copied name ranges, rule codes, local subjects, and
 full signed arguments. Invalid batches leave caller rows and name storage alone.
-The old inverse owner now applies coverage policy to those shared products.
-Nonempty ordinary source compilation rejects claims it cannot retain. Complete
-source step-artifact publication and the mixed-member runner join remain open.
+The inverse adapter applies coverage policy to those shared products.
+`ClassicalSourceProductArtifact.w` consumes the same table, emits either classical
+rule, preserves both argument words, and deduplicates proof names against existing
+canonical strings. Final private-container verification precedes publication.
+Nonempty ordinary source compilation still rejects claims until its scoped
+binding is connected to that artifact path. The mixed-member runner join remains
+open.
+
+The scanner owns source whitespace rather than requiring each frontend to filter
+trivia. Tabs, carriage returns, and admitted Unicode separators split tokens.
+Nonbreaking spaces do not. A carriage return terminates a line comment, so a
+following source claim remains visible to binding and absence checks.
 
 `ModuleManifestProduct` carries root name, entry, kind, and limit words without a
 borrowed artifact. Source-local emission and final linking share one checked

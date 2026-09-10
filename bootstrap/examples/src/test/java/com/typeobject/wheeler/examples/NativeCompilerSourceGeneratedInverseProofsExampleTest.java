@@ -94,9 +94,16 @@ final class NativeCompilerSourceGeneratedInverseProofsExampleTest {
     sources.put("SourceGeneratedInverseProofsExample.w", """
         module example.source_generated_inverse_proofs;
 
+        import wheeler.compiler.closure.source_classical_proofs;
         import wheeler.compiler.closure.source_generated_inverse_proofs;
 
         classical class SourceGeneratedInverseProofsExample {
+          const long NAME_BYTES = 9;
+          const long STRINGS = 256;
+          const long CALLABLES = 64;
+          const long WORD_BYTES = 8;
+          const long ARENA_BYTES = NAME_BYTES + (STRINGS * 2 + CALLABLES + SOURCE_PROOF_ROWS) * WORD_BYTES;
+          const long ALLOCATIONS = 1 + 2 + 1 + 1;
           state long valid = 0;
           state long proofCount = 0;
           state long firstSubject = -1;
@@ -104,14 +111,12 @@ final class NativeCompilerSourceGeneratedInverseProofsExampleTest {
 
           entry void main(borrow utf8 source, borrow mut bytes output) {
             assert(bufferLength(output) == 16384);
-            region arena = new region(/* bytes= */ 6153, /* allocations= */ 7);
+            region arena = new region(/* bytes= */ ARENA_BYTES, /* allocations= */ ALLOCATIONS);
             bytes names = allocateBytes(arena, /* length= */ 9);
             words stringStarts = allocate(arena, /* length= */ 256);
             words stringLengths = allocate(arena, /* length= */ 256);
             words functionNameIds = allocate(arena, /* length= */ 64);
-            words proofNameStarts = allocate(arena, /* length= */ 64);
-            words proofNameLengths = allocate(arena, /* length= */ 64);
-            words proofSubjects = allocate(arena, /* length= */ 64);
+            words proofs = allocate(arena, SOURCE_PROOF_ROWS);
             setByte(output, 0, 99);
             setByte(names, 0, 97);
             setByte(names, 1, 108);
@@ -138,22 +143,20 @@ final class NativeCompilerSourceGeneratedInverseProofsExampleTest {
               stringLengths,
               functionNameIds,
               output,
-              proofNameStarts,
-              proofNameLengths,
-              proofSubjects
+              proofs
             );
             proofCount = plan.proofCount;
             if (plan.valid) {
               valid = 1;
-              firstSubject = proofSubjects[0];
-              secondSubject = proofSubjects[1];
-              setOutputLength(output, proofNameLengths[0] + proofNameLengths[1]);
+              firstSubject = proofs[SOURCE_PROOF_SUBJECT_ROW];
+              secondSubject = proofs[SOURCE_PROOF_SUBJECT_ROW + 1];
+              assert(proofs[SOURCE_PROOF_RULE_ROW] == 1);
+              assert(proofs[SOURCE_PROOF_ARGUMENT_ROW] == -1);
+              setOutputLength(output, proofs[SOURCE_PROOF_LENGTH_ROW] + proofs[SOURCE_PROOF_LENGTH_ROW + 1]);
             } else {
               setOutputLength(output, 1);
             }
-            drop(proofSubjects);
-            drop(proofNameLengths);
-            drop(proofNameStarts);
+            drop(proofs);
             drop(functionNameIds);
             drop(stringLengths);
             drop(stringStarts);

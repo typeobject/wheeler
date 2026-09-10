@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, module-product, aggregate, ownership, and bootstrap maintainers |
 | Created | 2026-08-09 |
-| Updated | 2026-09-09 |
+| Updated | 2026-09-10 |
 | Area | Self-hosting, source lowering, module products, aggregate products, bootstrap |
 | Depends on | WIP-0013, WIP-0028, WIP-0044, WIP-0045, WIP-0046, WIP-0047, WIP-0048 |
 | Supersedes | None |
@@ -259,7 +259,7 @@ qualifiers, types, and values without reopening dependency source.
 The whole batch is staged before publication. Duplicate proof names, unknown or
 stale subjects, mismatched effects, circuit rules, invalid bounds, and first-excess
 capacities leave caller tables and copied-name storage unchanged. Repeated
-subjects with distinct proof names are valid. The 55-case source binding suite
+subjects with distinct proof names are valid. The 57-case source binding suite
 compares complete tables and tails, including 64 maximum-width names, empty
 callable windows, and invalid counted windows. Ordinary
 cases cover accepted and rejected rewind and replay. The combined capacity case
@@ -268,14 +268,16 @@ uses explicitly history-free execution.
 The generated-inverse adapter applies a coverage policy rather than parsing
 theorem syntax. Ordinary structured compilation rejects claims that its emitter
 cannot retain. The previous path silently dropped a valid step claim. This is a
-fail-closed boundary, not source step-artifact publication. Threading rule and
-argument products through artifact composition remains open, as does the intact
-mixed-member runner join under WIP-0498.
+fail-closed boundary, not complete source step-artifact compilation. The artifact
+publisher now consumes the shared rule and argument columns. Ordinary source
+compilation still needs to bind its scoped constants and pass those claims into
+direction composition. The intact mixed-member runner join remains open under
+WIP-0498.
 
 The ordinary path proves claim absence through the same member fronts. It reuses
 three empty 4,096-cell product columns and the module-name pair in an existing
 private callable column. The scanner clears these cells before product lowering,
-including ordinary rejection. Eleven cases check every cell, the untouched
+including ordinary rejection. Twelve cases check every cell, the untouched
 module-column tail, unchanged region and buffer counts, cleanup, and full rewind
 and replay. This scan allocates no buffers. The first integration allocated a
 fresh proof-binding workspace for every ordinary module and exhausted the
@@ -284,9 +286,63 @@ fresh proof-binding workspace for every ordinary module and exhausted the
 The next archive pass caught 4,173 raw tokens in the structured compiler owner.
 Result validation now lives with target validation, and inverse coverage and its
 storage calculations live with the inverse adapter. The structured owner fits
-in 4,076 raw tokens without changing the 4,096-token scanner window. Three fast
-physical-owner cases check this admission boundary without rewind history. They
-do not establish native compilation of those owners' bodies.
+in 4,038 raw tokens without changing the 4,096-token scanner window. Physical
+front checks cover that owner, both proof owners, and CoreParsing with comment
+and header-whitespace variations. They do not establish native compilation of
+those owners' bodies.
+
+### Classical artifact publication
+
+`ClassicalSourceProductArtifact.w` replaces the inverse-only publisher. It
+consumes a verified six-section forward artifact and the shared five-column
+source claims. It can preserve existing inverse windows or compose generated
+inverses for a homogeneous reversible callable set. No dependency source enters
+this boundary.
+
+`SourceProofStrings.w` builds one canonical string union. A proof name can reuse
+a class, global, field, variant, or case name already in the artifact. Duplicate
+proof names still reject. The 256-string limit counts additions, not claim rows.
+Every affected manifest, type, variant, and function name ID is remapped before
+section 10 is written.
+
+Rules and signed arguments are no longer inferred from the publication path.
+Inverse arguments encode as two all-ones words. Positive step arguments retain
+both words. Final verification checks actual composed instructions and the
+existing 4,000,000-step native manifest profile. An encoding-valid larger claim
+must reject, not narrow to a smaller accepted bound.
+
+The publisher stages complete sections, validates the final container, and hashes
+it before copying artifact or identity bytes. Thirty-three differential cases
+cover both rules, existing and generated inverses, shared names, full string and
+claim capacities, malformed later rows, and rejection without caller mutation.
+Small cases rewind and replay. Maximum-width claims and terminal string capacity
+run history-free. Keeping the terminal string case's complete history exhausted
+the hosted test heap. The VM's limits were not raised.
+
+The refreshed archive and both selected physical closure methods pass. The
+archive binds 461 modules, 2,238 constants, and 1,857 callables. Independently
+built packages and graphs agree, and the selected 527-function container retains
+its independently reconstructed bytes and identity. A locked package consumer
+publishes and checks a complete 544-byte step artifact. This is product
+publication evidence, not compilation of every physical body.
+
+### Source whitespace and comment termination
+
+Bootstrap run 34451894674 exposed a regression in the new absence gate. The
+physical CoreParsing fixture uses a tab between `class` and its name. The native
+scanner classified that tab as punctuation. The declaration-product route had
+not needed to rescan that header before source claim admission was added.
+
+`Scanner.w` now owns the complete source whitespace set, including horizontal
+tabs, carriage returns, and the admitted Unicode separators. Nonbreaking spaces
+remain non-whitespace. Line comments end at carriage return or line feed, so a
+claim after a carriage return cannot disappear inside a comment. No proof-local
+trivia filter or source rewrite was added.
+
+Forty-seven scanner cases compare lexical acceptance, exact UTF-8 token ranges,
+full caller columns and tails, input preservation, cleanup, rewind, and replay.
+Binding and absence tests cover claims after carriage-return-terminated comments.
+The original complete CoreParsing archive-name regression also passes.
 
 ### Manifest composition
 

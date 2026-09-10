@@ -129,7 +129,12 @@ retains up to 64 inverse or positive signed step claims and copies each name int
 at most 256 bytes. Malformed batches change no caller row or name byte. These are
 bound claims, not accepted proofs of final code. The nonempty ordinary source
 publisher rejects claims it cannot retain rather than silently discarding them.
-Source step-artifact publication and the mixed-member runner join remain open.
+The classical artifact publisher consumes the same five-column claims, preserves
+both argument words, and merges proof names into the existing canonical string
+table without duplicating IDs. It verifies the final private container before
+publishing bytes or identity. Ordinary source compilation still needs to pass
+its bound claims into this composition path. The mixed-member runner join also
+remains open.
 
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and
@@ -138,7 +143,11 @@ metadata handoff, not complete nominal source compilation.
 
 Source keywords, Boolean literals, primitive types, intrinsics, and native test
 metadata now use exact word codes instead of token hashes. The fixed vocabulary
-contains 72 spellings and does not limit identifier length. This corrects lexical
+contains 72 spellings and does not limit identifier length. The scanner admits
+source whitespace, including tabs and Unicode separators but not nonbreaking
+spaces. The exact set is `U+0009..U+000D`, `U+001C..U+0020`, `U+1680`,
+`U+2000..U+200A` except `U+2007`, `U+2028..U+2029`, `U+205F`, and `U+3000`.
+Line comments end at carriage return or line feed. This corrects lexical
 admission, not complete class-member validation. Automatic test discovery can
 still ignore malformed member fronts, a separate open frontend boundary.
 

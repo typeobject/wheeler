@@ -2,13 +2,26 @@
 
 module wheeler.compiler.closure.structured_artifact_directions;
 
+import wheeler.compiler.closure.classical_source_product_artifact;
 import wheeler.compiler.closure.generated_inverse_products;
 import wheeler.compiler.closure.reversible_result_composition;
-import wheeler.compiler.closure.reversible_source_product_artifact;
 import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_product_artifact;
 
 classical class StructuredArtifactDirections {
+  private const long ARTIFACT_BYTES = 32768;
+  private const long IDENTITY_BYTES = 32;
+  private const long PUBLICATION_BUFFERS = 2;
+  private const long PUBLICATION_BYTES = ARTIFACT_BYTES + IDENTITY_BYTES;
+  private const long MAX_CALLABLES = 64;
+  private const long INVERSE_COLUMNS = 3;
+  private const long INVERSE_ROWS = MAX_CALLABLES * INVERSE_COLUMNS;
+  private const long CODE_BYTES = 262144;
+  private const long WORD_BYTES = 8;
+  private const long INVERSE_ARENA_BYTES = INVERSE_ROWS * WORD_BYTES + CODE_BYTES;
+  private const long INVERSE_BUFFERS = 2;
+  private const long EMPTY_WINDOW = 1;
+
   /// Stages forward products and publishes exactly one selected direction layout.
   public SourceProductArtifactPlan publishStructuredArtifactDirections(
     long callableCount,
@@ -34,9 +47,7 @@ classical class StructuredArtifactDirections {
     borrow mut words stringLengths,
     long proofCount,
     borrow byteview proofNames,
-    borrow mut words proofNameStarts,
-    borrow mut words proofNameLengths,
-    borrow mut words proofSubjects,
+    borrow mut words proofs,
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
@@ -56,9 +67,12 @@ classical class StructuredArtifactDirections {
       publishedTypeCount = resultComposition.typeCount;
     }
 
-    region publication = new region(/* bytes= */ 32800, /* allocations= */ 2);
-    bytes forwardArtifact = allocateBytes(publication, /* length= */ 32768);
-    bytes forwardIdentity = allocateBytes(publication, /* length= */ 32);
+    region publication = new region(
+      /* bytes= */ PUBLICATION_BYTES,
+      /* allocations= */ PUBLICATION_BUFFERS
+    );
+    bytes forwardArtifact = allocateBytes(publication, ARTIFACT_BYTES);
+    bytes forwardIdentity = allocateBytes(publication, IDENTITY_BYTES);
     SourceProductArtifactPlan forwardResult = publishClassicalSourceModuleArtifactWithStubs(
       callableCount,
       reversibleCallableCount,
@@ -85,33 +99,49 @@ classical class StructuredArtifactDirections {
       forwardIdentity
     );
     SourceProductArtifactPlan result = forwardResult;
+    boolean rebuild = 0 < proofCount;
     if (0 < reversibleCallableCount) {
-      assert(reversibleCallableCount == callableCount);
-      region inverses = new region(/* bytes= */ 263680, /* allocations= */ 2);
-      words inverseRows = allocate(inverses, /* length= */ 192);
-      bytes inverseCode = allocateBytes(inverses, /* length= */ 262144);
-      GeneratedInversePlan inverse = materializeGeneratedInverseCompositionProducts(
-        callableCount,
-        composedCallables,
-        composedCode,
-        codeLength,
-        inverseRows,
-        inverseCode
+      rebuild = true;
+    }
+
+    if (rebuild) {
+      long inverseRowCapacity = EMPTY_WINDOW;
+      long inverseCodeCapacity = EMPTY_WINDOW;
+      if (0 < reversibleCallableCount) {
+        inverseRowCapacity = INVERSE_ROWS;
+        inverseCodeCapacity = CODE_BYTES;
+      }
+
+      region inverses = new region(
+        /* bytes= */ INVERSE_ARENA_BYTES,
+        /* allocations= */ INVERSE_BUFFERS
       );
-      assert(inverse.valid);
-      result = publishReversibleSourceProductArtifact(
+      words inverseRows = allocate(inverses, inverseRowCapacity);
+      bytes inverseCode = allocateBytes(inverses, inverseCodeCapacity);
+      if (0 < reversibleCallableCount) {
+        assert(reversibleCallableCount == callableCount);
+        GeneratedInversePlan inverse = materializeGeneratedInverseCompositionProducts(
+          callableCount,
+          composedCallables,
+          composedCode,
+          codeLength,
+          inverseRows,
+          inverseCode
+        );
+        assert(inverse.valid);
+      }
+
+      result = publishClassicalSourceProductArtifact(
         forwardArtifact,
         forwardResult.length,
         callableCount,
-        /* ownershipEventCount= */ 0,
+        reversibleCallableCount,
         composedCallables,
         inverseRows,
         inverseCode,
         proofNames,
         proofCount,
-        proofNameStarts,
-        proofNameLengths,
-        proofSubjects,
+        proofs,
         output,
         identity
       );
@@ -120,13 +150,13 @@ classical class StructuredArtifactDirections {
       drop(inverses);
     } else {
       long artifactByte = 0;
-      while (artifactByte < forwardResult.length) limit 32768 {
+      while (artifactByte < forwardResult.length) limit ARTIFACT_BYTES {
         setByte(output, artifactByte, forwardArtifact[artifactByte]);
         artifactByte += 1;
       }
 
       long identityByte = 0;
-      while (identityByte < 32) limit 32 {
+      while (identityByte < IDENTITY_BYTES) limit IDENTITY_BYTES {
         setByte(identity, identityByte, forwardIdentity[identityByte]);
         identityByte += 1;
       }

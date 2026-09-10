@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, ownership, proof, and bootstrap maintainers |
 | Created | 2026-08-15 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-10 |
 | Area | Self-hosting compiler, reversible source, ownership, proofs |
 | Depends on | WIP-0041, WIP-0054, WIP-0057, WIP-0063 |
 | Supersedes | Ownership, proof, and physical adoption split from WIP-0063 |
@@ -44,9 +44,9 @@ The admitted straight-line inverse profile has no allocation, drop, move, loan, 
 
 `ArchiveStructuredSourceModuleCompiler.w` copies each owner-local effect mask beside its rebased body and signature rows. `StructuredSourceModuleCompiler.w` now requires the complete 4,096-row effect view before allocating product storage. It admits only homogeneous ordinary or reversible local callable sets and rejects every other mask before forward composition.
 
-The reversible branch stages the complete forward artifact and identity privately, adapts composed callable rows to WIP-0063 inverse coordinates, and accepts only the ownership-free reversible opcode set. `ReversibleSourceProductArtifact.w` requires an explicit zero ownership-event count. Unsupported structured bodies trap before caller artifact or identity mutation. The ordinary branch copies its staged artifact only after the same product pipeline succeeds.
+The reversible branch stages the complete forward artifact and identity privately, adapts composed callable rows to WIP-0063 inverse coordinates, and accepts only the ownership-free reversible opcode set. `GeneratedInverseProducts.w` rejects every instruction outside that zero-event profile. `ClassicalSourceProductArtifact.w` verifies the complete input and final code rather than accepting a caller's zero-event assertion. Unsupported structured bodies trap before caller artifact or identity mutation. The ordinary branch copies its staged artifact only after the same product pipeline succeeds.
 
-`SourceGeneratedInverseProofs.w` recognizes the exact `theorem name proves inverse(callable);` form, binds each subject through the closed callable string products, rejects duplicate names and subjects, and publishes no partial name table. Reversible artifact publication merges theorem names into canonical lexical string order, rewrites every affected manifest, type, variant, and function string ID, emits section 10 with the final subject IDs, and verifies the complete artifact before publication.
+`SourceGeneratedInverseProofs.w` delegates syntax and binding to `SourceClassicalProofs.w`, then requires one inverse claim per callable for this homogeneous profile. The shared table retains name ranges, rules, subjects, and full arguments. Failed coverage publishes no partial table. Reversible artifact publication merges theorem names into canonical lexical string order, rewrites every affected manifest, type, variant, and function string ID, emits section 10 with the final subject IDs, and verifies the complete artifact before publication.
 
 `ReversibleResultComposition.w` replaces the ordinary terminal move and value return with `RESULT_FILL_SOURCE` and `RETURN_RESULT_SLOT`. It changes the former return temporary into the Boolean presence local, appends the exact signed payload local, and rebases later callable type starts before forward artifact staging. The native function verifier now accepts canonical non-reversible result-slot staging descriptors and applies the same forward slot checks that it applies before inverse publication. The complete signed identity fixture matches stage 0 byte for byte through `StructuredSourceModuleCompiler.w`.
 
@@ -81,7 +81,7 @@ Rejected. Callable effect products authorize inverse generation before bytes exi
 
 ### Treat an empty ownership table as implicit evidence
 
-Rejected. The producer must publish an exact zero count under the same transaction.
+Rejected. The inverse producer checks every instruction against its closed zero-event opcode profile under the same transaction. A caller-supplied zero count is not evidence about code.
 
 ### Add proof rows after artifact verification
 

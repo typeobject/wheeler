@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, bytecode, and proof maintainers |
 | Created | 2026-08-15 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-10 |
 | Area | Self-hosting compiler, generated inverses, callable coordinates |
 | Depends on | WIP-0038, WIP-0041, WIP-0055, WIP-0057 |
 | Supersedes | Generated-inverse integration split from WIP-0055 |
@@ -47,7 +47,7 @@ Adding inverse flags to the existing emitter without an explicit product would c
 
 `GeneratedInverseRelocations.w` maps each forward owner-local call coordinate to its exact reversed instruction. It sorts output by callable and inverse instruction, retains the target row and all 32 identity bytes, and rejects duplicate forward coordinates before copying one caller row. Two shuffled calls to one target publish inverse coordinates zero and three with separate stable identity rows.
 
-`ReversibleSourceProductArtifact.w` consumes one verified forward artifact, the same callable rows, and completed inverse code. It preserves manifest, string, type, variant, local-type, synthetic-library, and optional proof bytes, then interleaves each local forward and inverse window while publishing reversible descriptor flags and exact offsets. The complete void fixture matches stage 0 byte for byte. Its generated function runs forward, crosses an explicit effect boundary that clears history, runs inverse, and restores its global exactly.
+`ClassicalSourceProductArtifact.w` consumes one verified proof-free forward artifact, the same callable rows, completed inverse code, and shared source proof products. It preserves manifest facts, types, variants, local types, and the synthetic library function. It merges proof names, remaps affected string IDs, and emits proof descriptors while interleaving each local forward and inverse window with exact flags and offsets. The complete void fixture matches stage 0 byte for byte. Its generated function runs forward, crosses an explicit effect boundary that clears history, runs inverse, and restores its global exactly.
 
 `ProofVerifier.w` now calls the generated-inverse opcode-pair function. The verifier no longer carries a private inverse table.
 

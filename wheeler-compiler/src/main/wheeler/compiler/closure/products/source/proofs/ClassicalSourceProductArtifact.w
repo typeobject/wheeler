@@ -1,11 +1,15 @@
-//! Publishes reversible artifacts from forward products and generated inverses.
+//! Publishes classical artifacts with optional generated inverses and bound proof products.
 
-module wheeler.compiler.closure.reversible_source_product_artifact;
+module wheeler.compiler.closure.classical_source_product_artifact;
 
+import wheeler.compiler.closure.classical_proof_products;
+import wheeler.compiler.closure.source_classical_proofs;
 import wheeler.compiler.closure.source_product_artifact;
+import wheeler.compiler.closure.source_proof_strings;
+import wheeler.compiler.verifier;
 import wheeler.core.encoding.binary;
 
-classical class ReversibleSourceProductArtifact {
+classical class ClassicalSourceProductArtifact {
   private const long ARTIFACT_BYTES = 32768;
   private const long CALLABLE_CODE_LENGTH_ROW = 64;
   private const long CALLABLE_CODE_START_ROW = 0;
@@ -14,9 +18,19 @@ classical class ReversibleSourceProductArtifact {
   private const long INVERSE_ROWS = 192;
   private const long MAX_CALLABLES = 64;
   private const long MAX_CODE_BYTES = 262144;
-  private const long MAX_PROOFS = 64;
+  private const long MAX_PROOFS = MAX_SOURCE_PROOFS;
   private const long MAX_SECTIONS = 7;
-  private const long MAX_STRINGS = 256;
+  private const long MAX_STRINGS = MAX_SOURCE_PROOF_STRINGS;
+  private const long DIRECTORY_ROWS = 64;
+  private const long STRING_COLUMNS = 3;
+  private const long NATIVE_WORD_BYTES = 8;
+  private const long STAGING_WORDS = DIRECTORY_ROWS * 2 + MAX_STRINGS * STRING_COLUMNS
+    + SOURCE_PROOF_STRING_ROWS;
+  private const long STAGING_BYTES = ARTIFACT_BYTES + STAGING_WORDS * NATIVE_WORD_BYTES;
+  private const long STAGING_ALLOCATIONS = 1 + 2 + STRING_COLUMNS + 1;
+  private const long BYTE_RADIX = 256;
+  private const long WORD_RADIX = BYTE_RADIX * BYTE_RADIX * BYTE_RADIX * BYTE_RADIX;
+  private const long WORD_MAX = WORD_RADIX - 1;
 
   private record SectionRange(long start, long length) {}
 
@@ -52,45 +66,6 @@ classical class ReversibleSourceProductArtifact {
       setByte(output, outputStart + copied, source[sourceStart + copied]);
       copied += 1;
     }
-  }
-
-  private long compareBytes(
-    borrow byteview left,
-    long leftStart,
-    long leftLength,
-    borrow byteview right,
-    long rightStart,
-    long rightLength
-  ) {
-    long sharedLength = leftLength;
-    if (rightLength < sharedLength) {
-      sharedLength = rightLength;
-    }
-
-    long compared = 0;
-    while (compared < sharedLength) limit ARTIFACT_BYTES {
-      long leftValue = left[leftStart + compared];
-      long rightValue = right[rightStart + compared];
-      if (leftValue < rightValue) {
-        return -1;
-      }
-
-      if (rightValue < leftValue) {
-        return 1;
-      }
-
-      compared += 1;
-    }
-
-    if (leftLength < rightLength) {
-      return -1;
-    }
-
-    if (rightLength < leftLength) {
-      return 1;
-    }
-
-    return 0;
   }
 
   private long remappedStringId(long oldId, long oldStringCount, borrow mut words oldIds) {
@@ -239,20 +214,19 @@ classical class ReversibleSourceProductArtifact {
     return new SectionRange(foundStart, foundLength);
   }
 
-  /// Rebuilds canonical sections with generated inverse windows before publication.
-  public SourceProductArtifactPlan publishReversibleSourceProductArtifact(
+  /// Rebuilds canonical sections with retained claims and optional generated inverse windows.
+  /// Caller artifacts, claim rows, code, and output storage remain unchanged on rejection.
+  public SourceProductArtifactPlan publishClassicalSourceProductArtifact(
     borrow byteview forwardArtifact,
     long forwardArtifactLength,
     long callableCount,
-    long ownershipEventCount,
+    long reversibleCallableCount,
     borrow mut words callableRows,
     borrow mut words inverseRows,
     borrow byteview inverseCode,
     borrow byteview proofNames,
     long proofCount,
-    borrow mut words proofNameStarts,
-    borrow mut words proofNameLengths,
-    borrow mut words proofSubjects,
+    borrow mut words proofs,
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
@@ -272,20 +246,22 @@ classical class ReversibleSourceProductArtifact {
     assert(readUnsigned(forwardArtifact, 16, 8) == forwardArtifactLength);
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
-    assert(ownershipEventCount == 0);
-    assert(bufferLength(callableRows) == CALLABLE_ROWS);
-    assert(bufferLength(inverseRows) == INVERSE_ROWS);
-    assert(bufferLength(inverseCode) == MAX_CODE_BYTES);
+    assert(-1 < reversibleCallableCount);
+    if (0 < reversibleCallableCount) {
+      assert(reversibleCallableCount == callableCount);
+      assert(bufferLength(callableRows) == CALLABLE_ROWS);
+      assert(bufferLength(inverseRows) == INVERSE_ROWS);
+      assert(bufferLength(inverseCode) == MAX_CODE_BYTES);
+    }
+
     assert(-1 < proofCount);
     assert(proofCount < MAX_PROOFS + 1);
-    assert(bufferLength(proofNameStarts) == MAX_PROOFS);
-    assert(bufferLength(proofNameLengths) == MAX_PROOFS);
-    assert(bufferLength(proofSubjects) == MAX_PROOFS);
+    assert(bufferLength(proofs) == SOURCE_PROOF_ROWS);
     assert(bufferLength(output) == ARTIFACT_BYTES);
     assert(bufferLength(identity) == 32);
     long sectionCount = readUnsigned(forwardArtifact, 24, 4);
-    assert(5 < sectionCount);
-    assert(sectionCount < MAX_SECTIONS + 1);
+    assert(sectionCount == 6);
+    assert(verifyArtifact(forwardArtifact, forwardArtifactLength) == 1);
 
     SectionRange manifest = sectionRange(forwardArtifact, forwardArtifactLength, 1);
     SectionRange strings = sectionRange(forwardArtifact, forwardArtifactLength, 2);
@@ -299,100 +275,30 @@ classical class ReversibleSourceProductArtifact {
     assert(3 < functions.length);
     assert(4 + functionCount * 40 < functions.length + 1);
 
-    region staging = new region(/* bytes= */ 40448, /* allocations= */ 7);
+    region staging = new region(
+      /* bytes= */ STAGING_BYTES,
+      /* allocations= */ STAGING_ALLOCATIONS
+    );
     bytes sectionArchive = allocateBytes(staging, ARTIFACT_BYTES);
     words sectionStarts = allocate(staging, /* length= */ 64);
     words sectionLengths = allocate(staging, /* length= */ 64);
     words oldStringStarts = allocate(staging, /* length= */ MAX_STRINGS);
     words oldStringLengths = allocate(staging, /* length= */ MAX_STRINGS);
     words oldStringIds = allocate(staging, /* length= */ MAX_STRINGS);
-    words proofNameIds = allocate(staging, /* length= */ MAX_PROOFS);
+    words proofNameIds = allocate(staging, /* length= */ SOURCE_PROOF_STRING_ROWS);
     long forwardStringCount = readUnsigned(forwardArtifact, strings.start, 4);
-    assert(0 < forwardStringCount);
-    assert(forwardStringCount < MAX_STRINGS - proofCount + 1);
-    long stringCursor = strings.start + 4;
-    long oldString = 0;
-    while (oldString < forwardStringCount) limit MAX_STRINGS {
-      long oldLength = readUnsigned(forwardArtifact, stringCursor, 4);
-      assert(0 < oldLength);
-      assert(oldLength < strings.start + strings.length - stringCursor - 3);
-      set(oldStringStarts, oldString, stringCursor + 4);
-      set(oldStringLengths, oldString, oldLength);
-      stringCursor += 4 + oldLength;
-      oldString += 1;
-    }
-
-    assert(stringCursor == strings.start + strings.length);
-    oldString = 0;
-    while (oldString < forwardStringCount) limit MAX_STRINGS {
-      long oldPrecedingProofCount = 0;
-      long oldProof = 0;
-      while (oldProof < proofCount) limit MAX_PROOFS {
-        long oldProofOrder = compareBytes(
-          proofNames,
-          proofNameStarts[oldProof],
-          proofNameLengths[oldProof],
-          forwardArtifact,
-          oldStringStarts[oldString],
-          oldStringLengths[oldString]
-        );
-        assert(oldProofOrder != 0);
-        if (oldProofOrder < 0) {
-          oldPrecedingProofCount += 1;
-        }
-
-        oldProof += 1;
-      }
-
-      set(oldStringIds, oldString, oldString + oldPrecedingProofCount);
-      oldString += 1;
-    }
-
-    long proof = 0;
-    while (proof < proofCount) limit MAX_PROOFS {
-      long precedingStrings = 0;
-      oldString = 0;
-      while (oldString < forwardStringCount) limit MAX_STRINGS {
-        long proofStringOrder = compareBytes(
-          forwardArtifact,
-          oldStringStarts[oldString],
-          oldStringLengths[oldString],
-          proofNames,
-          proofNameStarts[proof],
-          proofNameLengths[proof]
-        );
-        if (proofStringOrder < 0) {
-          precedingStrings += 1;
-        }
-
-        oldString += 1;
-      }
-
-      long proofPrecedingProofCount = 0;
-      long otherProof = 0;
-      while (otherProof < proofCount) limit MAX_PROOFS {
-        if (otherProof != proof) {
-          long otherProofOrder = compareBytes(
-            proofNames,
-            proofNameStarts[otherProof],
-            proofNameLengths[otherProof],
-            proofNames,
-            proofNameStarts[proof],
-            proofNameLengths[proof]
-          );
-          assert(otherProofOrder != 0);
-          if (otherProofOrder < 0) {
-            proofPrecedingProofCount += 1;
-          }
-        }
-
-        otherProof += 1;
-      }
-
-      set(proofNameIds, proof, precedingStrings + proofPrecedingProofCount);
-      proof += 1;
-    }
-
+    long mergedStringCount = indexSourceProofStrings(
+      forwardArtifact,
+      strings.start,
+      strings.length,
+      proofNames,
+      proofCount,
+      proofs,
+      oldStringStarts,
+      oldStringLengths,
+      oldStringIds,
+      proofNameIds
+    );
     SectionRange selected = manifest;
     long cursor = 0;
     long section = 0;
@@ -412,63 +318,20 @@ classical class ReversibleSourceProductArtifact {
       set(sectionStarts, section, cursor);
       long selectedLength = selected.length;
       if (section == 1) {
-        long mergedStringCount = forwardStringCount + proofCount;
-        writeUnsigned(mergedStringCount, 4, sectionArchive, cursor);
-        selectedLength = 4;
-        long mergedId = 0;
-        while (mergedId < mergedStringCount) limit MAX_STRINGS {
-          long selectedStart = 0;
-          long selectedStringLength = 0;
-          long selectedSource = 0;
-          long matches = 0;
-          oldString = 0;
-          while (oldString < forwardStringCount) limit MAX_STRINGS {
-            if (oldStringIds[oldString] == mergedId) {
-              selectedStart = oldStringStarts[oldString];
-              selectedStringLength = oldStringLengths[oldString];
-              selectedSource = 0;
-              matches += 1;
-            }
-
-            oldString += 1;
-          }
-
-          long proofString = 0;
-          while (proofString < proofCount) limit MAX_PROOFS {
-            if (proofNameIds[proofString] == mergedId) {
-              selectedStart = proofNameStarts[proofString];
-              selectedStringLength = proofNameLengths[proofString];
-              selectedSource = 1;
-              matches += 1;
-            }
-
-            proofString += 1;
-          }
-
-          assert(matches == 1);
-          writeUnsigned(selectedStringLength, 4, sectionArchive, cursor + selectedLength);
-          selectedLength += 4;
-          if (selectedSource == 0) {
-            copyBytes(
-              forwardArtifact,
-              selectedStart,
-              selectedStringLength,
-              sectionArchive,
-              cursor + selectedLength
-            );
-          } else {
-            copyBytes(
-              proofNames,
-              selectedStart,
-              selectedStringLength,
-              sectionArchive,
-              cursor + selectedLength
-            );
-          }
-
-          selectedLength += selectedStringLength;
-          mergedId += 1;
-        }
+        selectedLength = writeSourceProofStrings(
+          forwardArtifact,
+          forwardStringCount,
+          oldStringStarts,
+          oldStringLengths,
+          oldStringIds,
+          proofNames,
+          proofCount,
+          proofs,
+          proofNameIds,
+          mergedStringCount,
+          sectionArchive,
+          cursor
+        );
       } else {
         copyBytes(forwardArtifact, selected.start, selected.length, sectionArchive, cursor);
         if (section == 0) {
@@ -553,7 +416,7 @@ classical class ReversibleSourceProductArtifact {
         codeOutputStart + codeCursor
       );
       codeCursor += forwardLength;
-      if (function < callableCount) {
+      if (function < reversibleCallableCount) {
         assert(inverseLength == 0);
         boolean flagsValid = flags == 0;
         if (flags == 12) {
@@ -579,7 +442,7 @@ classical class ReversibleSourceProductArtifact {
         codeCursor += generatedLength;
         inverseCursor += generatedLength;
       } else {
-        boolean reversibleStub = flags == 1;
+        boolean reversibleStub = (flags & 1) == 1;
         if (reversibleStub) {
           assert(inverseLength == forwardLength);
           assert(forwardInverseOffset == forwardOffset + forwardLength);
@@ -608,28 +471,42 @@ classical class ReversibleSourceProductArtifact {
     if (0 < proofCount) {
       assert(sectionCount == 6);
       set(sectionStarts, 6, cursor);
-      long proofSectionLength = 4 + proofCount * 24;
+      long proofSectionLength = PROOF_WORD_BYTES + proofCount * CLASSICAL_PROOF_DESCRIPTOR_BYTES;
       set(sectionLengths, 6, proofSectionLength);
       writeUnsigned(proofCount, 4, sectionArchive, cursor);
       long proofRowIndex = 0;
       while (proofRowIndex < proofCount) limit MAX_PROOFS {
-        long proofRow = cursor + 4 + proofRowIndex * 24;
-        assert(proofSubjects[proofRowIndex] < callableCount);
-        writeUnsigned(proofRowIndex, 4, sectionArchive, proofRow);
-        writeUnsigned(proofNameIds[proofRowIndex], 4, sectionArchive, proofRow + 4);
-        writeUnsigned(
-          /* generated inverse rule= */
-          1,
-          4,
-          sectionArchive,
-          proofRow + 8
-        );
-        writeUnsigned(proofSubjects[proofRowIndex], 4, sectionArchive, proofRow + 12);
-        long argumentByte = 0;
-        while (argumentByte < 8) limit 8 {
-          setByte(sectionArchive, proofRow + 16 + argumentByte, 255);
-          argumentByte += 1;
+        long proofRow = cursor + PROOF_WORD_BYTES + proofRowIndex
+          * CLASSICAL_PROOF_DESCRIPTOR_BYTES;
+        long subject = proofs[SOURCE_PROOF_SUBJECT_ROW + proofRowIndex];
+        long rule = proofs[SOURCE_PROOF_RULE_ROW + proofRowIndex];
+        long argument = proofs[SOURCE_PROOF_ARGUMENT_ROW + proofRowIndex];
+        long low = argument % WORD_RADIX;
+        long high = argument / WORD_RADIX;
+        if (argument == -1) {
+          low = WORD_MAX;
+          high = WORD_MAX;
         }
+
+        assert(-1 < subject);
+        assert(subject < callableCount);
+        assert(classicalProofArgumentValid(rule, low, high));
+        writeUnsigned(proofRowIndex, PROOF_WORD_BYTES, sectionArchive, proofRow);
+        writeUnsigned(
+          proofNameIds[proofRowIndex],
+          PROOF_WORD_BYTES,
+          sectionArchive,
+          proofRow + PROOF_WORD_BYTES
+        );
+        writeUnsigned(rule, PROOF_WORD_BYTES, sectionArchive, proofRow + PROOF_WORD_BYTES * 2);
+        writeUnsigned(
+          subject,
+          PROOF_WORD_BYTES,
+          sectionArchive,
+          proofRow + PROOF_WORD_BYTES * 3
+        );
+        writeUnsigned(low, PROOF_WORD_BYTES, sectionArchive, proofRow + PROOF_WORD_BYTES * 4);
+        writeUnsigned(high, PROOF_WORD_BYTES, sectionArchive, proofRow + PROOF_WORD_BYTES * 5);
 
         proofRowIndex += 1;
       }

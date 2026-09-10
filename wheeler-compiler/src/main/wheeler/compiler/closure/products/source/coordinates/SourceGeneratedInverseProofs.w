@@ -14,12 +14,11 @@ classical class SourceGeneratedInverseProofs {
   private const long STAGED_WORDS = MAX_CALLABLES + EMPTY_CONSTANT_ROWS + SOURCE_PROOF_ROWS;
   private const long STAGED_BYTES = STAGED_WORDS * NATIVE_WORD_BYTES + SOURCE_PROOF_NAMES;
   private const long STAGED_ALLOCATIONS = 4;
-  private const long COVERAGE_COLUMNS = 3;
-  /// Sizes copied names and the three homogeneous inverse coordinates.
-  public const long SOURCE_INVERSE_ARENA_BYTES = SOURCE_PROOF_NAMES + MAX_SOURCE_PROOFS
-    * COVERAGE_COLUMNS * NATIVE_WORD_BYTES;
-  /// Counts one copied-name buffer and three coordinate buffers.
-  public const long SOURCE_INVERSE_ALLOCATIONS = COVERAGE_COLUMNS + 1;
+  /// Sizes copied names and the shared five-column claim table.
+  public const long SOURCE_INVERSE_ARENA_BYTES = SOURCE_PROOF_NAMES + SOURCE_PROOF_ROWS
+    * NATIVE_WORD_BYTES;
+  /// Counts one copied-name buffer and one claim table.
+  public const long SOURCE_INVERSE_ALLOCATIONS = 2;
 
   /// Reports one complete generated-inverse coverage table.
   public record SourceGeneratedInverseProofPlan(long proofCount, boolean valid) {}
@@ -79,9 +78,7 @@ classical class SourceGeneratedInverseProofs {
     borrow mut words stringLengths,
     borrow mut words functionNameIds,
     borrow mut bytes proofNames,
-    borrow mut words proofNameStarts,
-    borrow mut words proofNameLengths,
-    borrow mut words proofSubjects
+    borrow mut words proofs
   ) {
     long reversibleCount = structuredReversibleCallableCount(
       firstCallable,
@@ -106,9 +103,7 @@ classical class SourceGeneratedInverseProofs {
       stringLengths,
       functionNameIds,
       proofNames,
-      proofNameStarts,
-      proofNameLengths,
-      proofSubjects
+      proofs
     );
     return new SourceReversibleCoveragePlan(reversibleCount, coverage.proofCount, coverage.valid);
   }
@@ -125,16 +120,12 @@ classical class SourceGeneratedInverseProofs {
     borrow mut words stringLengths,
     borrow mut words functionNameIds,
     borrow mut bytes proofNames,
-    borrow mut words proofNameStarts,
-    borrow mut words proofNameLengths,
-    borrow mut words proofSubjects
+    borrow mut words proofs
   ) {
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
     assert(bufferLength(proofNames) == SOURCE_PROOF_NAMES);
-    assert(bufferLength(proofNameStarts) == MAX_CALLABLES);
-    assert(bufferLength(proofNameLengths) == MAX_CALLABLES);
-    assert(bufferLength(proofSubjects) == MAX_CALLABLES);
+    assert(bufferLength(proofs) == SOURCE_PROOF_ROWS);
     region scratch = new region(/* bytes= */ STAGED_BYTES, /* allocations= */ STAGED_ALLOCATIONS);
     words effects = allocate(scratch, MAX_CALLABLES);
     words constants = allocate(scratch, EMPTY_CONSTANT_ROWS);
@@ -191,9 +182,13 @@ classical class SourceGeneratedInverseProofs {
       proofCount = plan.proofCount;
       proof = 0;
       while (proof < proofCount) limit MAX_SOURCE_PROOFS {
-        set(proofNameStarts, proof, rows[proof]);
-        set(proofNameLengths, proof, rows[SOURCE_PROOF_LENGTH_ROW + proof]);
-        set(proofSubjects, proof, rows[SOURCE_PROOF_SUBJECT_ROW + proof]);
+        long column = 0;
+        while (column < SOURCE_PROOF_COLUMNS) limit SOURCE_PROOF_COLUMNS {
+          long cell = column * MAX_SOURCE_PROOFS + proof;
+          set(proofs, cell, rows[cell]);
+          column += 1;
+        }
+
         proof += 1;
       }
 

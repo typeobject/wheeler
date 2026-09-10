@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-18 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-10 |
 | Area | Self-hosting compiler, reversible artifacts, proofs, relocations, bounded publication |
 | Depends on | WIP-0063, WIP-0064, WIP-0065, WIP-0159 |
 | Supersedes | Full-capacity reversible result, inverse, relocation, and proof copies |
@@ -54,7 +54,7 @@ No inactive relocation row or identity block is part of the product.
 
 `SourceGeneratedInverseProofs.w` requires one exact theorem per reversible callable and rejects missing, duplicate, unknown, or malformed subjects.
 
-Proof starts, lengths, and subject rows publish through `proofCount`. Name bytes publish through `proofNameCursor`.
+The adapter publishes the shared five-column table through `proofCount`: name start, name length, rule, subject, and signed argument. Name bytes publish through the shared binder's measured `nameBytes`.
 
 ## Atomicity
 
@@ -78,7 +78,7 @@ Worst-case work remains identical.
 
 Focused suites cover result-slot local rebuilding, inverse opcode generation, inverse call ordering and identity retention, exact theorem publication, malformed relations, duplicate subjects, and atomic failure.
 
-`NativeCompilerReversibleSourceProductArtifactExampleTest` checks final reversible artifact bytes through all four stages.
+`proofs.NativeClassicalSourceArtifactExampleTest` checks complete artifact bytes after inverse generation, claim retention, canonical string remapping, and private publication. Separate coordinate suites cover result-slot type rebuilding and inverse relocation products.
 
 The compiler archive contains 3,008,259 bytes with SHA-256 `0909abc6008e399ff067fecae04594b22b1369f8eebf98ac2b27e5e18a60b78f`. Exact dependent locks name that archive.
 
