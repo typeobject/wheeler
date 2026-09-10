@@ -39,6 +39,8 @@ classical class SourceScalars {
   public const long PUNCTUATION_LESS_THAN = 60;
   /// Names the ASCII `=` punctuation scalar.
   public const long PUNCTUATION_ASSIGN = 61;
+  /// Names the ASCII `>` punctuation scalar.
+  public const long PUNCTUATION_GREATER_THAN = 62;
   /// Names the ASCII `[` punctuation scalar.
   public const long PUNCTUATION_OPEN_SQUARE = 91;
   /// Names the ASCII `]` punctuation scalar.

@@ -27,8 +27,16 @@ classical class SourceShortWords {
       return TOKEN_DONE;
     }
 
+    if (head == 444282868) {
+      return TOKEN_SLOT;
+    }
+
     if (head == 477657573) {
       return TOKEN_CASE;
+    }
+
+    if (head == 479983461) {
+      return TOKEN_DONE_VALUE;
     }
 
     if (head == 480032752) {
@@ -59,8 +67,24 @@ classical class SourceShortWords {
       return TOKEN_NEW;
     }
 
+    if (head == 3912940) {
+      return TOKEN_NIL;
+    }
+
+    if (head == 500954981) {
+      return TOKEN_NONE;
+    }
+
+    if (head == 501053036) {
+      return TOKEN_NULL;
+    }
+
     if (head == 3947252) {
       return TOKEN_PUT;
+    }
+
+    if (head == 507294439) {
+      return TOKEN_QREG;
     }
 
     if (head == 3977974) {
@@ -189,6 +213,10 @@ classical class SourceShortWords {
       return TOKEN_STATE;
     }
 
+    if (head == 8380760274147) {
+      return TOKEN_STATIC;
+    }
+
     if (head == 65474754675) {
       return TOKEN_STEPS;
     }
@@ -215,6 +243,10 @@ classical class SourceShortWords {
       return 0;
     }
 
+    if (head == 993025127511924) {
+      return TOKEN_ADJOINT;
+    }
+
     if (head == 997802466963694) {
       return TOKEN_BOOLEAN;
     }
@@ -225,6 +257,10 @@ classical class SourceShortWords {
 
     if (head == 128281423354886004) {
       return TOKEN_COHERENT;
+    }
+
+    if (head == 1006941865997539) {
+      return TOKEN_DYNAMIC;
     }
 
     if (head == 1023985678285177) {
@@ -253,6 +289,10 @@ classical class SourceShortWords {
 
     if (head == 1076724108145389) {
       return TOKEN_THEOREM;
+    }
+
+    if (head == 1081329397037433) {
+      return TOKEN_UNITARY;
     }
 
     if (head == 1085283159799668) {

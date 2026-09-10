@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.structured_source_targets;
 
+import wheeler.compiler.type_codes;
 import wheeler.crypto.sha256;
 
 classical class StructuredSourceTargets {
@@ -9,6 +10,27 @@ classical class StructuredSourceTargets {
 
   /// Reports one complete local target name and signature table.
   public record LocalStructuredTargetPlan(long parameterCount, boolean valid) {}
+
+  /// Checks declared void, signed, or Boolean results before source-product allocation.
+  public void requireStructuredResultTypes(long callableCount, borrow mut words resultTypes) {
+    assert(0 < callableCount);
+    assert(callableCount < MAX_CALLABLES + 1);
+    assert(bufferLength(resultTypes) == MAX_CALLABLES);
+    long callable = 0;
+    while (callable < callableCount) limit MAX_CALLABLES {
+      long type = resultTypes[callable];
+      if (
+        type == /* void= */
+        0
+      ) {} else {
+        if (type == TYPE_SIGNED) {} else {
+          assert(type == TYPE_BOOLEAN);
+        }
+      }
+
+      callable += 1;
+    }
+  }
 
   /// Checks imported target storage before source-product allocation or publication.
   public void requireStructuredImportedTargetBuffers(

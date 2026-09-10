@@ -117,4 +117,30 @@ classical class KeywordTokens {
   public const long TOKEN_ROTATE_RIGHT_32 = 3360224995018391456;
   /// Names the source-word code for `enum`.
   public const long TOKEN_ENUM = 3118337;
+  /// Names the source-word code for `qreg`.
+  public const long TOKEN_QREG = 3479171;
+  /// Names the source-word code for `static`.
+  public const long TOKEN_STATIC = 3402485358;
+  /// Names the source-word code for `unitary`.
+  public const long TOKEN_UNITARY = 107087659620;
+  /// Names the source-word code for `dynamic`.
+  public const long TOKEN_DYNAMIC = 92319080511;
+  /// Names the source-word code for `protected`.
+  public const long TOKEN_PROTECTED = 98762164431790;
+  /// Names the source-word code for `Slot`.
+  public const long TOKEN_SLOT = 2579998;
+  /// Names the source-word code for `adjoint`.
+  public const long TOKEN_ADJOINT = 89052076615;
+  /// Names the source-word code for `equivalent`.
+  public const long TOKEN_EQUIVALENT = 2770094160335466;
+  /// Names the source-word code for `done`.
+  public const long TOKEN_DONE_VALUE = 3089282;
+  /// Names the source-word code for `nil`.
+  public const long TOKEN_NIL = 109073;
+  /// Names the source-word code for `none`.
+  public const long TOKEN_NONE = 3387192;
+  /// Names the source-word code for `null`.
+  public const long TOKEN_NULL = 3392903;
+  /// Names the source-word code for `undefined`.
+  public const long TOKEN_UNDEFINED = 102906378281296;
 }

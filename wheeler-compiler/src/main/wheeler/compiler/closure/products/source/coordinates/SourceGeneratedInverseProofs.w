@@ -1,153 +1,73 @@
-//! Derives declared generated-inverse proof rows from one local source module.
+//! Applies homogeneous reversible coverage to shared source classical proof products.
 
 module wheeler.compiler.closure.source_generated_inverse_proofs;
 
-import wheeler.compiler.compiler_token_limits;
-import wheeler.compiler.keyword_tokens;
-import wheeler.compiler.module_linker;
-import wheeler.compiler.source_scalars;
-import wheeler.compiler.tokens;
+import wheeler.compiler.closure.source_classical_proofs;
+import wheeler.compiler.proof_rules;
+import wheeler.compiler.source_member_modifiers;
 
 classical class SourceGeneratedInverseProofs {
   private const long MAX_CALLABLES = 64;
-  private const long MAX_STRINGS = 256;
+  private const long MAX_CLOSURE_CALLABLES = 4096;
+  private const long NATIVE_WORD_BYTES = 8;
+  private const long EMPTY_CONSTANT_ROWS = 1;
+  private const long STAGED_WORDS = MAX_CALLABLES + EMPTY_CONSTANT_ROWS + SOURCE_PROOF_ROWS;
+  private const long STAGED_BYTES = STAGED_WORDS * NATIVE_WORD_BYTES + SOURCE_PROOF_NAMES;
+  private const long STAGED_ALLOCATIONS = 4;
+  private const long COVERAGE_COLUMNS = 3;
+  /// Sizes copied names and the three homogeneous inverse coordinates.
+  public const long SOURCE_INVERSE_ARENA_BYTES = SOURCE_PROOF_NAMES + MAX_SOURCE_PROOFS
+    * COVERAGE_COLUMNS * NATIVE_WORD_BYTES;
+  /// Counts one copied-name buffer and three coordinate buffers.
+  public const long SOURCE_INVERSE_ALLOCATIONS = COVERAGE_COLUMNS + 1;
 
-  /// Reports one complete generated-inverse proof table.
+  /// Reports one complete generated-inverse coverage table.
   public record SourceGeneratedInverseProofPlan(long proofCount, boolean valid) {}
 
-  /// Reports homogeneous callable effects and their complete proof table.
-  public record StructuredReversibleEvidencePlan(
+  /// Reports inverse coverage only. Ordinary callers must separately prove source claim absence.
+  public record SourceReversibleCoveragePlan(
     long reversibleCallableCount,
     long proofCount,
     boolean valid
   ) {}
 
-  private boolean tokenMatchesBytes(
-    borrow utf8 source,
-    long token,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    borrow byteview strings,
-    long start,
-    long length
-  ) {
-    if (tokenLengths[token] != length) {
-      return false;
-    }
-
-    long compared = 0;
-    while (compared < length) limit 256 {
-      long sourceValue = utf8Scalar(source, tokenStarts[token] + compared);
-      if (127 < sourceValue) {
-        return false;
-      }
-
-      if (sourceValue != strings[start + compared]) {
-        return false;
-      }
-
-      compared += 1;
-    }
-
-    return true;
-  }
-
-  private long subjectCallable(
-    borrow utf8 source,
-    long token,
+  private long structuredReversibleCallableCount(
+    long firstCallable,
     long callableCount,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    borrow byteview strings,
-    long stringBytes,
-    long stringCount,
-    borrow mut words stringStarts,
-    borrow mut words stringLengths,
-    borrow mut words functionNameIds
+    borrow mut words callableEffects
   ) {
-    long selected = -1;
+    assert(-1 < firstCallable);
+    assert(0 < callableCount);
+    assert(callableCount < MAX_CALLABLES + 1);
+    assert(bufferLength(callableEffects) == MAX_CLOSURE_CALLABLES);
+    assert(callableCount < MAX_CLOSURE_CALLABLES - firstCallable + 1);
+    long reversibleCallableCount = 0;
     long callable = 0;
     while (callable < callableCount) limit MAX_CALLABLES {
-      long nameId = functionNameIds[callable];
-      if (nameId < 0) {
-        return -1;
-      }
-
-      if (stringCount < nameId + 1) {
-        return -1;
-      }
-
-      long start = stringStarts[nameId];
-      long length = stringLengths[nameId];
-      if (start < 0) {
-        return -1;
-      }
-
-      if (length < 1) {
-        return -1;
-      }
-
-      if (stringBytes < start + length) {
-        return -1;
-      }
-
-      long callableNameStart = start;
-      long nameByte = 0;
-      while (nameByte + 1 < length) limit 256 {
-        if (strings[start + nameByte] == 58) {
-          if (strings[start + nameByte + 1] == 58) {
-            callableNameStart = start + nameByte + 2;
-          }
-        }
-
-        nameByte += 1;
-      }
-
-      long callableNameLength = start + length - callableNameStart;
-      if (
-        tokenMatchesBytes(
-          source,
-          token,
-          tokenStarts,
-          tokenLengths,
-          strings,
-          callableNameStart,
-          callableNameLength
-        )
-      ) {
-        if (-1 < selected) {
+      long effect = callableEffects[firstCallable + callable];
+      if (effect == MEMBER_REV) {
+        reversibleCallableCount += 1;
+      } else {
+        if (effect != 0) {
           return -1;
         }
-
-        selected = callable;
       }
 
       callable += 1;
     }
 
-    return selected;
-  }
-
-  private boolean sameProofName(
-    borrow byteview names,
-    long leftStart,
-    long rightStart,
-    long length
-  ) {
-    long compared = 0;
-    while (compared < length) limit 256 {
-      if (names[leftStart + compared] != names[rightStart + compared]) {
-        return false;
+    if (0 < reversibleCallableCount) {
+      if (reversibleCallableCount != callableCount) {
+        return -1;
       }
-
-      compared += 1;
     }
 
-    return true;
+    return reversibleCallableCount;
   }
 
-  /// Validates homogeneous callable effects and publishes their exact proof rows.
-  public StructuredReversibleEvidencePlan materializeStructuredReversibleEvidence(
+  /// Checks homogeneous effects and materializes only reversible coverage.
+  /// An ordinary window has no coverage products and still requires member-front claim exclusion.
+  public SourceReversibleCoveragePlan materializeSourceReversibleCoverage(
     borrow utf8 source,
     long firstCallable,
     long callableCount,
@@ -163,59 +83,38 @@ classical class SourceGeneratedInverseProofs {
     borrow mut words proofNameLengths,
     borrow mut words proofSubjects
   ) {
-    assert(-1 < firstCallable);
-    assert(0 < callableCount);
-    assert(callableCount < MAX_CALLABLES + 1);
-    assert(bufferLength(callableEffects) == 4096);
-    assert(callableCount < 4096 - firstCallable + 1);
-    long reversibleCallableCount = 0;
-    boolean valid = true;
-    long callable = 0;
-    while (callable < callableCount) limit MAX_CALLABLES {
-      long effect = callableEffects[firstCallable + callable];
-      if (effect == 2) {
-        reversibleCallableCount += 1;
-      } else {
-        if (effect != 0) {
-          valid = false;
-        }
-      }
-
-      callable += 1;
+    long reversibleCount = structuredReversibleCallableCount(
+      firstCallable,
+      callableCount,
+      callableEffects
+    );
+    if (reversibleCount < 0) {
+      return new SourceReversibleCoveragePlan(0, 0, false);
     }
 
-    if (0 < reversibleCallableCount) {
-      if (reversibleCallableCount != callableCount) {
-        valid = false;
-      }
+    if (reversibleCount == 0) {
+      return new SourceReversibleCoveragePlan(0, 0, true);
     }
 
-    long proofCount = 0;
-    if (valid) {
-      if (0 < reversibleCallableCount) {
-        SourceGeneratedInverseProofPlan proofs = materializeSourceGeneratedInverseProofs(
-          source,
-          callableCount,
-          strings,
-          stringBytes,
-          stringCount,
-          stringStarts,
-          stringLengths,
-          functionNameIds,
-          proofNames,
-          proofNameStarts,
-          proofNameLengths,
-          proofSubjects
-        );
-        valid = proofs.valid;
-        proofCount = proofs.proofCount;
-      }
-    }
-
-    return new StructuredReversibleEvidencePlan(reversibleCallableCount, proofCount, valid);
+    SourceGeneratedInverseProofPlan coverage = materializeSourceGeneratedInverseProofs(
+      source,
+      callableCount,
+      strings,
+      stringBytes,
+      stringCount,
+      stringStarts,
+      stringLengths,
+      functionNameIds,
+      proofNames,
+      proofNameStarts,
+      proofNameLengths,
+      proofSubjects
+    );
+    return new SourceReversibleCoveragePlan(reversibleCount, coverage.proofCount, coverage.valid);
   }
 
-  /// Publishes exact `theorem name proves inverse(callable);` rows in source order.
+  /// Requires exactly one inverse claim per callable for the homogeneous reversible emitter.
+  /// The general source product owner also admits repeated subjects and static step claims.
   public SourceGeneratedInverseProofPlan materializeSourceGeneratedInverseProofs(
     borrow utf8 source,
     long callableCount,
@@ -232,197 +131,84 @@ classical class SourceGeneratedInverseProofs {
   ) {
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
-    assert(-1 < stringBytes);
-    assert(stringBytes < bufferLength(strings) + 1);
-    assert(0 < stringCount);
-    assert(stringCount < MAX_STRINGS + 1);
-    assert(bufferLength(stringStarts) == MAX_STRINGS);
-    assert(bufferLength(stringLengths) == MAX_STRINGS);
-    assert(bufferLength(functionNameIds) == MAX_CALLABLES);
-    assert(bufferLength(proofNames) == 16384);
+    assert(bufferLength(proofNames) == SOURCE_PROOF_NAMES);
     assert(bufferLength(proofNameStarts) == MAX_CALLABLES);
     assert(bufferLength(proofNameLengths) == MAX_CALLABLES);
     assert(bufferLength(proofSubjects) == MAX_CALLABLES);
-
-    region scanning = new region(/* bytes= */ 116224, /* allocations= */ 7);
-    words tokenKinds = allocate(scanning, MAX_COMPILER_TOKENS);
-    words tokenStarts = allocate(scanning, MAX_COMPILER_TOKENS);
-    words tokenLengths = allocate(scanning, MAX_COMPILER_TOKENS);
-    bytes stagedProofNames = allocateBytes(scanning, /* length= */ 16384);
-    words stagedProofNameStarts = allocate(scanning, MAX_CALLABLES);
-    words stagedProofNameLengths = allocate(scanning, MAX_CALLABLES);
-    words stagedProofSubjects = allocate(scanning, MAX_CALLABLES);
-    long tokenCount = scanSemanticTokens(source, tokenKinds, tokenStarts, tokenLengths);
-    boolean valid = -1 < tokenCount;
-    long proofCount = 0;
-    long proofNameCursor = 0;
-    long token = 0;
-    while (valid) limit 1 {
-      while (token < tokenCount) limit MAX_COMPILER_TOKENS {
-        if (
-          sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_THEOREM
-        ) {
-          if (tokenCount < token + 8) {
-            valid = false;
-            break;
-          }
-
-          if (proofCount == MAX_CALLABLES) {
-            valid = false;
-            break;
-          }
-
-          boolean formValid = tokenKinds[token + 1] == 1;
-          if (
-            sourceTokenCode(source, tokenStarts, tokenLengths, token + 2) != TOKEN_PROVES
-          ) {
-            formValid = false;
-          }
-
-          if (
-            sourceTokenCode(source, tokenStarts, tokenLengths, token + 3) != TOKEN_INVERSE
-          ) {
-            formValid = false;
-          }
-
-          if (
-            punctuationAt(source, tokenKinds, tokenStarts, token + 4, PUNCTUATION_OPEN_PAREN)
-              == false
-          ) {
-            formValid = false;
-          }
-
-          if (tokenKinds[token + 5] != 1) {
-            formValid = false;
-          }
-
-          if (
-            punctuationAt(source, tokenKinds, tokenStarts, token + 6, PUNCTUATION_CLOSE_PAREN)
-              == false
-          ) {
-            formValid = false;
-          }
-
-          if (
-            punctuationAt(source, tokenKinds, tokenStarts, token + 7, PUNCTUATION_SEMICOLON)
-              == false
-          ) {
-            formValid = false;
-          }
-
-          long proofLength = tokenLengths[token + 1];
-          if (proofLength < 1) {
-            formValid = false;
-          }
-
-          if (256 < proofLength) {
-            formValid = false;
-          }
-
-          long subject = subjectCallable(
-            source,
-            token + 5,
-            callableCount,
-            tokenStarts,
-            tokenLengths,
-            strings,
-            stringBytes,
-            stringCount,
-            stringStarts,
-            stringLengths,
-            functionNameIds
-          );
-          if (subject < 0) {
-            formValid = false;
-          }
-
-          if (16384 < proofNameCursor + proofLength) {
-            formValid = false;
-          }
-
-          long proofNameByte = 0;
-          while (proofNameByte < proofLength) limit 256 {
-            long nameValue = utf8Scalar(source, tokenStarts[token + 1] + proofNameByte);
-            if (127 < nameValue) {
-              formValid = false;
-            } else {
-              setByte(stagedProofNames, proofNameCursor + proofNameByte, nameValue);
-            }
-
-            proofNameByte += 1;
-          }
-
-          long earlierProof = 0;
-          while (earlierProof < proofCount) limit MAX_CALLABLES {
-            if (stagedProofNameLengths[earlierProof] == proofLength) {
-              if (
-                sameProofName(
-                  stagedProofNames,
-                  stagedProofNameStarts[earlierProof],
-                  proofNameCursor,
-                  proofLength
-                )
-              ) {
-                formValid = false;
-              }
-            }
-
-            if (stagedProofSubjects[earlierProof] == subject) {
-              formValid = false;
-            }
-
-            earlierProof += 1;
-          }
-
-          if (formValid == false) {
-            valid = false;
-            break;
-          }
-
-          set(stagedProofNameStarts, proofCount, proofNameCursor);
-          set(stagedProofNameLengths, proofCount, proofLength);
-          set(stagedProofSubjects, proofCount, subject);
-          proofNameCursor += proofLength;
-          proofCount += 1;
-          token += 7;
-        }
-
-        token += 1;
-      }
-
-      break;
+    region scratch = new region(/* bytes= */ STAGED_BYTES, /* allocations= */ STAGED_ALLOCATIONS);
+    words effects = allocate(scratch, MAX_CALLABLES);
+    words constants = allocate(scratch, EMPTY_CONSTANT_ROWS);
+    words rows = allocate(scratch, SOURCE_PROOF_ROWS);
+    bytes names = allocateBytes(scratch, SOURCE_PROOF_NAMES);
+    long callable = 0;
+    while (callable < callableCount) limit MAX_CALLABLES {
+      set(effects, callable, MEMBER_REV);
+      callable += 1;
     }
 
-    if (proofCount != callableCount) {
+    SourceClassicalProofPlan plan = materializeSourceClassicalProofs(
+      source,
+      callableCount,
+      effects,
+      strings,
+      stringBytes,
+      stringCount,
+      stringStarts,
+      stringLengths,
+      functionNameIds,
+      /* constantNames= */ strings,
+      constants,
+      names,
+      rows
+    );
+    boolean valid = plan.valid;
+    if (plan.proofCount != callableCount) {
       valid = false;
     }
 
-    if (valid) {
-      long publishedProof = 0;
-      while (publishedProof < proofCount) limit MAX_CALLABLES {
-        set(proofNameStarts, publishedProof, stagedProofNameStarts[publishedProof]);
-        set(proofNameLengths, publishedProof, stagedProofNameLengths[publishedProof]);
-        set(proofSubjects, publishedProof, stagedProofSubjects[publishedProof]);
-        publishedProof += 1;
+    long proof = 0;
+    while (proof < plan.proofCount) limit MAX_SOURCE_PROOFS {
+      if (rows[SOURCE_PROOF_RULE_ROW + proof] != PROOF_GENERATED_INVERSE) {
+        valid = false;
       }
 
-      long publishedNameByte = 0;
-      while (publishedNameByte < proofNameCursor) limit 16384 {
-        setByte(proofNames, publishedNameByte, stagedProofNames[publishedNameByte]);
-        publishedNameByte += 1;
+      long earlier = 0;
+      while (earlier < proof) limit MAX_SOURCE_PROOFS {
+        if (
+          rows[SOURCE_PROOF_SUBJECT_ROW + earlier] == rows[SOURCE_PROOF_SUBJECT_ROW + proof]
+        ) {
+          valid = false;
+        }
+
+        earlier += 1;
       }
-    } else {
-      proofCount = 0;
+
+      proof += 1;
     }
 
-    drop(stagedProofSubjects);
-    drop(stagedProofNameLengths);
-    drop(stagedProofNameStarts);
-    drop(stagedProofNames);
-    drop(tokenLengths);
-    drop(tokenStarts);
-    drop(tokenKinds);
-    drop(scanning);
+    long proofCount = 0;
+    if (valid) {
+      proofCount = plan.proofCount;
+      proof = 0;
+      while (proof < proofCount) limit MAX_SOURCE_PROOFS {
+        set(proofNameStarts, proof, rows[proof]);
+        set(proofNameLengths, proof, rows[SOURCE_PROOF_LENGTH_ROW + proof]);
+        set(proofSubjects, proof, rows[SOURCE_PROOF_SUBJECT_ROW + proof]);
+        proof += 1;
+      }
+
+      long copied = 0;
+      while (copied < plan.nameBytes) limit SOURCE_PROOF_NAMES {
+        setByte(proofNames, copied, names[copied]);
+        copied += 1;
+      }
+    }
+
+    drop(names);
+    drop(rows);
+    drop(constants);
+    drop(effects);
+    drop(scratch);
     return new SourceGeneratedInverseProofPlan(proofCount, valid);
   }
 }

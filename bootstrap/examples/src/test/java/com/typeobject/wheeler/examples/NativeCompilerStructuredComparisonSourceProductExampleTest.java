@@ -670,6 +670,20 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
         "source[sourceStart + index]", "output[sourceStart + index]"));
   }
 
+  @Test
+  void rejectsClaimsThatTheOrdinaryEmitterCannotRetain() throws Exception {
+    int body = SOURCE.indexOf("{", SOURCE.indexOf("copyOffset("));
+    String source = SOURCE.substring(0, body) + """
+        { return length; }
+        theorem Bound proves steps(copyOffset, 8);
+      }
+      """;
+    assertEquals(1, new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("Source.w", source), MODULE).proofCertificates().size());
+    assertNoArtifact(source);
+    assertNoArtifact(source.replace("steps(copyOffset, 8)", "inverse(copyOffset)"));
+  }
+
   private static void assertArtifact(String source) throws Exception {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
     int parameterCount = source.contains("boolean result") ? 6 : 5;
@@ -726,7 +740,9 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
+    var inputAndOutput = machine.snapshot().buffers();
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertEquals(inputAndOutput, machine.snapshot().buffers().subList(0, inputAndOutput.size()));
     assertEquals(0, machine.global("valid"));
     assertEquals(0, machine.global("artifactLength"));
   }

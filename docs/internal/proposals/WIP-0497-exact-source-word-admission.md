@@ -28,14 +28,16 @@ approve a compiler fixed point.
 
 ## Change
 
-`KeywordTokens.w` owns 57 shared keyword, type, intrinsic, and test-metadata
+`KeywordTokens.w` owns 70 shared keyword, type, intrinsic, and test-metadata
 codes. `BooleanTokens.w` keeps the two Boolean literal codes and their predicate.
 Each code has one owner. Existing values remain opaque identities, not evidence
 that arbitrary text is a keyword. The inventory includes `enum` for
 [WIP-0050's payload-free variant products](WIP-0050-native-aggregate-source-lowering.md).
 Private copies and primitive-type magic numbers
 disappear. Keeping Boolean codes with their predicate preserves the native
-compiler suite's existing dependency graph.
+compiler suite's existing dependency graph. Shared member fronts add visibility,
+method-kind, presence-type, reserved-value, register, and circuit-proof words.
+The full vocabulary now has 72 spellings, including the two Boolean literals.
 
 The declaration pass rejects unindexed fields before the next member's
 parameters or body instead of silently ending its constant prefix. It consumes
@@ -72,12 +74,11 @@ including `byteview`, whose old magic value came from an obsolete hash mask.
   check every caller row. `NativeCompiledTestRunnerExampleTest` rejects aliases
   against explicit descriptors without publishing reports.
 - `NativeCompilerSourceWordsPhysicalProductExampleTest` compares complete Boolean
-  and long-word artifacts,
-  752 and 5,312 bytes respectively, plus every short-word and range-classifier
-  body after two imported calls resolve. The whole closure also compares those
-  products before linking. The confirming archive and closure pass verifies and
-  executes the linked artifact. Package, documentation, and source gates agree
-  with the measured identities.
+  and long-word artifacts plus every short-word and range-classifier body after
+  two imported calls resolve. The enum milestone measured 752 and 5,312 bytes for
+  the two complete artifacts. Those sizes are historical, not pins for the larger
+  member-front vocabulary. The whole closure also compares these products before
+  linking. Confirming archive and closure evidence must follow vocabulary changes.
 - The wider closure reached the unchanged 65,535-buffer lifetime limit with only
   18.5 MiB live. Closure classification now reuses one scratch set rather than
   allocating it for every module. `NativeCompilerExecutableOwnerScratchExampleTest`

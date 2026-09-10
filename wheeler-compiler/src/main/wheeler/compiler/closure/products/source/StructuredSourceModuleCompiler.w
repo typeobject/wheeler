@@ -21,6 +21,7 @@ import wheeler.compiler.closure.source_call_instruction_products;
 import wheeler.compiler.closure.source_call_layout_products;
 import wheeler.compiler.closure.source_call_target_table;
 import wheeler.compiler.closure.source_callable_coordinate_products;
+import wheeler.compiler.closure.source_classical_proofs;
 import wheeler.compiler.closure.source_generated_inverse_proofs;
 import wheeler.compiler.closure.source_loop_products;
 import wheeler.compiler.closure.source_module_call_products;
@@ -119,13 +120,8 @@ classical class StructuredSourceModuleCompiler {
     assert(signatureTypeCount < 4097);
     assert(bufferLength(signatureTypes) == 12288);
     assert(bufferLength(parameterCounts) == 64);
-    assert(bufferLength(declaredResultTypes) == MAX_CALLABLES);
+    requireStructuredResultTypes(callableCount, declaredResultTypes);
     long resultCallable = 0;
-    while (resultCallable < callableCount) limit MAX_CALLABLES {
-      assert(-1 < declaredResultTypes[resultCallable]);
-      assert(declaredResultTypes[resultCallable] < 3);
-      resultCallable += 1;
-    }
 
     assert(bufferLength(stringStarts) == 256);
     assert(bufferLength(stringLengths) == 256);
@@ -136,12 +132,15 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region sourceProofs = new region(/* bytes= */ 17920, /* allocations= */ 4);
-    bytes proofNames = allocateBytes(sourceProofs, 16384);
-    words proofNameStarts = allocate(sourceProofs, 64);
-    words proofNameLengths = allocate(sourceProofs, 64);
-    words proofSubjects = allocate(sourceProofs, 64);
-    StructuredReversibleEvidencePlan reversibleEvidence = materializeStructuredReversibleEvidence(
+    region sourceProofs = new region(
+      /* bytes= */ SOURCE_INVERSE_ARENA_BYTES,
+      /* allocations= */ SOURCE_INVERSE_ALLOCATIONS
+    );
+    bytes proofNames = allocateBytes(sourceProofs, SOURCE_PROOF_NAMES);
+    words proofNameStarts = allocate(sourceProofs, MAX_SOURCE_PROOFS);
+    words proofNameLengths = allocate(sourceProofs, MAX_SOURCE_PROOFS);
+    words proofSubjects = allocate(sourceProofs, MAX_SOURCE_PROOFS);
+    SourceReversibleCoveragePlan reversibleEvidence = materializeSourceReversibleCoverage(
       source,
       firstCallable,
       callableCount,
@@ -160,6 +159,7 @@ classical class StructuredSourceModuleCompiler {
     assert(reversibleEvidence.valid);
     long reversibleCallableCount = reversibleEvidence.reversibleCallableCount;
     long proofCount = reversibleEvidence.proofCount;
+
     region targetEffectProducts = new region(/* bytes= */ 98304, /* allocations= */ 3);
     words localTargetEffects = allocate(targetEffectProducts, 4096);
     words targetEffects = allocate(targetEffectProducts, 4096);
@@ -231,6 +231,19 @@ classical class StructuredSourceModuleCompiler {
     bytes callRelocationIdentities = allocateBytes(products, /* length= */ 8192);
     words callTypes = allocate(products, /* length= */ 12288);
     bytes callCode = allocateBytes(products, /* length= */ 262144);
+
+    if (reversibleCallableCount == 0) {
+      // These private columns are still empty. The front scan clears them before product use.
+      assert(
+        sourceClassicalClaimsAbsent(
+          source,
+          statementPhysicalWidths,
+          statementPhysicalStarts,
+          callableNameStarts,
+          functionLocalCounts
+        )
+      );
+    }
 
     LocalStructuredTargetPlan localTargets = materializeLocalStructuredTargets(
       firstCallable,

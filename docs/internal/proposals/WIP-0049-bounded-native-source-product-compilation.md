@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, module-product, aggregate, ownership, and bootstrap maintainers |
 | Created | 2026-08-09 |
-| Updated | 2026-09-07 |
+| Updated | 2026-09-09 |
 | Area | Self-hosting, source lowering, module products, aggregate products, bootstrap |
 | Depends on | WIP-0013, WIP-0028, WIP-0044, WIP-0045, WIP-0046, WIP-0047, WIP-0048 |
 | Supersedes | None |
@@ -240,6 +240,53 @@ unchanged. The scanner, live-byte budget, and lifetime buffer limit do not grow.
 discovery can still ignore a malformed member front and publish a zero-test
 report. Exact word classification and explicit-descriptor rejection do not close
 that grammar boundary.
+
+### Source classical claims
+
+`SourceClassicalProofs.w` binds `inverse` and `steps` declarations through shared
+member fronts. A value binding or method named `theorem` is not a declaration
+marker. Every supplied ordinary or `rev` callable must match its source name and
+effect. Qualified callable names must name the source module, not a foreign owner
+with the same local spelling.
+
+The source-local table has 64 rows and five columns. They carry copied name
+start, name length, shared rule code, local callable subject, and signed argument.
+Names occupy at most 256 bytes each. Storage follows those capacities and column
+counts. Arguments retain all 64 bits. Inverse claims carry `-1`, while step claims
+require a positive signed constant expression. Counted constants supply names,
+qualifiers, types, and values without reopening dependency source.
+
+The whole batch is staged before publication. Duplicate proof names, unknown or
+stale subjects, mismatched effects, circuit rules, invalid bounds, and first-excess
+capacities leave caller tables and copied-name storage unchanged. Repeated
+subjects with distinct proof names are valid. The 55-case source binding suite
+compares complete tables and tails, including 64 maximum-width names, empty
+callable windows, and invalid counted windows. Ordinary
+cases cover accepted and rejected rewind and replay. The combined capacity case
+uses explicitly history-free execution.
+
+The generated-inverse adapter applies a coverage policy rather than parsing
+theorem syntax. Ordinary structured compilation rejects claims that its emitter
+cannot retain. The previous path silently dropped a valid step claim. This is a
+fail-closed boundary, not source step-artifact publication. Threading rule and
+argument products through artifact composition remains open, as does the intact
+mixed-member runner join under WIP-0498.
+
+The ordinary path proves claim absence through the same member fronts. It reuses
+three empty 4,096-cell product columns and the module-name pair in an existing
+private callable column. The scanner clears these cells before product lowering,
+including ordinary rejection. Eleven cases check every cell, the untouched
+module-column tail, unchanged region and buffer counts, cleanup, and full rewind
+and replay. This scan allocates no buffers. The first integration allocated a
+fresh proof-binding workspace for every ordinary module and exhausted the
+65,535-buffer lifetime bound. That limit has not been raised.
+
+The next archive pass caught 4,173 raw tokens in the structured compiler owner.
+Result validation now lives with target validation, and inverse coverage and its
+storage calculations live with the inverse adapter. The structured owner fits
+in 4,076 raw tokens without changing the 4,096-token scanner window. Three fast
+physical-owner cases check this admission boundary without rewind history. They
+do not establish native compilation of those owners' bodies.
 
 ### Manifest composition
 

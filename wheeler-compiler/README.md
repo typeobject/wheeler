@@ -118,13 +118,19 @@ Counted classical proof products retain generated-inverse and static-step claims
 including both argument words. Circuit rules do not belong in a function-subject
 table. Intake validates complete rebasing windows. Emission validates every row
 before writing. Final verification checks the actual body and manifest limit.
-Source `steps` theorem lowering and the mixed-member runner join remain open.
 
 Constant declarations and exact expression ranges share one precedence parser in
 `ConstantExpressions.w`. Range callers can use counted scalar products without
 dependency source. A valid result consumes its entire token window. Split `=`
 bytes do not become equality, and malformed windows reject before allocation.
-This is the expression authority for future theorem bounds, not a theorem parser.
+`SourceClassicalProofs.w` uses that evaluator to bind source `inverse` and `steps`
+claims against scoped constants and local callable products. Member fronts locate
+actual declarations, including when unrelated bindings are named `theorem`.
+Five source columns retain copied name ranges, rule codes, local subjects, and
+full signed arguments. Invalid batches leave caller rows and name storage alone.
+The old inverse owner now applies coverage policy to those shared products.
+Nonempty ordinary source compilation rejects claims it cannot retain. Complete
+source step-artifact publication and the mixed-member runner join remain open.
 
 `ModuleManifestProduct` carries root name, entry, kind, and limit words without a
 borrowed artifact. Source-local emission and final linking share one checked
@@ -153,7 +159,7 @@ bounded helper compiler below.
 
 ### Package-manifest composition
 
-`compiler/syntax/tokens/words/SourceWords.w` classifies 59 fixed source words by
+`compiler/syntax/tokens/words/SourceWords.w` classifies 72 fixed source words by
 exact, length-bearing ASCII lanes. `Tokens.w` checks token-column windows before
 projecting those ranges. Keyword, Boolean, primitive-type, intrinsic, and native
 test-metadata consumers no longer use token hashes. The thirteen-byte vocabulary

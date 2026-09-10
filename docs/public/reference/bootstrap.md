@@ -116,13 +116,20 @@ not establish executable validity.
 Counted classical certificates carry generated-inverse or static-step claims.
 The product boundary retains both argument words and rejects circuit rules rather
 than rebasing circuit subjects as functions. Final verification checks a step
-claim against the composed body and manifest limit. This product support does
-not implement source `steps` theorem lowering or complete the native test runner.
+claim against the composed body and manifest limit.
 
 The scalar constant evaluator now accepts exact expression-token windows against
 counted products. It shares declaration precedence, consumes the complete window,
 and checks equality-token adjacency. Dependency source is not an input to a
-product-only evaluation. Source theorem binding remains separate integration work.
+product-only evaluation.
+
+Source classical claims now bind through shared member fronts and counted local
+callables. Qualified callable names must name the source module. The source table
+retains up to 64 inverse or positive signed step claims and copies each name into
+at most 256 bytes. Malformed batches change no caller row or name byte. These are
+bound claims, not accepted proofs of final code. The nonempty ordinary source
+publisher rejects claims it cannot retain rather than silently discarding them.
+Source step-artifact publication and the mixed-member runner join remain open.
 
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and
@@ -131,7 +138,7 @@ metadata handoff, not complete nominal source compilation.
 
 Source keywords, Boolean literals, primitive types, intrinsics, and native test
 metadata now use exact word codes instead of token hashes. The fixed vocabulary
-contains 59 spellings and does not limit identifier length. This corrects lexical
+contains 72 spellings and does not limit identifier length. This corrects lexical
 admission, not complete class-member validation. Automatic test discovery can
 still ignore malformed member fronts, a separate open frontend boundary.
 

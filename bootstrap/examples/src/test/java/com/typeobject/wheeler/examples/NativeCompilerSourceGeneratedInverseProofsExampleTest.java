@@ -42,6 +42,28 @@ final class NativeCompilerSourceGeneratedInverseProofsExampleTest {
   }
 
   @Test
+  void ignoresTheoremWordsInValueBindingsAndCallableNames() throws Exception {
+    String source = """
+        module fixture.inverse_proofs;
+        classical class InverseProofs {
+          rev void alpha() {}
+          rev void beta() {}
+          long theorem() { long theorem = 0; return theorem; }
+          theorem betaInverse proves inverse(beta);
+          theorem alphaInverse proves inverse(alpha);
+        }
+        """;
+    assertEquals(2, new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("Source.w", source), "fixture.inverse_proofs").proofCertificates().size());
+    VirtualMachine machine = new VirtualMachine(
+        program(), source.getBytes(StandardCharsets.UTF_8), 16_384);
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    assertEquals(1, machine.global("valid"));
+    assertEquals(2, machine.global("proofCount"));
+    assertArrayEquals("betaInversealphaInverse".getBytes(StandardCharsets.UTF_8), machine.hostOutput());
+  }
+
+  @Test
   void leavesNameProductsUntouchedForDuplicateSubjects() throws Exception {
     String source = """
         module fixture.inverse_proofs;

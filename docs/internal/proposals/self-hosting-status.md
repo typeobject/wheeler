@@ -383,7 +383,24 @@ exposes exact scalar expression windows against counted constant products. One
 precedence parser now serves declarations and range callers. Typed results,
 lexical adjacency, complete consumption, immutable caller storage, and rewind and
 replay are checked. This removes a reason to invent a proof-specific expression
-parser. It does not implement source theorem binding.
+parser. It does not itself bind source theorems.
+
+[WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#source-classical-claims)
+now binds ordinary and reversible source claims from shared member fronts,
+counted callable names and effects, and scoped scalar products. It preserves full
+signed bounds, copied names, and caller tails. The inverse coverage owner shares
+that binding rather than searching for theorem words inside unrelated members.
+A nonempty ordinary module no longer silently loses an unretained claim. Source
+step-artifact publication and the intact runner join are still open.
+
+The binding milestone checks 55 source-product cases, eleven reusable-workspace
+cases, and three physical front-admission cases. The archive pass binds 460
+modules, 2,199 constants, and 1,854 callables. Both selected physical closure
+methods pass after repairing buffer-ID exhaustion and a scanner-window overflow,
+without raising either bound. The selected 527-function container agrees with an
+independently reconstructed reference. A locked package consumer binds a step
+claim with value eight. None of this establishes compilation of every physical
+body or a compiler fixed point.
 
 Hosted run [34421714092](https://github.com/typeobject/wheeler/actions/runs/34421714092)
 on `b80b50be3` failed: one terminal-case identity shard reached its two-minute

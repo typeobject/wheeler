@@ -41,6 +41,13 @@ classical class SourceLongWords {
       return TOKEN_CLASSICAL;
     }
 
+    long equivalentHead = 129416567113414245;
+    long equivalentTail = 30580;
+    boolean equivalentWord = sameWordLanes(head, tail, equivalentHead, equivalentTail);
+    if (equivalentWord == true) {
+      return TOKEN_EQUIVALENT;
+    }
+
     long freezeUtf8Head = 129983364292242164;
     long freezeUtf8Tail = 29496;
     boolean freezeUtf8Word = sameWordLanes(head, tail, freezeUtf8Head, freezeUtf8Tail);
@@ -48,11 +55,25 @@ classical class SourceLongWords {
       return TOKEN_FREEZE_UTF8;
     }
 
+    long protectedHead = 135613211406301797;
+    long protectedTail = 228;
+    boolean protectedWord = sameWordLanes(head, tail, protectedHead, protectedTail);
+    if (protectedWord == true) {
+      return TOKEN_PROTECTED;
+    }
+
     long rotateRight32Head = 136726083903514985;
     long rotateRight32Tail = 62228601266;
     boolean rotateRight32Word = sameWordLanes(head, tail, rotateRight32Head, rotateRight32Tail);
     if (rotateRight32Word == true) {
       return TOKEN_ROTATE_RIGHT_32;
+    }
+
+    long undefinedHead = 138409987005904741;
+    long undefinedTail = 228;
+    boolean undefinedWord = sameWordLanes(head, tail, undefinedHead, undefinedTail);
+    if (undefinedWord == true) {
+      return TOKEN_UNDEFINED;
     }
 
     long utf8ScalarHead = 138436431884906732;
