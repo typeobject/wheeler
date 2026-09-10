@@ -119,6 +119,11 @@ than rebasing circuit subjects as functions. Final verification checks a step
 claim against the composed body and manifest limit. This product support does
 not implement source `steps` theorem lowering or complete the native test runner.
 
+The scalar constant evaluator now accepts exact expression-token windows against
+counted products. It shares declaration precedence, consumes the complete window,
+and checks equality-token adjacency. Dependency source is not an input to a
+product-only evaluation. Source theorem binding remains separate integration work.
+
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and
 entry binding validate complete owner windows before rebasing. This closes one

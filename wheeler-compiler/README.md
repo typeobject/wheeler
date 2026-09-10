@@ -120,6 +120,12 @@ table. Intake validates complete rebasing windows. Emission validates every row
 before writing. Final verification checks the actual body and manifest limit.
 Source `steps` theorem lowering and the mixed-member runner join remain open.
 
+Constant declarations and exact expression ranges share one precedence parser in
+`ConstantExpressions.w`. Range callers can use counted scalar products without
+dependency source. A valid result consumes its entire token window. Split `=`
+bytes do not become equality, and malformed windows reject before allocation.
+This is the expression authority for future theorem bounds, not a theorem parser.
+
 `ModuleManifestProduct` carries root name, entry, kind, and limit words without a
 borrowed artifact. Source-local emission and final linking share one checked
 manifest encoder. Final section emission no longer rereads these facts from a

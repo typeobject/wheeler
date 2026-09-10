@@ -378,12 +378,25 @@ before publication. A complete artifact with both classical rules matches stage
 This closes a retained-proof gap, not source theorem lowering or the mixed-member
 runner join.
 
+[WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md#native-expression-ranges)
+exposes exact scalar expression windows against counted constant products. One
+precedence parser now serves declarations and range callers. Typed results,
+lexical adjacency, complete consumption, immutable caller storage, and rewind and
+replay are checked. This removes a reason to invent a proof-specific expression
+parser. It does not implement source theorem binding.
+
 Hosted run [34421714092](https://github.com/typeobject/wheeler/actions/runs/34421714092)
 on `b80b50be3` failed: one terminal-case identity shard reached its two-minute
 method deadline and another job could not resolve JUnit's BOM. The later bootstrap
 run [34428229529](https://github.com/typeobject/wheeler/actions/runs/34428229529)
 on `505312113` passes. README, site, and CodeQL workflows also pass for that commit.
 The later pass does not explain or repair the earlier timing failure.
+
+Run [34432235479](https://github.com/typeobject/wheeler/actions/runs/34432235479)
+on `dc1c5ad57` exposed an unchanged SHA transition pin for the enlarged manifest.
+Commit `ef1f69da5` corrects that test pin. Its bootstrap run
+[34433826526](https://github.com/typeobject/wheeler/actions/runs/34433826526) and
+README, site, and CodeQL workflows pass.
 
 ## Evidence locations
 

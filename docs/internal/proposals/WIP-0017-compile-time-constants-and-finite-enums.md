@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, quantum, proof, and tooling maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-09-07 |
+| Updated | 2026-09-09 |
 | Area | Named values, finite types, constant evaluation, reversible and coherent semantics |
 | Depends on | WIP-0001, WIP-0005, WIP-0006 |
 | Supersedes | None |
@@ -472,6 +472,38 @@ of minus one. The signed state fixtures use admitted equality assertions.
 Restoring the positive-only ceiling, the unused addition, or the resolved-opcode
 name fallback breaks the corresponding complete-artifact regression. These
 checks do not establish full physical compiler compilation or a fixed point.
+
+## Native expression ranges
+
+`ConstantExpressions.w::evaluateScalarExpressionWithProducts` evaluates one
+complete scanner-owned token window. An empty local declaration window selects
+counted constant products only. Names, types, values, resolution flags, and module
+qualifiers cross that boundary, not dependency source. A valid prefix followed by
+another token is not a valid result.
+
+Declarations and range callers now share one precedence loop. The six repeated
+binary parsers are removed. Named levels preserve left associativity and the
+existing multiplication, addition, bitwise, comparison, and equality order.
+Boolean negation, signed literals, parentheses, dependency lookup, and
+`rotateRight32` keep their existing owners. The evaluator falls from 986 to 788 lines without a second
+expression representation or parser.
+
+Equality requires two adjacent `=` bytes. Restoring the old gap admission makes
+`1 = = 1` and `1 = /* gap */ = 1` pass natively even though stage 0 rejects both.
+The restored guard rejects both forms. This is lexical adjacency, not whitespace
+normalization after parsing.
+
+`NativeConstantExpressionRangesExampleTest` compares typed results with independent
+stage-0 declarations. Cases cover every precedence level, left associativity,
+qualified products, signed endpoints, invalid suffixes and types, and arithmetic
+traps. Every source, token, name, and product cell survives evaluation unchanged.
+Accepted, rejected, and trapped executions rewind and replay. Invalid coordinate
+windows reject before evaluation storage is allocated. The existing 4,096-step
+and 64-dependency-depth limits are unchanged.
+
+This API supplies the expression authority needed by source theorem bounds.
+It does not yet bind a `steps` theorem, emit its certificate from source, or join
+the intact mixed-member runner. Those remain integration work under WIP-0498.
 
 ## Testing and acceptance
 

@@ -9,6 +9,16 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class ConstantExpressions {
+  private const long LEVEL_MULTIPLICATIVE = 0;
+  private const long LEVEL_ADDITIVE = LEVEL_MULTIPLICATIVE + 1;
+  private const long LEVEL_AND = LEVEL_ADDITIVE + 1;
+  private const long LEVEL_XOR = LEVEL_AND + 1;
+  private const long LEVEL_COMPARISON = LEVEL_XOR + 1;
+  private const long LEVEL_EQUALITY = LEVEL_COMPARISON + 1;
+  private const long EVALUATION_COUNTERS = 1;
+  private const long NATIVE_WORD_BYTES = 8;
+  private const long EVALUATION_BYTES = EVALUATION_COUNTERS * NATIVE_WORD_BYTES;
+
   /// Caps recursive dependency and expression work for one lookup.
   public const long MAX_CONSTANT_EVALUATION_STEPS = 4096;
   /// Caps a same-class dependency path, including cycle detection.
@@ -147,7 +157,7 @@ classical class ConstantExpressions {
       return invalidExpression(cursor);
     }
 
-    ExpressionValue value = parseEquality(
+    ExpressionValue value = parseBinary(
       source,
       tokenStarts,
       tokenLengths,
@@ -158,7 +168,8 @@ classical class ConstantExpressions {
       dependencyDepth,
       importedNames,
       importedRows,
-      steps
+      steps,
+      LEVEL_EQUALITY
     );
     if (value.valid) {} else {
       return value;
@@ -176,7 +187,7 @@ classical class ConstantExpressions {
       return invalidExpression(value.next);
     }
 
-    ExpressionValue amount = parseEquality(
+    ExpressionValue amount = parseBinary(
       source,
       tokenStarts,
       tokenLengths,
@@ -187,7 +198,8 @@ classical class ConstantExpressions {
       dependencyDepth,
       importedNames,
       importedRows,
-      steps
+      steps,
+      LEVEL_EQUALITY
     );
     if (amount.valid) {} else {
       return amount;
@@ -243,7 +255,7 @@ classical class ConstantExpressions {
     }
 
     if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_OPEN_PAREN)) {
-      ExpressionValue nested = parseEquality(
+      ExpressionValue nested = parseBinary(
         source,
         tokenStarts,
         tokenLengths,
@@ -254,7 +266,8 @@ classical class ConstantExpressions {
         dependencyDepth,
         importedNames,
         importedRows,
-        steps
+        steps,
+        LEVEL_EQUALITY
       );
       if (nested.valid == false) {
         return nested;
@@ -419,182 +432,109 @@ classical class ConstantExpressions {
     );
   }
 
-  private ExpressionValue parseMultiplicative(
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long firstDeclaration,
-    long memberStart,
-    long cursor,
-    long end,
-    long dependencyDepth,
-    borrow byteview importedNames,
-    borrow mut words importedRows,
-    borrow mut words steps
-  ) {
-    ExpressionValue left = parseUnary(
-      source,
-      tokenStarts,
-      tokenLengths,
-      firstDeclaration,
-      memberStart,
-      cursor,
-      end,
-      dependencyDepth,
-      importedNames,
-      importedRows,
-      steps
-    );
-    boolean scanning = left.valid;
-    while (scanning) limit MAX_CONSTANT_EVALUATION_STEPS {
-      if (left.next < end) {
-        long scalar = utf8Scalar(source, tokenStarts[left.next]);
-        boolean operator = scalarAt(
-          source,
-          tokenStarts,
-          tokenLengths,
-          left.next,
-          PUNCTUATION_STAR
-        );
-        if (scalar == PUNCTUATION_SLASH) {
-          operator = tokenLengths[left.next] == 1;
-        }
-
-        if (scalar == PUNCTUATION_PERCENT) {
-          operator = tokenLengths[left.next] == 1;
-        }
-
-        if (operator) {
-          ExpressionValue right = parseUnary(
-            source,
-            tokenStarts,
-            tokenLengths,
-            firstDeclaration,
-            memberStart,
-            left.next + 1,
-            end,
-            dependencyDepth,
-            importedNames,
-            importedRows,
-            steps
-          );
-          if (right.valid) {
-            if (left.signed) {
-              if (right.signed) {
-                if (scalar == PUNCTUATION_STAR) {
-                  left = new ExpressionValue(left.value * right.value, right.next, true, true);
-                } else {
-                  if (right.value == 0) {
-                    return invalidExpression(right.next);
-                  }
-
-                  if (scalar == PUNCTUATION_SLASH) {
-                    left = new ExpressionValue(left.value / right.value, right.next, true, true);
-                  } else {
-                    left = new ExpressionValue(left.value % right.value, right.next, true, true);
-                  }
-                }
-              } else {
-                return invalidExpression(right.next);
-              }
-            } else {
-              return invalidExpression(right.next);
-            }
-          } else {
-            return right;
-          }
-        } else {
-          scanning = false;
-        }
-      } else {
-        scanning = false;
-      }
+  private long binaryLevel(long scalar) {
+    if (scalar == PUNCTUATION_STAR) {
+      return LEVEL_MULTIPLICATIVE;
     }
 
-    return left;
-  }
-
-  private ExpressionValue parseAdditive(
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long firstDeclaration,
-    long memberStart,
-    long cursor,
-    long end,
-    long dependencyDepth,
-    borrow byteview importedNames,
-    borrow mut words importedRows,
-    borrow mut words steps
-  ) {
-    ExpressionValue left = parseMultiplicative(
-      source,
-      tokenStarts,
-      tokenLengths,
-      firstDeclaration,
-      memberStart,
-      cursor,
-      end,
-      dependencyDepth,
-      importedNames,
-      importedRows,
-      steps
-    );
-    boolean scanning = left.valid;
-    while (scanning) limit MAX_CONSTANT_EVALUATION_STEPS {
-      if (left.next < end) {
-        long scalar = utf8Scalar(source, tokenStarts[left.next]);
-        boolean operator = scalar == PUNCTUATION_PLUS;
-        if (scalar == PUNCTUATION_MINUS) {
-          operator = true;
-        }
-
-        if (operator) {
-          ExpressionValue right = parseMultiplicative(
-            source,
-            tokenStarts,
-            tokenLengths,
-            firstDeclaration,
-            memberStart,
-            left.next + 1,
-            end,
-            dependencyDepth,
-            importedNames,
-            importedRows,
-            steps
-          );
-          if (right.valid) {
-            if (left.signed) {
-              if (right.signed) {
-                long value = 0;
-                if (scalar == PUNCTUATION_MINUS) {
-                  value = left.value - right.value;
-                } else {
-                  value = left.value + right.value;
-                }
-
-                left = new ExpressionValue(value, right.next, true, true);
-              } else {
-                return invalidExpression(right.next);
-              }
-            } else {
-              return invalidExpression(right.next);
-            }
-          } else {
-            return right;
-          }
-        } else {
-          scanning = false;
-        }
-      } else {
-        scanning = false;
-      }
+    if (scalar == PUNCTUATION_SLASH) {
+      return LEVEL_MULTIPLICATIVE;
     }
 
-    return left;
+    if (scalar == PUNCTUATION_PERCENT) {
+      return LEVEL_MULTIPLICATIVE;
+    }
+
+    if (scalar == PUNCTUATION_PLUS) {
+      return LEVEL_ADDITIVE;
+    }
+
+    if (scalar == PUNCTUATION_MINUS) {
+      return LEVEL_ADDITIVE;
+    }
+
+    if (scalar == PUNCTUATION_AMPERSAND) {
+      return LEVEL_AND;
+    }
+
+    if (scalar == PUNCTUATION_CARET) {
+      return LEVEL_XOR;
+    }
+
+    if (scalar == PUNCTUATION_LESS_THAN) {
+      return LEVEL_COMPARISON;
+    }
+
+    if (scalar == PUNCTUATION_ASSIGN) {
+      return LEVEL_EQUALITY;
+    }
+
+    return -1;
   }
 
-  private ExpressionValue parseAnd(
+  private ExpressionValue applyBinary(long scalar, ExpressionValue left, ExpressionValue right) {
+    if (left.signed != right.signed) {
+      return invalidExpression(right.next);
+    }
+
+    if (scalar == PUNCTUATION_ASSIGN) {
+      long equal = 0;
+      if (left.value == right.value) {
+        equal = 1;
+      }
+
+      return new ExpressionValue(equal, right.next, false, true);
+    }
+
+    if (left.signed == false) {
+      return invalidExpression(right.next);
+    }
+
+    long value = 0;
+    if (scalar == PUNCTUATION_LESS_THAN) {
+      if (left.value < right.value) {
+        value = 1;
+      }
+
+      return new ExpressionValue(value, right.next, false, true);
+    }
+
+    if (scalar == PUNCTUATION_STAR) {
+      return new ExpressionValue(left.value * right.value, right.next, true, true);
+    }
+
+    if (scalar == PUNCTUATION_PLUS) {
+      return new ExpressionValue(left.value + right.value, right.next, true, true);
+    }
+
+    if (scalar == PUNCTUATION_MINUS) {
+      return new ExpressionValue(left.value - right.value, right.next, true, true);
+    }
+
+    if (scalar == PUNCTUATION_AMPERSAND) {
+      return new ExpressionValue(left.value & right.value, right.next, true, true);
+    }
+
+    if (scalar == PUNCTUATION_CARET) {
+      return new ExpressionValue(left.value ^ right.value, right.next, true, true);
+    }
+
+    if (right.value == 0) {
+      return invalidExpression(right.next);
+    }
+
+    if (scalar == PUNCTUATION_SLASH) {
+      return new ExpressionValue(left.value / right.value, right.next, true, true);
+    }
+
+    if (scalar == PUNCTUATION_PERCENT) {
+      return new ExpressionValue(left.value % right.value, right.next, true, true);
+    }
+
+    return invalidExpression(right.next);
+  }
+
+  private ExpressionValue parseBinary(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
@@ -605,9 +545,26 @@ classical class ConstantExpressions {
     long dependencyDepth,
     borrow byteview importedNames,
     borrow mut words importedRows,
-    borrow mut words steps
+    borrow mut words steps,
+    long level
   ) {
-    ExpressionValue left = parseAdditive(
+    if (level < LEVEL_MULTIPLICATIVE) {
+      return parseUnary(
+        source,
+        tokenStarts,
+        tokenLengths,
+        firstDeclaration,
+        memberStart,
+        cursor,
+        end,
+        dependencyDepth,
+        importedNames,
+        importedRows,
+        steps
+      );
+    }
+
+    ExpressionValue left = parseBinary(
       source,
       tokenStarts,
       tokenLengths,
@@ -618,270 +575,61 @@ classical class ConstantExpressions {
       dependencyDepth,
       importedNames,
       importedRows,
-      steps
+      steps,
+      level - 1
     );
     while (left.valid) limit MAX_CONSTANT_EVALUATION_STEPS {
-      if (left.next < end) {
+      if (end < left.next + 1) {
+        return left;
+      }
+
+      if (tokenLengths[left.next] != 1) {
+        return left;
+      }
+
+      long scalar = utf8Scalar(source, tokenStarts[left.next]);
+      if (binaryLevel(scalar) != level) {
+        return left;
+      }
+
+      long operatorWidth = 1;
+      if (level == LEVEL_EQUALITY) {
+        if (end < left.next + 2) {
+          return left;
+        }
+
         if (
-          scalarAt(source, tokenStarts, tokenLengths, left.next, PUNCTUATION_AMPERSAND)
+          scalarAt(source, tokenStarts, tokenLengths, left.next + 1, PUNCTUATION_ASSIGN) == false
         ) {
-          ExpressionValue right = parseAdditive(
-            source,
-            tokenStarts,
-            tokenLengths,
-            firstDeclaration,
-            memberStart,
-            left.next + 1,
-            end,
-            dependencyDepth,
-            importedNames,
-            importedRows,
-            steps
-          );
-          if (right.valid) {
-            if (left.signed) {
-              if (right.signed) {
-                left = new ExpressionValue(left.value & right.value, right.next, true, true);
-              } else {
-                return invalidExpression(right.next);
-              }
-            } else {
-              return invalidExpression(right.next);
-            }
-          } else {
-            return right;
-          }
-        } else {
           return left;
         }
-      } else {
-        return left;
-      }
-    }
 
-    return left;
-  }
-
-  private ExpressionValue parseXor(
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long firstDeclaration,
-    long memberStart,
-    long cursor,
-    long end,
-    long dependencyDepth,
-    borrow byteview importedNames,
-    borrow mut words importedRows,
-    borrow mut words steps
-  ) {
-    ExpressionValue left = parseAnd(
-      source,
-      tokenStarts,
-      tokenLengths,
-      firstDeclaration,
-      memberStart,
-      cursor,
-      end,
-      dependencyDepth,
-      importedNames,
-      importedRows,
-      steps
-    );
-    while (left.valid) limit MAX_CONSTANT_EVALUATION_STEPS {
-      if (left.next < end) {
-        if (
-          scalarAt(source, tokenStarts, tokenLengths, left.next, PUNCTUATION_CARET)
-        ) {
-          ExpressionValue right = parseAnd(
-            source,
-            tokenStarts,
-            tokenLengths,
-            firstDeclaration,
-            memberStart,
-            left.next + 1,
-            end,
-            dependencyDepth,
-            importedNames,
-            importedRows,
-            steps
-          );
-          if (right.valid) {
-            if (left.signed) {
-              if (right.signed) {
-                left = new ExpressionValue(left.value ^ right.value, right.next, true, true);
-              } else {
-                return invalidExpression(right.next);
-              }
-            } else {
-              return invalidExpression(right.next);
-            }
-          } else {
-            return right;
-          }
-        } else {
+        if (tokenStarts[left.next + 1] != tokenStarts[left.next] + operatorWidth) {
           return left;
         }
-      } else {
-        return left;
+
+        operatorWidth += 1;
       }
-    }
 
-    return left;
-  }
-
-  private ExpressionValue parseComparison(
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long firstDeclaration,
-    long memberStart,
-    long cursor,
-    long end,
-    long dependencyDepth,
-    borrow byteview importedNames,
-    borrow mut words importedRows,
-    borrow mut words steps
-  ) {
-    ExpressionValue left = parseXor(
-      source,
-      tokenStarts,
-      tokenLengths,
-      firstDeclaration,
-      memberStart,
-      cursor,
-      end,
-      dependencyDepth,
-      importedNames,
-      importedRows,
-      steps
-    );
-    while (left.valid) limit MAX_CONSTANT_EVALUATION_STEPS {
-      if (left.next < end) {
-        if (
-          scalarAt(source, tokenStarts, tokenLengths, left.next, PUNCTUATION_LESS_THAN)
-        ) {
-          ExpressionValue right = parseXor(
-            source,
-            tokenStarts,
-            tokenLengths,
-            firstDeclaration,
-            memberStart,
-            left.next + 1,
-            end,
-            dependencyDepth,
-            importedNames,
-            importedRows,
-            steps
-          );
-          if (right.valid) {
-            if (left.signed) {
-              if (right.signed) {
-                long value = 0;
-                if (left.value < right.value) {
-                  value = 1;
-                }
-
-                left = new ExpressionValue(value, right.next, false, true);
-              } else {
-                return invalidExpression(right.next);
-              }
-            } else {
-              return invalidExpression(right.next);
-            }
-          } else {
-            return right;
-          }
-        } else {
-          return left;
-        }
-      } else {
-        return left;
+      ExpressionValue right = parseBinary(
+        source,
+        tokenStarts,
+        tokenLengths,
+        firstDeclaration,
+        memberStart,
+        left.next + operatorWidth,
+        end,
+        dependencyDepth,
+        importedNames,
+        importedRows,
+        steps,
+        level - 1
+      );
+      if (right.valid == false) {
+        return right;
       }
-    }
 
-    return left;
-  }
-
-  private ExpressionValue parseEquality(
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long firstDeclaration,
-    long memberStart,
-    long cursor,
-    long end,
-    long dependencyDepth,
-    borrow byteview importedNames,
-    borrow mut words importedRows,
-    borrow mut words steps
-  ) {
-    ExpressionValue left = parseComparison(
-      source,
-      tokenStarts,
-      tokenLengths,
-      firstDeclaration,
-      memberStart,
-      cursor,
-      end,
-      dependencyDepth,
-      importedNames,
-      importedRows,
-      steps
-    );
-    while (left.valid) limit MAX_CONSTANT_EVALUATION_STEPS {
-      if (left.next + 1 < end) {
-        boolean equality = scalarAt(
-          source,
-          tokenStarts,
-          tokenLengths,
-          left.next,
-          PUNCTUATION_ASSIGN
-        );
-        if (equality) {
-          equality = scalarAt(
-            source,
-            tokenStarts,
-            tokenLengths,
-            left.next + 1,
-            PUNCTUATION_ASSIGN
-          );
-        }
-
-        if (equality) {
-          ExpressionValue right = parseComparison(
-            source,
-            tokenStarts,
-            tokenLengths,
-            firstDeclaration,
-            memberStart,
-            left.next + 2,
-            end,
-            dependencyDepth,
-            importedNames,
-            importedRows,
-            steps
-          );
-          if (right.valid) {
-            if (left.signed == right.signed) {
-              long value = 0;
-              if (left.value == right.value) {
-                value = 1;
-              }
-
-              left = new ExpressionValue(value, right.next, false, true);
-            } else {
-              return invalidExpression(right.next);
-            }
-          } else {
-            return right;
-          }
-        } else {
-          return left;
-        }
-      } else {
-        return left;
-      }
+      left = applyBinary(scalar, left, right);
     }
 
     return left;
@@ -921,7 +669,7 @@ classical class ConstantExpressions {
       declarationStart
     );
     long expressionEnd = declarationEnd - 1;
-    ExpressionValue value = parseEquality(
+    ExpressionValue value = parseBinary(
       source,
       tokenStarts,
       tokenLengths,
@@ -932,7 +680,8 @@ classical class ConstantExpressions {
       dependencyDepth,
       importedNames,
       importedRows,
-      steps
+      steps,
+      LEVEL_EQUALITY
     );
     if (value.valid) {
       if (value.next == expressionEnd) {
@@ -962,8 +711,8 @@ classical class ConstantExpressions {
     borrow byteview importedNames,
     borrow mut words importedRows
   ) {
-    region evaluation = new region(/* bytes= */ 8, /* allocations= */ 1);
-    words steps = allocate(evaluation, 1);
+    region evaluation = new region(/* bytes= */ EVALUATION_BYTES, /* allocations= */ 1);
+    words steps = allocate(evaluation, EVALUATION_COUNTERS);
     set(steps, 0, 0);
     ExpressionResolution result = findAndEvaluate(
       source,
@@ -982,4 +731,58 @@ classical class ConstantExpressions {
     return result;
   }
 
+  /// Evaluates exactly one scanner-owned scalar expression against local and counted constants.
+  /// Empty local declaration windows select products only, without dependency source.
+  /// A valid result consumes the entire expression window, not merely a valid prefix.
+  public ExpressionValue evaluateScalarExpressionWithProducts(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long firstDeclaration,
+    long memberStart,
+    long expressionStart,
+    long expressionEnd,
+    borrow byteview importedNames,
+    borrow mut words importedRows
+  ) {
+    assert(-1 < firstDeclaration);
+    assert(-1 < memberStart);
+    assert(memberStart < bufferLength(tokenStarts) + 1);
+    assert(memberStart < bufferLength(tokenLengths) + 1);
+    assert(firstDeclaration < memberStart + 1);
+    assert(-1 < expressionStart);
+    assert(expressionStart < expressionEnd);
+    assert(expressionEnd < bufferLength(tokenStarts) + 1);
+    assert(expressionEnd < bufferLength(tokenLengths) + 1);
+    region evaluation = new region(/* bytes= */ EVALUATION_BYTES, /* allocations= */ 1);
+    words steps = allocate(evaluation, EVALUATION_COUNTERS);
+    ExpressionValue parsed = parseBinary(
+      source,
+      tokenStarts,
+      tokenLengths,
+      firstDeclaration,
+      memberStart,
+      expressionStart,
+      expressionEnd,
+      0,
+      importedNames,
+      importedRows,
+      steps,
+      LEVEL_EQUALITY
+    );
+    boolean valid = parsed.valid;
+    if (parsed.next != expressionEnd) {
+      valid = false;
+    }
+
+    ExpressionValue result = new ExpressionValue(
+      parsed.value,
+      parsed.next,
+      parsed.signed,
+      valid
+    );
+    drop(steps);
+    drop(evaluation);
+    return result;
+  }
 }
