@@ -89,8 +89,10 @@ This target is not the entire main-source tree. `CompilerLibrary.w` and
 `compiler/verification/Codec.w` belong to the package but are outside the rooted
 compiler target. [WIP-0054](WIP-0054-native-source-product-artifact-integration.md#codec-source-product)
 now checks the codec's complete source-local product and executes its retained
-body with an independent verifier. The package facade and complete native library
-closure remain separate required work.
+body with an independent verifier. Its [facade check](WIP-0054-native-source-product-artifact-integration.md#library-facade-source-product)
+now compares the unmodified `CompilerLibrary.w` source-local artifact, complete
+caller storage, rejection, and rewind. That empty local artifact is not the
+complete native library closure or its retained physical publication.
 
 These physical owners do not exercise nominal declarations or authored bodies.
 Their empty type sections cannot justify discarding either. WIP-0054 still owns

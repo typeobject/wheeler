@@ -106,8 +106,34 @@ mutations expose an exclusive capacity bound, excess admission, missing
 verification, and a lost return length.
 
 This is one complete source-local product and mixed-dependency execution. It is
-not native compilation of the verifier closure, `CompilerLibrary.w`, or the whole
-package library. Those products and stage equality remain required.
+not native compilation of the verifier closure or the whole package library.
+Those products and stage equality remain required.
+
+### Library facade source product
+
+`NativeCompilerLibraryFacadeExampleTest` passes the unmodified physical
+`CompilerLibrary.w` to the callable-free archive compiler. The input retains all
+six imports, but contains no dependency source. The closed local callable window
+is empty. The facade owns no imported call instruction, so no imported target or
+relocation workspace is needed.
+
+The independent stage-0 library contains the dependency closure. The test takes
+only its synthetic entry and program name to construct the source-local oracle.
+It compares the complete native artifact, SHA-256, function and relocation counts,
+all caller metadata, and every output byte, including unused publication storage.
+It does not compare that small local artifact to the complete linked library.
+
+Compilation starts at an empty history boundary after private fixture preparation.
+Publication and cleanup rewind to that boundary, then replay to the same complete
+snapshot. The emitted entry independently executes and rewinds. Short and excess
+artifact and identity buffers, and a class name outside the selected source range,
+reject without changing caller storage. Neither the source profile nor its bounds
+change. No physical source, package archive, graph identity, or lock changes.
+
+This covers the facade's empty local product. It does not compile its imported
+bodies, place the facade in the retained physical container, or complete the native
+library closure. Every remaining physical owner and final composition still need
+their own evidence.
 
 ## Inputs and ownership
 

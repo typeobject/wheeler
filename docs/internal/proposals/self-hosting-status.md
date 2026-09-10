@@ -242,9 +242,9 @@ entry verifies, executes, and rewinds. The archive pass remains history-free.
 This is complete coverage of that inventory, not physical nominal-descriptor or
 nominal-body coverage. The first-authority-only test is deleted. The rooted target
 excludes the package's `CompilerLibrary.w` and `compiler/verification/Codec.w`.
-Every physical main source still requires product evidence. The codec now has
-separate source-local evidence below. The facade and complete library closure
-remain open.
+Every physical main source still requires product evidence. The codec and empty
+facade now have separate source-local evidence below. Complete native library
+compilation and retained publication remain open.
 
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
@@ -347,8 +347,19 @@ canonical package inputs. Five main API roots, the 497-artifact workspace and si
 the locked minimum consumer, and native ordering 3/3 and spine 7/7 also pass. The
 consumer retains 568 artifact bytes, 772 coverage bytes, seven steps, and state 7.
 The compiler archive and four locks change. Rooted graph and executable identities
-do not. A separate conformance API check still reports fifteen missing comment or
-Effects facets. That failed check is not included in the five passing API roots.
+do not. A separate conformance API check reported fifteen missing comment or Effects
+facets at that milestone. Commit `6c8ef9494` repairs those comments and extends
+the source-quality gates to all six main roots. All conformance target and
+dependency artifacts remain byte-identical.
+
+[WIP-0054](WIP-0054-native-source-product-artifact-integration.md#library-facade-source-product)
+now checks the unmodified `CompilerLibrary.w` through the callable-free archive
+compiler. Its complete local artifact, SHA-256, metadata, publication tails,
+rejections, and compilation rewind pass. Its single entry executes and rewinds.
+The native input contains the facade's six imports but no dependency source.
+That empty local artifact does not compile the imported library bodies or place
+them in the retained physical container. This evidence changes no Wheeler source,
+archive, graph, or lock identity.
 
 ## Evidence locations
 
