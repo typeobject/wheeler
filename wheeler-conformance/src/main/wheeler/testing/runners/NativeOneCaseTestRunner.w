@@ -5,6 +5,9 @@ module wheeler.conformance.testing.runners.native_one_case_test_runner;
 import wheeler.runtime.testing.test_artifact_report;
 
 classical class NativeOneCaseTestRunner {
+  /// Runs one artifact and binds its passing report to fixed conformance metadata.
+  ///
+  /// - Effects: Writes the report identity and publishes its length.
   entry void main(borrow byteview artifact, borrow mut bytes output) {
     region metadata = new region(/* bytes= */ 200, /* allocations= */ 6);
     bytes runner = allocateBytes(metadata, /* length= */ 64);

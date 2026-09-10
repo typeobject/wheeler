@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler documentation, compiler, package, tools, and website maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-08-24 |
+| Updated | 2026-09-09 |
 | Area | Wheeler API docs, Markdown manuals, fixed static rendering, links, search, publication |
 | Depends on | WIP-0006, WIP-0007, WIP-0009, WIP-0011, WIP-0016, WIP-0018 |
 | Supersedes | None |
@@ -282,6 +282,15 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [ ] A Wheeler-written generator emits the stage-0 bundle byte-for-byte.
 - [x] Manuals and Wheeler declarations occupy disjoint identity namespaces. Generated API nodes come only from explicit `.w` roots, duplicate identities fail before publication, and no hand-authored API-page or Java extraction path can shadow them.
 - [x] Package-root `check-docs` walks validate public Wheeler sources and omit conventional `src/test/wheeler` fixtures by default. `--include-tests` adds those declarations explicitly. Standard input remains exact. Undocumented tests cannot weaken validation of `src/main/wheeler`.
+- [x] The canonical documentation, formatter, and Tree-sitter gates include all six
+  main source roots, including conformance. The Java tests walk files in sorted
+  order. The previous five-root lists missed fifteen undocumented entries or
+  missing `Effects` facets and noncanonical manifest-fixture spacing. Conformance
+  entries now name their publication effects. The contextual `reverse` highlight
+  fixture also formats canonically and retains all four highlight assertions.
+  The package build preserves all 49 target artifacts and 80 dependency artifacts
+  byte for byte against its parent. These repairs grant no new runtime behavior
+  and do not complete the Wheeler-owned documentation generator.
 
 ## Testing and acceptance
 

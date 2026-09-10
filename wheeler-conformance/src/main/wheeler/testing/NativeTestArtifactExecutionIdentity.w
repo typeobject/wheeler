@@ -7,6 +7,9 @@ import wheeler.runtime.artifact_execution;
 import wheeler.runtime.testing.test_artifact_execution_identity;
 
 classical class NativeTestArtifactExecutionIdentity {
+  /// Runs the bounded artifact interpreter and derives its execution identity.
+  ///
+  /// - Effects: Writes the runtime-owned identity and publishes its length.
   entry void main(borrow byteview artifact, borrow mut bytes output) {
     region traceArena = new region(/* bytes= */ 32768, /* allocations= */ 4);
     bytes traceOpcodes = allocateBytes(traceArena, MAX_INTERPRETED_STEPS * 2);

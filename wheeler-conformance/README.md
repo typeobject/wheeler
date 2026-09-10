@@ -29,7 +29,13 @@ Run its package gate from the repository root:
 
 ```bash
 ./bootstrap/gradlew -p bootstrap :tools:wheeler --args='check wheeler-conformance'
+./bootstrap/gradlew -p bootstrap :tools:wheeler --args='check-docs wheeler-conformance'
 ```
+
+The canonical documentation, formatter, and Tree-sitter gates include this
+package's main sources. Each entry documents its output effect beside the
+declaration. A successful documentation check does not establish artifact or
+execution parity.
 
 The Java differential harness remains quarantined under `bootstrap/examples`. That historical
 Gradle module name is not exported and does not put these programs back in the example portfolio.

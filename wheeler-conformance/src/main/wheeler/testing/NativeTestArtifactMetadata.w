@@ -26,6 +26,8 @@ classical class NativeTestArtifactMetadata {
   }
 
   /// Publishes the program name, kind, and ordered global names after execution verifies.
+  ///
+  /// - Effects: Writes length-framed metadata and publishes its extent after a passing outcome.
   entry void main(borrow byteview artifact, borrow mut bytes output) {
     assert(bufferLength(output) == 4096);
     region staging = new region(/* bytes= */ 32896, /* allocations= */ 6);

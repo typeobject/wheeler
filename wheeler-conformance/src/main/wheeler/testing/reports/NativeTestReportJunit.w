@@ -6,6 +6,8 @@ import wheeler.runtime.testing.test_report_junit;
 
 classical class NativeTestReportJunit {
   /// Renders one validated native test-report transport.
+  ///
+  /// - Effects: Writes JUnit XML bytes and publishes their length.
   entry void main(borrow byteview input, borrow mut bytes output) {
     long length = renderTestReportJunit(input, output);
     setOutputLength(output, length);

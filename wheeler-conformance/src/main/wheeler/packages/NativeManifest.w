@@ -36,8 +36,10 @@ classical class NativeManifest {
       if (rows[index] != 0) {
         written += 1;
       }
+
       index += 1;
     }
+
     return written;
   }
 

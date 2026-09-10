@@ -36,6 +36,9 @@ classical class NativeLockedArchiveSource {
     setByte(output, offset + 3, value % 256);
   }
 
+  /// Selects one source entry by ordinal from a validated locked archive.
+  ///
+  /// - Effects: Writes the length-framed path and source, then publishes their extent.
   entry void main(borrow byteview input, borrow mut bytes output) {
     assert(73 < bufferLength(input));
     region arena = new region(/* bytes= */ 131072, /* allocations= */ 32);

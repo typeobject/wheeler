@@ -6,6 +6,8 @@ import wheeler.runtime.testing.test_report_terminal;
 
 classical class NativeTestReportTerminal {
   /// Renders one validated native test-report transport.
+  ///
+  /// - Effects: Writes the terminal report bytes and publishes their length.
   entry void main(borrow byteview input, borrow mut bytes output) {
     long length = renderTestReportTerminal(input, output);
     setOutputLength(output, length);

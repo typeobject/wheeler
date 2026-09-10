@@ -25,6 +25,9 @@ classical class NativeLockedArchiveProvenance {
     return offset;
   }
 
+  /// Checks the framed lock, archive identity, and dependency rows.
+  ///
+  /// - Effects: Writes one success byte and publishes its length after validation.
   entry void main(borrow byteview input, borrow mut bytes output) {
     assert(72 < bufferLength(input));
     region arena = new region(/* bytes= */ 131072, /* allocations= */ 32);

@@ -27,6 +27,9 @@ classical class NativeExternalSourcePlan {
     return offset;
   }
 
+  /// Joins the local plan with one source selected from a validated locked archive.
+  ///
+  /// - Effects: Writes the composed source plan and publishes its length.
   entry void main(borrow byteview input, borrow mut bytes output) {
     assert(77 < bufferLength(input));
     region arena = new region(/* bytes= */ 196608, /* allocations= */ 40);

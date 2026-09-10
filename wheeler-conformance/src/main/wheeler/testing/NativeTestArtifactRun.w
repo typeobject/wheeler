@@ -22,6 +22,8 @@ classical class NativeTestArtifactRun {
   }
 
   /// Publishes one complete closed interpreter outcome for a runner-owned artifact.
+  ///
+  /// - Effects: Fills the fixed output with status, steps, globals, and error offset.
   entry void main(borrow byteview artifact, borrow mut bytes output) {
     assert(bufferLength(output) == 89);
     region traceArena = new region(/* bytes= */ 32768, /* allocations= */ 4);

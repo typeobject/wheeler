@@ -5,12 +5,14 @@ classical class Context {
 
   entry void main() {
     long reverse = 1;
-//       ^ variable
+    //   ^ variable
     reverse -= 1;
-//  ^ variable
+    // ^ variable
     reverse step();
-//  ^ keyword.control
-    reverse { step(); }
-//  ^ keyword.control
+    // ^ keyword.control
+    reverse {
+      // ^ keyword.control
+      step();
+    }
   }
 }
