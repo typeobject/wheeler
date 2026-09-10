@@ -369,10 +369,21 @@ this boundary. The mixed-member runner still needs complete source-to-final
 composition. Enum row admission does not make that runner or the compiler
 self-hosted.
 
+[WIP-0048](WIP-0048-canonical-native-product-linker.md#classical-proof-products)
+retains generated-inverse and static-step certificates through counted intake and
+final section emission. Circuit rules no longer enter the function-subject table.
+Split arguments, complete rebasing windows, and later malformed rows are checked
+before publication. A complete artifact with both classical rules matches stage
+0. The final verifier still checks the claim against actual code and limits.
+This closes a retained-proof gap, not source theorem lowering or the mixed-member
+runner join.
+
 Hosted run [34421714092](https://github.com/typeobject/wheeler/actions/runs/34421714092)
-on `b80b50be3` does not pass. The first terminal-case identity shard reaches its
-two-minute method deadline. Another example job cannot resolve JUnit's BOM.
-README, site, and CodeQL checks pass, but they do not replace bootstrap acceptance.
+on `b80b50be3` failed: one terminal-case identity shard reached its two-minute
+method deadline and another job could not resolve JUnit's BOM. The later bootstrap
+run [34428229529](https://github.com/typeobject/wheeler/actions/runs/34428229529)
+on `505312113` passes. README, site, and CodeQL workflows also pass for that commit.
+The later pass does not explain or repair the earlier timing failure.
 
 ## Evidence locations
 

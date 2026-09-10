@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, bootstrap, and conformance maintainers |
 | Created | 2026-08-08 |
-| Updated | 2026-09-08 |
+| Updated | 2026-09-09 |
 | Area | Self-hosting, canonical linking, bytecode emission, bootstrap |
 | Depends on | WIP-0038, WIP-0041, WIP-0044, WIP-0045, WIP-0046, WIP-0047 |
 | Supersedes | Final artifact emission work in WIP-0047 |
@@ -152,6 +152,53 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
   [status map](self-hosting-status.md) for the current evidence inventory. A valid
   subset container does not prove complete compiler emission.
 - [ ] The complete physical compiler closure emits without dependency source.
+
+## Classical proof products
+
+`ClassicalProofProducts.w` owns the six counted columns and the admissible
+argument domain. The classical intake and emitter accept generated inverse
+(rule 1) and static step bound (rule 4), not a numeric interval of rule codes.
+Rules 2 and 3 name quantum circuits. Rebasing those subjects by a function base
+would change their meaning. They require circuit products before admission.
+
+Inverse arguments are the two unsigned words encoding -1. Step arguments encode
+a positive signed 64-bit value. Intake retains both words without narrowing and
+checks the complete source string and function windows before rebasing either
+coordinate. Emission checks every name, subject, rule, argument word, and output
+extent before writing the count or the first descriptor. A malformed later row
+cannot publish an earlier one. The counted limit remains 4,096 certificates.
+
+These checks admit a claim. They do not prove it. The final artifact verifier
+checks the actual composed function against the straight-line instruction rule,
+its declared bound, and the final manifest limit. A valid source-local count does
+not excuse a changed final body. Canonical publication still verifies private
+bytes before touching caller output.
+
+On `505312113`, adding `steps(local, 8)` to the complete product-linked fixture
+traps in `appendCompiledProofProducts`. The repaired fixture retains both that
+claim and its generated-inverse certificate, emits complete stage-0-identical
+bytes, and executes and rewinds. Its native input is an immutable artifact, not
+dependency source or a host `Program`.
+
+`NativeClassicalProofProductsExampleTest` compares all 24,576 product cells, all
+16,384 string-map cells, complete output prefixes and tails, and immutable input.
+It covers nonzero rebasing, the last append row, first-excess windows, both
+argument words, circuit and unknown rules, malformed later rows, and complete
+accepted/rejected rewind and replay. Bounds up to `Long.MAX_VALUE` establish
+retention and encoding only. Separate publication tests reject claims smaller
+than the final instruction count or larger than the manifest limit without
+changing caller bytes.
+
+The physical archive check binds 450 modules, 2,131 constants, and 1,825 callables.
+The selected physical-container and malformed-transport checks pass. The selected
+527-function container keeps its prior byte identity. Those checks do not compile
+all 450 source modules natively. Independently derived compiler archives and module
+graphs agree, and a separately resolved and vendored consumer executes the new
+argument-domain helper.
+
+This does not lower source `steps` theorems. The source-proof owner still handles
+generated inverses. WIP-0498 must join source theorem, scalar, nominal, and body
+products before its intact mixed-member runner can use this boundary.
 
 ## Counted string names
 

@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.util.Map;
 
 /** Resolves canonical Wheeler core sources without maintaining an example-side fork. */
-final class CoreSources {
+public final class CoreSources {
   private static final Path ROOT = Path.of("../wheeler-core/src/main/wheeler");
 
   private CoreSources() {}
@@ -22,7 +22,7 @@ final class CoreSources {
   }
 
   /** Adds the complete canonical binary-reader closure to a mutable module set. */
-  static void addBinaryClosure(Map<String, String> modules) throws IOException {
+  public static void addBinaryClosure(Map<String, String> modules) throws IOException {
     modules.put("Binary.w", read("encoding/Binary.w"));
     modules.put("FixedBinary.w", read("encoding/FixedBinary.w"));
   }

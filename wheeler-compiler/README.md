@@ -114,6 +114,12 @@ copying them to caller output. Invalid code, types, or proofs leave every caller
 byte unchanged. Raw container framing alone is not semantic verification. These
 checks do not establish native lowering for every compiler body.
 
+Counted classical proof products retain generated-inverse and static-step claims,
+including both argument words. Circuit rules do not belong in a function-subject
+table. Intake validates complete rebasing windows. Emission validates every row
+before writing. Final verification checks the actual body and manifest limit.
+Source `steps` theorem lowering and the mixed-member runner join remain open.
+
 `ModuleManifestProduct` carries root name, entry, kind, and limit words without a
 borrowed artifact. Source-local emission and final linking share one checked
 manifest encoder. Final section emission no longer rereads these facts from a

@@ -113,6 +113,12 @@ output. Invalid code, types, entry, or proofs leave every caller byte unchanged.
 Accepted publication preserves the unused output tail. Framing checks alone do
 not establish executable validity.
 
+Counted classical certificates carry generated-inverse or static-step claims.
+The product boundary retains both argument words and rejects circuit rules rather
+than rebasing circuit subjects as functions. Final verification checks a step
+claim against the composed body and manifest limit. This product support does
+not implement source `steps` theorem lowering or complete the native test runner.
+
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and
 entry binding validate complete owner windows before rebasing. This closes one

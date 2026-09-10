@@ -59,6 +59,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
           }
 
           theorem localInverse proves inverse(local);
+          theorem localSteps proves steps(local, 8);
 
           entry void main() {
             Pair pair = new Pair(helper(local(marker)), true);
@@ -388,7 +389,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
               linkedTypes
             );
 
-            assert(proofCount == 1);
+            assert(proofCount == 2);
             set(moduleFirstFunctions, 0, 0);
             set(moduleFunctionCounts, 0, 3);
             ModuleManifestProduct rootManifest = readCompiledModuleManifest(

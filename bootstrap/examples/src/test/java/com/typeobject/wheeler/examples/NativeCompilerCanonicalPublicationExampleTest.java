@@ -9,6 +9,7 @@ import com.typeobject.wheeler.core.bytecode.BytecodeException;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.proof.ProofRule;
 import com.typeobject.wheeler.core.vm.BufferKind;
 import com.typeobject.wheeler.core.vm.BufferValue;
 import com.typeobject.wheeler.core.vm.MachineSnapshot;
@@ -53,6 +54,22 @@ final class NativeCompilerCanonicalPublicationExampleTest {
     words(artifact).putInt(sectionStart(artifact, 6) + 16, 99);
     assertThrows(BytecodeException.class, () -> new BytecodeReader().read(artifact));
     reject(artifact, CAPACITY, "", false);
+  }
+
+  @Test
+  void rejectsRetainedStepClaimsThatDoNotHoldForTheFinalCodeOrManifest() throws Exception {
+    byte[] original = NativeCompilerProductLinkedArtifactExampleTest.artifact();
+    Program program = new BytecodeReader().read(original);
+    var stepProof = program.proofCertificates().stream()
+        .filter(proof -> proof.rule() == ProofRule.STATIC_STEP_BOUND).findFirst().orElseThrow();
+    long actual = program.function(stepProof.subjectId()).forward().size();
+    for (long bound : new long[] {actual - 1, program.maxSteps() + 1}) {
+      byte[] artifact = original.clone();
+      int descriptor = sectionStart(artifact, 6) + Integer.BYTES + stepProof.id() * 6 * Integer.BYTES;
+      words(artifact).putLong(descriptor + 4 * Integer.BYTES, bound);
+      assertThrows(BytecodeException.class, () -> new BytecodeReader().read(artifact));
+      reject(artifact, CAPACITY, "", false);
+    }
   }
 
   @Test
