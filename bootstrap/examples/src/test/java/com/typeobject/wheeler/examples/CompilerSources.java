@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.TreeSet;
 
 /** Resolves canonical Wheeler compiler sources without lending the examples a private copy. */
-final class CompilerSources {
+public final class CompilerSources {
   private static final Path PACKAGE = Path.of("../wheeler-compiler");
   private static final Path ROOT = PACKAGE.resolve("src/main/wheeler");
   private static final String SOURCE_PREFIX = "src/main/wheeler/";
@@ -139,7 +139,7 @@ final class CompilerSources {
   }
 
   /** Returns the canonical local dependency closure rooted at one compiler module. */
-  static Map<String, String> moduleClosure(String rootModule) throws IOException {
+  public static Map<String, String> moduleClosure(String rootModule) throws IOException {
     Map<String, ModuleSource> byName = new LinkedHashMap<>();
     for (String logicalPath : targetPaths("library")) {
       String source = read(logicalPath);

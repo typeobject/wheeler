@@ -90,6 +90,12 @@ The final type linker preserves that result prefix and rejects carriers outside
 the actual frame. Type-linker artifact and execution checks do not assemble the
 complete nominal source compiler.
 
+`SourceAggregateProducts.w` admits enums as nonempty, payload-free variants.
+Enum tags follow lexical case-name order, while ordinary variants keep declaration
+order. Source products retain the 64-aggregate and 128-case bounds. An enum's name
+and each case name fit the 256-byte copied-name limit. Invalid declarations change no caller
+row. This is declaration-product support, not the complete nominal runner.
+
 Imported nominal source writers share checked generated names and declaration
 fragments. A complete temporary type-ID window must fit below its kind tag.
 Invalid selections, kinds, or extents change no caller byte or projection cell.
@@ -135,7 +141,7 @@ bounded helper compiler below.
 
 ### Package-manifest composition
 
-`compiler/syntax/tokens/words/SourceWords.w` classifies 58 fixed source words by
+`compiler/syntax/tokens/words/SourceWords.w` classifies 59 fixed source words by
 exact, length-bearing ASCII lanes. `Tokens.w` checks token-column windows before
 projecting those ranges. Keyword, Boolean, primitive-type, intrinsic, and native
 test-metadata consumers no longer use token hashes. The thirteen-byte vocabulary

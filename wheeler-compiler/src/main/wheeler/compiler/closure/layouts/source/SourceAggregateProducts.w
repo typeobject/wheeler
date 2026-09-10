@@ -1,4 +1,4 @@
-//! Parses source-local record and variant products before source release.
+//! Parses source-local record, variant, and enum products before source release.
 
 module wheeler.compiler.closure.source_aggregate_products;
 
@@ -14,10 +14,89 @@ import wheeler.lexer.scanner;
 classical class SourceAggregateProducts {
   private const long AGGREGATE_ROWS = 832;
   private const long CASE_ROWS = 640;
+  private const long ENUM_CASE_TOKENS = 3;
+  private const long VARIANT_CASE_TOKENS = 5;
+  private const long MAX_NAME_BYTES = 256;
   private const long MAX_AGGREGATES = 64;
   private const long MAX_CASES = 128;
   private const long MAX_MEMBERS = 256;
   private const long MEMBER_ROWS = 2048;
+  private const long CASE_VISITS = MAX_CASES + 1;
+  private const long CASE_NAME_START = MAX_CASES;
+  private const long CASE_NAME_LENGTH = MAX_CASES * 2;
+
+  private boolean enumNameBefore(
+    borrow utf8 source,
+    long leftStart,
+    long leftLength,
+    long rightStart,
+    long rightLength
+  ) {
+    long shared = leftLength;
+    if (rightLength < shared) {
+      shared = rightLength;
+    }
+
+    long offset = 0;
+    while (offset < shared) limit MAX_NAME_BYTES {
+      long left = utf8Scalar(source, leftStart + offset);
+      long right = utf8Scalar(source, rightStart + offset);
+      if (left < right) {
+        return true;
+      }
+
+      if (right < left) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return leftLength < rightLength;
+  }
+
+  // Enum tags follow lexical case order. Owner and empty member windows stay fixed.
+  private void orderEnumCases(
+    borrow utf8 source,
+    long firstCase,
+    long caseCount,
+    borrow mut words cases
+  ) {
+    long row = firstCase + 1;
+    while (row < caseCount) limit MAX_CASES {
+      long nameStart = cases[CASE_NAME_START + row];
+      long nameLength = cases[CASE_NAME_LENGTH + row];
+      long position = row;
+      boolean moving = true;
+      while (moving) limit MAX_CASES {
+        if (position == firstCase) {
+          moving = false;
+        } else {
+          long prior = position - 1;
+          long priorStart = cases[CASE_NAME_START + prior];
+          long priorLength = cases[CASE_NAME_LENGTH + prior];
+          boolean before = enumNameBefore(
+            source,
+            nameStart,
+            nameLength,
+            priorStart,
+            priorLength
+          );
+          if (before) {
+            set(cases, CASE_NAME_START + position, priorStart);
+            set(cases, CASE_NAME_LENGTH + position, priorLength);
+            position = prior;
+          } else {
+            moving = false;
+          }
+        }
+      }
+
+      set(cases, CASE_NAME_START + position, nameStart);
+      set(cases, CASE_NAME_LENGTH + position, nameLength);
+      row += 1;
+    }
+  }
 
   /// Reports the exact source-local aggregate, case, and member extents.
   public record SourceAggregateProductPlan(
@@ -196,7 +275,13 @@ classical class SourceAggregateProducts {
           cursor = semanticCount;
         }
       } else {
-        if (declarationKind == TOKEN_VARIANT) {
+        boolean enumeration = declarationKind == TOKEN_ENUM;
+        boolean variantDeclaration = declarationKind == TOKEN_VARIANT;
+        if (enumeration) {
+          variantDeclaration = true;
+        }
+
+        if (variantDeclaration) {
           boolean variantValid = aggregateCount < MAX_AGGREGATES;
           if (semanticCount < cursor + 5) {
             variantValid = false;
@@ -235,6 +320,12 @@ classical class SourceAggregateProducts {
           if (variantValid) {
             variantNameStart = tokenStarts[cursor + 1];
             variantNameLength = tokenLengths[cursor + 1];
+            if (enumeration) {
+              if (MAX_NAME_BYTES < variantNameLength) {
+                variantValid = false;
+              }
+            }
+
             if (
               duplicateAggregateName(
                 source,
@@ -251,7 +342,12 @@ classical class SourceAggregateProducts {
           long firstVariantCase = caseCount;
           long firstVariantMember = memberCount;
           long caseCursor = cursor + 3;
-          while (variantValid) limit MAX_CASES {
+          long minimumCaseTokens = VARIANT_CASE_TOKENS;
+          if (enumeration) {
+            minimumCaseTokens = ENUM_CASE_TOKENS;
+          }
+
+          while (variantValid) limit CASE_VISITS {
             if (caseCursor == variantClose) {
               break;
             }
@@ -260,7 +356,7 @@ classical class SourceAggregateProducts {
               variantValid = false;
             }
 
-            if (variantClose < caseCursor + 5) {
+            if (variantClose < caseCursor + minimumCaseTokens) {
               variantValid = false;
             }
 
@@ -275,26 +371,30 @@ classical class SourceAggregateProducts {
                 variantValid = false;
               }
 
-              if (
-                punctuation(source, tokenKinds, tokenStarts, caseCursor + 2, 40) == false
-              ) {
-                variantValid = false;
+              if (enumeration == false) {
+                if (
+                  punctuation(source, tokenKinds, tokenStarts, caseCursor + 2, 40) == false
+                ) {
+                  variantValid = false;
+                }
               }
             }
 
-            long caseClose = -1;
+            long caseClose = caseCursor + 1;
             if (variantValid) {
-              caseClose = closingToken(
-                source,
-                tokenKinds,
-                tokenStarts,
-                caseCursor + 2,
-                variantClose,
-                40,
-                41
-              );
-              if (caseClose < 0) {
-                variantValid = false;
+              if (enumeration == false) {
+                caseClose = closingToken(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  caseCursor + 2,
+                  variantClose,
+                  40,
+                  41
+                );
+                if (caseClose < 0) {
+                  variantValid = false;
+                }
               }
             }
 
@@ -315,6 +415,12 @@ classical class SourceAggregateProducts {
             if (variantValid) {
               caseNameStart = tokenStarts[caseCursor + 1];
               caseNameLength = tokenLengths[caseCursor + 1];
+              if (enumeration) {
+                if (MAX_NAME_BYTES < caseNameLength) {
+                  variantValid = false;
+                }
+              }
+
               if (
                 duplicateCaseName(
                   source,
@@ -331,20 +437,22 @@ classical class SourceAggregateProducts {
 
             long firstCaseMember = memberCount;
             if (variantValid) {
-              ParsedMembers parsedCase = parseMembers(
-                source,
-                tokenKinds,
-                tokenStarts,
-                tokenLengths,
-                caseCursor + 2,
-                caseClose,
-                aggregateCount,
-                caseCount,
-                memberCount,
-                scratchMembers
-              );
-              variantValid = parsedCase.valid;
-              memberCount = parsedCase.nextMember;
+              if (enumeration == false) {
+                ParsedMembers parsedCase = parseMembers(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  tokenLengths,
+                  caseCursor + 2,
+                  caseClose,
+                  aggregateCount,
+                  caseCount,
+                  memberCount,
+                  scratchMembers
+                );
+                variantValid = parsedCase.valid;
+                memberCount = parsedCase.nextMember;
+              }
             }
 
             if (variantValid) {
@@ -358,7 +466,15 @@ classical class SourceAggregateProducts {
             }
           }
 
+          if (caseCount == firstVariantCase) {
+            variantValid = false;
+          }
+
           if (variantValid) {
+            if (enumeration) {
+              orderEnumCases(source, firstVariantCase, caseCount, scratchCases);
+            }
+
             set(scratchAggregates, aggregateCount, 4);
             set(scratchAggregates, 64 + aggregateCount, variantNameStart);
             set(scratchAggregates, 128 + aggregateCount, variantNameLength);

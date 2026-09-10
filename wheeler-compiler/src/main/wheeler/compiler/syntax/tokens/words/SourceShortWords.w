@@ -6,6 +6,16 @@ import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.keyword_tokens;
 
 classical class SourceShortWords {
+  private const long WORD_RADIX = 128;
+  private const long WORD_SENTINEL = 1;
+  private const long ASCII_E = 101;
+  private const long ASCII_N = 110;
+  private const long ASCII_U = 117;
+  private const long ASCII_M = 109;
+  private const long ENUM_HEAD = (
+    ((WORD_SENTINEL * WORD_RADIX + ASCII_E) * WORD_RADIX + ASCII_N) * WORD_RADIX + ASCII_U
+  ) * WORD_RADIX + ASCII_M;
+
   private long shortestSourceWord(long head) {
     // The sentinel and four base-128 bytes occupy at most 29 bits.
     long maximumHead = 536870911;
@@ -23,6 +33,10 @@ classical class SourceShortWords {
 
     if (head == 480032752) {
       return TOKEN_DROP;
+    }
+
+    if (head == ENUM_HEAD) {
+      return TOKEN_ENUM;
     }
 
     if (head == 29926) {

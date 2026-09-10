@@ -14,7 +14,7 @@
 
 ## Summary
 
-Lower record, variant, fixed-array, and slice source into source-local semantic products without importing dependency source. Resolve local and imported nominal references to WIP-0046 aggregate identities. Compile aggregate instructions into WIP-0047 body products, then discard all source ranges and generated scaffolding.
+Lower record, variant, enum, fixed-array, and slice source into source-local semantic products without importing dependency source. Resolve local and imported nominal references to WIP-0046 aggregate identities. Compile aggregate instructions into WIP-0047 body products, then discard all source ranges and generated scaffolding.
 
 This work is split from WIP-0049 because aggregate parsing, descriptor construction, ownership projection, and temporary nominal declarations have different failure boundaries. WIP-0049 still owns module compilation. This proposal owns aggregate semantic products and canonical emission. [WIP-0051](WIP-0051-native-aggregate-frontend-products.md) owns publication of primitive-frontend values and splice coordinates.
 
@@ -43,6 +43,13 @@ Source-local ranges are temporary parse evidence. They do not cross an import ed
 13. declaration end
 
 Variant cases carry their aggregate owner, name range, first member, and member count. Members carry their aggregate owner, optional case owner, name range, type range, resolved type kind, and primitive code or source-local aggregate row.
+
+An `enum` publishes the same variant kind with nonempty, payload-free cases.
+For example, `enum Flag { case Ready; case Busy; }` assigns `Busy` before `Ready`,
+matching stage 0's lexical tag order. Ordinary variants retain declaration order.
+An enum's name and each case name must fit the 256-byte copied-name bound. Neither form admits
+an empty declaration. The case walk reserves one visit for the closing delimiter,
+so 128 cases fit and the first excess case rejects without publication.
 
 The first profile admits sixty-four aggregate declarations, 128 variant cases, and 256 members per module. Duplicate aggregate, case, or member names, malformed members, unterminated declarations, unresolved types, and a bound breach fail before one caller row changes.
 
@@ -113,6 +120,7 @@ Scratch token, declaration, descriptor, and projection windows are independently
 
 - [x] `SourceAggregateProducts.w` publishes atomic record, variant, case, and member source products. `SourceAggregateSyntax.w` owns shared bounded declaration, member, range, and structural-type parsing in a separate source-layout directory.
 - [x] Native evidence covers public and private records, variants, empty and populated cases, mutually recursive record and variant types, exact source ranges, and malformed-member nonpublication. `projectSourceAggregateLayouts` converts validated source products into descriptor-compatible local aggregate, case, member, structural-array, and source-string rows. Recursive member codes use per-kind local descriptor IDs. `appendProjectedAggregateLayouts` validates and rebases those rows directly into counted closure windows without a temporary artifact. `SourceAggregateStrings.w` validates every ASCII name range, copies the bytes into bounded immutable string storage, and publishes counted ranks and extents before the local source is released.
+- [x] `NativeCompilerSourceEnumProductsExampleTest` compares every aggregate, case, and member cell, including unused tails. It checks lexical enum order against stage 0 without sorting ordinary variants, forward enum fields, UTF-8 source coordinates, exact aggregate/case/name ceilings, first-excess rejection, malformed declarations, complete rewind, and replay. These are source-product checks, not complete nominal test compilation.
 - [x] Primitive and recursive local nominal member types resolve before source release. `LocalNominalReferences.w` also indexes local nominal uses in callable signatures, parameters, bodies, and constructors while excluding aggregate declarations. `LocalNominalCarriers.w` rewrites those ranges to compact signed carriers and retains old-to-new coordinates. `LocalNominalCarrierProjections.w` separates value, constructor, and signature uses and binds value carriers to exact function-local coordinates. `CountedLocalNominalCarriers.w` carries value projections into closure coordinates for final local-type rewriting.
 
   `AggregateExpressionProjection.w` replaces outer aggregate expressions with offset-stable scalar placeholders before primitive compilation. Nested expressions share one placeholder statement. `AggregateFrontendBindings.w` derives each operation function from its exact destination value product. `AggregatePlaceholderPlacements.w` derives exact splice ordinals from compiled zero-local placeholders. `PrimitivePlaceholderProjection.w` then validates and removes those instructions before aggregate composition and adjusts function lengths and subsequent splice ordinals. `AggregateExpressionTemporaries.w` gives nested operations source-ordered locals while retaining each named outer destination.

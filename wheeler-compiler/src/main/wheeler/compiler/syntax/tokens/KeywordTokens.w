@@ -115,4 +115,6 @@ classical class KeywordTokens {
   public const long TOKEN_TAGS = 3552281;
   /// Names the source-word code for `rotateRight32`.
   public const long TOKEN_ROTATE_RIGHT_32 = 3360224995018391456;
+  /// Names the source-word code for `enum`.
+  public const long TOKEN_ENUM = 3118337;
 }

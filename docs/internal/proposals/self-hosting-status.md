@@ -251,7 +251,7 @@ compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.
 
 [WIP-0497](WIP-0497-exact-source-word-admission.md) replaces source-keyword hashes
-with exact codes for 58 words. This includes Boolean literals, primitive types,
+with exact codes for 59 words, including `enum`. This includes Boolean literals, primitive types,
 intrinsics, and test metadata. Two length-bearing ASCII lanes admit the fixed
 vocabulary without limiting identifier length. Declaration tests reject all six
 reproduced keyword aliases before publishing names. One physical pass compares
@@ -360,6 +360,19 @@ The native input contains the facade's six imports but no dependency source.
 That empty local artifact does not compile the imported library bodies or place
 them in the retained physical container. This evidence changes no Wheeler source,
 archive, graph, or lock identity.
+
+[WIP-0050](WIP-0050-native-aggregate-source-lowering.md) now admits enum declarations
+into source aggregate products rather than silently omitting them. Payload-free
+cases follow stage 0's lexical enum order. Ordinary variants keep declaration
+order. Complete row, capacity, malformed-input, rewind, and replay checks cover
+this boundary. The mixed-member runner still needs complete source-to-final
+composition. Enum row admission does not make that runner or the compiler
+self-hosted.
+
+Hosted run [34421714092](https://github.com/typeobject/wheeler/actions/runs/34421714092)
+on `b80b50be3` does not pass. The first terminal-case identity shard reaches its
+two-minute method deadline. Another example job cannot resolve JUnit's BOM.
+README, site, and CodeQL checks pass, but they do not replace bootstrap acceptance.
 
 ## Evidence locations
 

@@ -120,9 +120,15 @@ metadata handoff, not complete nominal source compilation.
 
 Source keywords, Boolean literals, primitive types, intrinsics, and native test
 metadata now use exact word codes instead of token hashes. The fixed vocabulary
-contains 58 spellings and does not limit identifier length. This corrects lexical
+contains 59 spellings and does not limit identifier length. This corrects lexical
 admission, not complete class-member validation. Automatic test discovery can
 still ignore malformed member fronts, a separate open frontend boundary.
+
+Source aggregate products now admit `enum Flag { case Ready; }` as a nonempty,
+payload-free variant. Enum tags follow lexical case order. Ordinary variants keep
+declaration order. The unchanged 64-aggregate and 128-case bounds apply before
+caller publication. An enum's name and each case name fit at most 256 copied bytes. This does
+not complete nominal body compilation or its test-runner integration.
 
 The evidence tests derive their graph and archive from checked-in source.
 Comparable products match stage 0 byte for byte. Every selected imported-call

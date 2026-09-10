@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-05 |
-| Updated | 2026-09-05 |
+| Updated | 2026-09-09 |
 | Area | Self-hosting, source admission |
 | Depends on | WIP-0049, WIP-0051 |
 | Supersedes | None |
@@ -28,10 +28,12 @@ approve a compiler fixed point.
 
 ## Change
 
-`KeywordTokens.w` owns 56 shared keyword, type, intrinsic, and test-metadata
+`KeywordTokens.w` owns 57 shared keyword, type, intrinsic, and test-metadata
 codes. `BooleanTokens.w` keeps the two Boolean literal codes and their predicate.
 Each code has one owner. Existing values remain opaque identities, not evidence
-that arbitrary text is a keyword. Private copies and primitive-type magic numbers
+that arbitrary text is a keyword. The inventory includes `enum` for
+[WIP-0050's payload-free variant products](WIP-0050-native-aggregate-source-lowering.md).
+Private copies and primitive-type magic numbers
 disappear. Keeping Boolean codes with their predicate preserves the native
 compiler suite's existing dependency graph.
 

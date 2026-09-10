@@ -22,7 +22,7 @@ final class NativeCompilerSourceWordsExampleTest {
 
   @Test
   void matchesEveryWordAndRejectsChangesInBothLengthBearingLanes() throws Exception {
-    assertEquals(58, WORDS.size());
+    assertEquals(59, WORDS.size());
     var input = new Ranges();
     for (String word : WORDS.keySet()) {
       input.add(word);
@@ -317,6 +317,7 @@ final class NativeCompilerSourceWordsExampleTest {
         steps 109761319
         tags 3552281
         rotateRight32 3360224995018391456
+        enum 3118337
         """;
     var result = new LinkedHashMap<String, Long>();
     for (String row : codes.lines().toList()) {
