@@ -20,6 +20,12 @@ classical class SourceClassicalProofs {
   public const long SOURCE_PROOF_COLUMNS = 5;
   /// Sizes the complete source-local claim table.
   public const long SOURCE_PROOF_ROWS = MAX_SOURCE_PROOFS * SOURCE_PROOF_COLUMNS;
+  /// Counts source-relative declaration byte starts and lengths.
+  public const long SOURCE_PROOF_ORIGIN_COLUMNS = 2;
+  /// Sizes the separate source-origin window joined by claim ordinal.
+  public const long SOURCE_PROOF_ORIGIN_ROWS = MAX_SOURCE_PROOFS * SOURCE_PROOF_ORIGIN_COLUMNS;
+  /// Starts the declaration byte-length column after the byte-start column.
+  public const long SOURCE_PROOF_ORIGIN_LENGTH_ROW = MAX_SOURCE_PROOFS;
   /// Reserves the largest admitted name for every source-local claim.
   public const long SOURCE_PROOF_NAMES = MAX_SOURCE_PROOFS * MAX_QUALIFIED_NAME_BYTES;
   /// Starts the copied name-length column after the name-start column.
@@ -31,6 +37,13 @@ classical class SourceClassicalProofs {
   /// Starts the signed argument column, retaining inverse's negative-one sentinel.
   public const long SOURCE_PROOF_ARGUMENT_ROW = SOURCE_PROOF_SUBJECT_ROW + MAX_SOURCE_PROOFS;
 
+  private const long MAX_SOURCE_BYTES = 32768;
+  private const long ASCII_SPACE = 32;
+  private const long ASCII_LINE_FEED = 10;
+  private const long ASCII_CARRIAGE_RETURN = 13;
+  private const long UTF8_CONTINUATION_START = 128;
+  private const long UTF8_CONTINUATION_VALUES = 64;
+  private const long UTF8_CONTINUATION_END = UTF8_CONTINUATION_START + UTF8_CONTINUATION_VALUES;
   private const long MAX_CALLABLES = 64;
   private const long MAX_STRINGS = 256;
   private const long NATIVE_WORD_BYTES = 8;
@@ -48,9 +61,9 @@ classical class SourceClassicalProofs {
   private const long MAX_ASCII = ASCII_RADIX - 1;
   private const long QUALIFIER_BYTES = 2;
   private const long MAX_FUNCTION_NAME_BYTES = MAX_QUALIFIED_NAME_BYTES * 2 + QUALIFIER_BYTES;
+  private const long STAGED_ROWS = SOURCE_PROOF_ROWS + SOURCE_PROOF_ORIGIN_ROWS;
   private const long SCRATCH_WORDS = MAX_COMPILER_TOKENS * TOKEN_COLUMNS + MODULE_NAME_COLUMNS
-    + MAX_SOURCE_PROOFS * PROOF_FRONT_COLUMNS + SOURCE_PROOF_ROWS + MAX_CALLABLES
-    * CALLABLE_COLUMNS;
+    + MAX_SOURCE_PROOFS * PROOF_FRONT_COLUMNS + STAGED_ROWS + MAX_CALLABLES * CALLABLE_COLUMNS;
   private const long SCRATCH_BYTES = SCRATCH_WORDS * NATIVE_WORD_BYTES + SOURCE_PROOF_NAMES;
   private const long SCRATCH_ALLOCATIONS = TOKEN_COLUMNS + 1 + PROOF_FRONT_COLUMNS + 1
     + CALLABLE_COLUMNS + 1;
@@ -226,6 +239,7 @@ classical class SourceClassicalProofs {
   /// Every supplied ordinary or rev callable must match its source declaration and effect.
   /// A qualified callable name must name this source module.
   /// Repeated subjects are permitted. Proof names remain unique within the source module.
+  /// The separate origin window includes visibility modifiers through the final semicolon.
   /// Other declarations still require their own semantic owners before artifact publication.
   public SourceClassicalProofPlan materializeSourceClassicalProofs(
     borrow utf8 source,
@@ -240,7 +254,8 @@ classical class SourceClassicalProofs {
     borrow byteview constantNames,
     borrow mut words constantRows,
     borrow mut bytes proofNames,
-    borrow mut words proofRows
+    borrow mut words proofRows,
+    borrow mut words proofOrigins
   ) {
     assert(-1 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
@@ -254,6 +269,7 @@ classical class SourceClassicalProofs {
     assert(bufferLength(functionNameIds) == MAX_CALLABLES);
     assert(bufferLength(proofNames) == SOURCE_PROOF_NAMES);
     assert(bufferLength(proofRows) == SOURCE_PROOF_ROWS);
+    assert(bufferLength(proofOrigins) == SOURCE_PROOF_ORIGIN_ROWS);
 
     long callable = 0;
     while (callable < callableCount) limit MAX_CALLABLES {
@@ -320,7 +336,7 @@ classical class SourceClassicalProofs {
     words moduleRange = allocate(scratch, MODULE_NAME_COLUMNS);
     words proofStarts = allocate(scratch, MAX_SOURCE_PROOFS);
     words proofEnds = allocate(scratch, MAX_SOURCE_PROOFS);
-    words staged = allocate(scratch, SOURCE_PROOF_ROWS);
+    words staged = allocate(scratch, STAGED_ROWS);
     words declared = allocate(scratch, MAX_CALLABLES);
     words localNameStarts = allocate(scratch, MAX_CALLABLES);
     words localNameLengths = allocate(scratch, MAX_CALLABLES);
@@ -423,6 +439,15 @@ classical class SourceClassicalProofs {
 
         set(proofStarts, proofCount, front.nameToken - THEOREM_NAME);
         set(proofEnds, proofCount, front.nextToken);
+        long originStart = starts[cursor];
+        long finalToken = front.nextToken - 1;
+        long originLength = starts[finalToken] + lengths[finalToken] - originStart;
+        set(staged, SOURCE_PROOF_ROWS + proofCount, originStart);
+        set(
+          staged,
+          SOURCE_PROOF_ROWS + SOURCE_PROOF_ORIGIN_LENGTH_ROW + proofCount,
+          originLength
+        );
         proofCount += 1;
       }
 
@@ -578,6 +603,12 @@ classical class SourceClassicalProofs {
       break;
     }
 
+    if (valid == false) {
+      proofCount = 0;
+      nameBytes = 0;
+    }
+
+    SourceClassicalProofPlan result = new SourceClassicalProofPlan(proofCount, nameBytes, valid);
     if (valid) {
       long column = 0;
       while (column < SOURCE_PROOF_COLUMNS) limit SOURCE_PROOF_COLUMNS {
@@ -591,14 +622,23 @@ classical class SourceClassicalProofs {
         column += 1;
       }
 
+      long originColumn = 0;
+      while (originColumn < SOURCE_PROOF_ORIGIN_COLUMNS) limit SOURCE_PROOF_ORIGIN_COLUMNS {
+        long origin = 0;
+        while (origin < proofCount) limit MAX_SOURCE_PROOFS {
+          long originCell = originColumn * MAX_SOURCE_PROOFS + origin;
+          set(proofOrigins, originCell, staged[SOURCE_PROOF_ROWS + originCell]);
+          origin += 1;
+        }
+
+        originColumn += 1;
+      }
+
       long publishedNameByte = 0;
       while (publishedNameByte < nameBytes) limit SOURCE_PROOF_NAMES {
         setByte(proofNames, publishedNameByte, names[publishedNameByte]);
         publishedNameByte += 1;
       }
-    } else {
-      proofCount = 0;
-      nameBytes = 0;
     }
 
     drop(names);
@@ -613,6 +653,107 @@ classical class SourceClassicalProofs {
     drop(starts);
     drop(kinds);
     drop(scratch);
-    return new SourceClassicalProofPlan(proofCount, nameBytes, valid);
+    return result;
+  }
+
+  private boolean byteBoundary(borrow byteview source, long offset, long length) {
+    if (offset == length) {
+      return true;
+    }
+
+    long value = source[offset];
+    if (value < UTF8_CONTINUATION_START) {
+      return true;
+    }
+
+    return UTF8_CONTINUATION_END < value + 1;
+  }
+
+  /// Erases modifier-inclusive, source-relative claim ranges only after full preflight.
+  /// The caller retains the bound semantic claims and keeps this projection private.
+  /// This operation does not parse source or certify any claim against primitive code.
+  /// Empty origin windows preserve the entire buffer. Inactive bytes never change.
+  public boolean projectSourceClaimOrigins(
+    long sourceLength,
+    long proofCount,
+    borrow mut words origins,
+    borrow mut bytes source
+  ) {
+    if (sourceLength < 0) {
+      return false;
+    }
+
+    if (MAX_SOURCE_BYTES < sourceLength) {
+      return false;
+    }
+
+    if (proofCount < 0) {
+      return false;
+    }
+
+    if (MAX_SOURCE_PROOFS < proofCount) {
+      return false;
+    }
+
+    if (bufferLength(origins) != SOURCE_PROOF_ORIGIN_ROWS) {
+      return false;
+    }
+
+    if (bufferLength(source) != MAX_SOURCE_BYTES) {
+      return false;
+    }
+
+    long previousEnd = 0;
+    long proof = 0;
+    while (proof < proofCount) limit MAX_SOURCE_PROOFS {
+      long start = origins[proof];
+      long length = origins[SOURCE_PROOF_ORIGIN_LENGTH_ROW + proof];
+      if (start < previousEnd) {
+        return false;
+      }
+
+      if (sourceLength < start) {
+        return false;
+      }
+
+      if (length < 1) {
+        return false;
+      }
+
+      if (sourceLength - start < length) {
+        return false;
+      }
+
+      long end = start + length;
+      if (byteBoundary(source, start, sourceLength) == false) {
+        return false;
+      }
+
+      if (byteBoundary(source, end, sourceLength) == false) {
+        return false;
+      }
+
+      previousEnd = end;
+      proof += 1;
+    }
+
+    long erasedProof = 0;
+    while (erasedProof < proofCount) limit MAX_SOURCE_PROOFS {
+      long cursor = origins[erasedProof];
+      long endByte = cursor + origins[SOURCE_PROOF_ORIGIN_LENGTH_ROW + erasedProof];
+      while (cursor < endByte) limit MAX_SOURCE_BYTES {
+        long value = source[cursor];
+        if (value != ASCII_LINE_FEED) {
+          if (value != ASCII_CARRIAGE_RETURN) {
+            setByte(source, cursor, ASCII_SPACE);
+          }
+        }
+
+        cursor += 1;
+      }
+
+      erasedProof += 1;
+    }
+    return true;
   }
 }

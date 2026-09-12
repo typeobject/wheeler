@@ -126,8 +126,11 @@ product-only evaluation.
 Source classical claims now bind through shared member fronts and counted local
 callables. Qualified callable names must name the source module. The source table
 retains up to 64 inverse or positive signed step claims and copies each name into
-at most 256 bytes. Malformed batches change no caller row or name byte. These are
-bound claims, not accepted proofs of final code. Ordinary structured compilation
+at most 256 bytes. A separate two-column origin table retains declaration byte
+starts and lengths, including visibility modifiers through the final semicolon.
+Its claim ordinal joins the unchanged five semantic columns. Malformed batches
+change no caller name, semantic cell, or origin cell. These are bound claims,
+not accepted proofs of final code. Ordinary structured compilation
 binds them from the complete detached scalar packet before artifact composition.
 The archive boundary validates every packet row, including unused constants.
 Identifiers and module qualifiers share a copied view with both starts rebased.
@@ -139,6 +142,12 @@ publishing bytes or identity. Claim-free ordinary modules reuse private scratch
 without allocating new owned buffers. Generated-inverse coverage remains a
 separate homogeneous-callable policy. The intact mixed-member runner join remains
 open.
+
+`projectSourceClaimOrigins` blanks a validated origin window in a private source
+copy. It checks the whole ordered, nonoverlapping batch and UTF-8 byte boundaries
+before changing a byte. Line endings, source length, and all other bytes survive.
+The caller retains the original semantic claims. This projection neither proves
+source absence nor decides a bound against primitive placeholders.
 
 Source-local artifacts now retain up to eight declared signed globals, including
 unused state and full signed initial values. Initializers consume the complete

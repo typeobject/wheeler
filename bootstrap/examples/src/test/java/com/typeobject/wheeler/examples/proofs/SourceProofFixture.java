@@ -2,10 +2,13 @@ package com.typeobject.wheeler.examples.proofs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.typeobject.wheeler.compiler.SourceClaimOriginOracle;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.MachineSnapshot;
+import com.typeobject.wheeler.core.vm.RegionValue;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.examples.CompilerSources;
@@ -18,6 +21,8 @@ import java.util.List;
 final class SourceProofFixture {
   static final int CAPACITY = 64;
   static final int COLUMNS = 5;
+  static final int ORIGIN_COLUMNS = 2;
+  static final int ORIGIN_WORDS = CAPACITY * ORIGIN_COLUMNS;
   static final long SENTINEL = 211;
   static final String CONSTANT_NAMES = "BASEFLAGfixture.bounds";
 
@@ -38,8 +43,8 @@ final class SourceProofFixture {
         """.formatted(members);
   }
 
-  static List<Claim> oracle(String source) {
-    var program = new WheelerCompiler().compileLibraryModuleFiles(
+  static Program compiled(String source) {
+    return new WheelerCompiler().compileLibraryModuleFiles(
         java.util.Map.of("Source.w", source, "Bounds.w", """
             module fixture.bounds;
             classical class Bounds {
@@ -47,6 +52,10 @@ final class SourceProofFixture {
               public const boolean FLAG = true;
             }
             """), "fixture.source_proofs");
+  }
+
+  static List<Claim> oracle(String source) {
+    var program = compiled(source);
     return program.proofCertificates().stream().map(proof -> {
       String function = program.functions().get(proof.subjectId()).name();
       int qualifier = function.lastIndexOf("::");
@@ -74,21 +83,29 @@ final class SourceProofFixture {
     }
   }
 
-  static void check(MachineSnapshot prepared, VirtualMachine machine, boolean valid,
+  static void check(String source, MachineSnapshot prepared, VirtualMachine machine, boolean valid,
       List<Claim> claims) {
     assertEquals(valid ? 1 : 0, machine.global("valid"));
     assertEquals(valid ? claims.size() : 0, machine.global("proofCount"));
     var before = prepared.buffers();
     var after = machine.snapshot().buffers();
+    int originsIndex = before.size() - 3;
     int rowsIndex = before.size() - 2;
     int namesIndex = before.size() - 1;
-    assertEquals(before.subList(0, rowsIndex), after.subList(0, rowsIndex));
+    assertEquals(before.subList(0, originsIndex), after.subList(0, originsIndex));
+    var origins = new ArrayList<>(before.get(originsIndex).elements());
+    var expectedOrigins = valid ? SourceClaimOriginOracle.origins(source) : List.<SourceClaimOriginOracle.Origin>of();
+    assertEquals(claims.size(), expectedOrigins.size());
     var rows = new ArrayList<>(before.get(rowsIndex).elements());
     var names = new ArrayList<>(before.get(namesIndex).elements());
     int nameCursor = 0;
     if (valid) {
       for (int proof = 0; proof < claims.size(); proof++) {
         Claim claim = claims.get(proof);
+        var origin = expectedOrigins.get(proof);
+        assertEquals(claim.name(), origin.name());
+        origins.set(proof, origin.start());
+        origins.set(CAPACITY + proof, origin.length());
         byte[] name = claim.name().getBytes(StandardCharsets.US_ASCII);
         long[] values = {nameCursor, name.length, claim.rule(), claim.subject(), claim.argument()};
         for (int column = 0; column < COLUMNS; column++) {
@@ -100,8 +117,28 @@ final class SourceProofFixture {
       }
     }
     assertEquals(nameCursor, machine.global("nameBytes"));
+    assertEquals(origins, after.get(originsIndex).elements(), "complete origin columns and inactive tails");
     assertEquals(rows, after.get(rowsIndex).elements());
     assertEquals(names, after.get(namesIndex).elements());
+    if (valid) {
+      int tokenCapacity = 4_096;
+      int moduleRangeWords = 2;
+      int nameCapacity = CAPACITY * 256;
+      var wordLengths = List.of(tokenCapacity, tokenCapacity, tokenCapacity, moduleRangeWords,
+          CAPACITY, CAPACITY, CAPACITY * (COLUMNS + ORIGIN_COLUMNS), CAPACITY, CAPACITY, CAPACITY);
+      long scratchBytes = wordLengths.stream().mapToLong(Integer::longValue).sum() * Long.BYTES + nameCapacity;
+      int scratchBuffers = wordLengths.size() + 1;
+      long stepClaims = claims.stream().filter(claim -> claim.rule() == 4).count();
+      assertEquals(before.size() + scratchBuffers + stepClaims, after.size(), "lifetime buffer identities");
+      assertEquals(prepared.regions().size() + 1 + stepClaims, machine.snapshot().regions().size());
+      var scratch = machine.snapshot().regions().get(prepared.regions().size());
+      assertEquals(scratchBytes, scratch.maxBytes());
+      assertEquals(scratchBuffers, scratch.maxObjects());
+      for (int buffer = 0; buffer < wordLengths.size(); buffer++) {
+        assertEquals(wordLengths.get(buffer).intValue(), after.get(before.size() + buffer).length());
+      }
+      assertEquals(nameCapacity, after.get(before.size() + wordLengths.size()).length());
+    }
   }
 
   static void rejectTrapAndReplay(VirtualMachine machine) {
@@ -123,10 +160,21 @@ final class SourceProofFixture {
   static void replay(VirtualMachine machine, MachineSnapshot initial) {
     machine.run();
     MachineSnapshot terminal = machine.snapshot();
+    cleanup(machine, initial);
     rewind(machine, initial);
     machine.run();
     assertEquals(terminal, machine.snapshot());
     rewind(machine, initial);
+  }
+
+  static void cleanup(VirtualMachine machine, MachineSnapshot initial) {
+    var borrowed = initial.regions().stream().map(RegionValue::id).toList();
+    for (var buffer : machine.snapshot().buffers()) {
+      if (!borrowed.contains(buffer.regionId())) assertTrue(buffer.dropped(), "buffer " + buffer.id());
+    }
+    for (var region : machine.snapshot().regions()) {
+      if (!borrowed.contains(region.id())) assertTrue(region.dropped(), "region " + region.id());
+    }
   }
 
   static void rewind(VirtualMachine machine, MachineSnapshot initial) {
@@ -141,6 +189,10 @@ final class SourceProofFixture {
   }
 
   static Program program(String changes, String firstName, String secondName) throws Exception {
+    return program(changes, firstName, secondName, ORIGIN_WORDS);
+  }
+
+  static Program program(String changes, String firstName, String secondName, int originWords) throws Exception {
     String callableNames = firstName + secondName;
     var sources = new LinkedHashMap<>(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_classical_proofs"));
@@ -172,10 +224,11 @@ final class SourceProofFixture {
           private const long SECOND_NAME_BYTES = NAME_BYTES - FIRST_NAME_BYTES;
           private const long CALLABLE_BUFFERS = 5;
           private const long CONSTANT_BUFFERS = 4;
-          private const long PROOF_BUFFERS = 2;
+          private const long PROOF_BUFFERS = 3;
+          private const long ORIGIN_WORDS = %d;
           private const long COPIED_CONSTANT_BYTES = BASE_BYTES + FLAG_BYTES + CONSTANT_COUNT * MODULE_BYTES;
           private const long ARENA_BYTES = (CALLABLES * 2 + STRINGS * 2 + CONSTANT_ROWS * 2
-            + SOURCE_PROOF_ROWS) * WORD_BYTES + NAME_BYTES + CONSTANT_NAME_BYTES
+            + SOURCE_PROOF_ROWS + ORIGIN_WORDS) * WORD_BYTES + NAME_BYTES + CONSTANT_NAME_BYTES
             + COPIED_CONSTANT_BYTES + SOURCE_PROOF_NAMES;
           private const long ARENA_ALLOCATIONS = CALLABLE_BUFFERS + CONSTANT_BUFFERS + PROOF_BUFFERS;
           private const long BASE_BYTES = 4;
@@ -205,6 +258,7 @@ final class SourceProofFixture {
             words rawConstants = allocate(arena, CONSTANT_ROWS);
             bytes constantNames = allocateBytes(arena, COPIED_CONSTANT_BYTES);
             words constants = allocate(arena, CONSTANT_ROWS);
+            words origins = allocate(arena, ORIGIN_WORDS);
             words rows = allocate(arena, SOURCE_PROOF_ROWS);
             bytes proofNames = allocateBytes(arena, SOURCE_PROOF_NAMES);
             %s
@@ -234,6 +288,11 @@ final class SourceProofFixture {
             );
             assert(copiedConstants.productCount == CONSTANT_COUNT);
             assert(copiedConstants.nameBytes == COPIED_CONSTANT_BYTES);
+            long originCell = 0;
+            while (originCell < ORIGIN_WORDS) limit ORIGIN_WORDS {
+              set(origins, originCell, SENTINEL);
+              originCell += 1;
+            }
             long cell = 0;
             while (cell < SOURCE_PROOF_ROWS) limit SOURCE_PROOF_ROWS {
               set(rows, cell, %d);
@@ -251,13 +310,14 @@ final class SourceProofFixture {
             prepared = 1;
             SourceClassicalProofPlan plan = materializeSourceClassicalProofs(source,
               selectedCallables, effects, names, selectedBytes, selectedStrings,
-              starts, lengths, ids, constantNames, constants, proofNames, rows);
+              starts, lengths, ids, constantNames, constants, proofNames, rows, origins);
             proofCount = plan.proofCount;
             nameBytes = plan.nameBytes;
             if (plan.valid) { valid = 1; }
             published = 1;
             drop(proofNames);
             drop(rows);
+            drop(origins);
             drop(constants);
             drop(constantNames);
             drop(rawConstants);
@@ -270,8 +330,8 @@ final class SourceProofFixture {
             drop(arena);
           }
         }
-        """.formatted(callableNames.length(), CONSTANT_NAMES.length(), firstName.length(), writes,
-            SENTINEL, SENTINEL, changes));
+        """.formatted(callableNames.length(), CONSTANT_NAMES.length(), firstName.length(), originWords, writes,
+            SENTINEL, SENTINEL, changes).replace("SENTINEL", Long.toString(SENTINEL)));
     return new WheelerCompiler().compileModuleFiles(sources, "example.source_proof_binding");
   }
 }

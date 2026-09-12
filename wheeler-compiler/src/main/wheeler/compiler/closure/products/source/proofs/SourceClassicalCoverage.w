@@ -11,9 +11,14 @@ classical class SourceClassicalCoverage {
   private const long MAX_CLOSURE_CALLABLES = 4096;
   private const long WORD_BYTES = 8;
   private const long EFFECT_COLUMNS = 1;
-  private const long EFFECT_BYTES = MAX_CALLABLES * EFFECT_COLUMNS * WORD_BYTES;
+  private const long STAGED_WORDS = MAX_CALLABLES * EFFECT_COLUMNS + SOURCE_PROOF_ROWS
+    + SOURCE_PROOF_ORIGIN_ROWS;
+  private const long STAGED_BYTES = STAGED_WORDS * WORD_BYTES + SOURCE_PROOF_NAMES;
   private const long NAME_BUFFERS = 1;
   private const long CLAIM_BUFFERS = 1;
+  private const long ORIGIN_BUFFERS = 1;
+  private const long STAGED_BUFFERS = EFFECT_COLUMNS + NAME_BUFFERS + CLAIM_BUFFERS
+    + ORIGIN_BUFFERS;
 
   /// Sizes source-local copied names and the shared five-column claim table.
   public const long SOURCE_CLASSICAL_ARENA_BYTES = SOURCE_PROOF_NAMES + SOURCE_PROOF_ROWS
@@ -105,43 +110,34 @@ classical class SourceClassicalCoverage {
       return new SourceClassicalCoveragePlan(0, 0, false);
     }
 
-    if (0 < reversible) {
-      SourceGeneratedInverseProofPlan inverse = materializeSourceGeneratedInverseProofs(
-        source,
-        callableCount,
-        strings,
-        stringBytes,
-        stringCount,
-        stringStarts,
-        stringLengths,
-        functionNameIds,
-        proofNames,
-        proofs
-      );
-      return new SourceClassicalCoveragePlan(reversible, inverse.proofCount, inverse.valid);
+    assert(bufferLength(proofNames) == SOURCE_PROOF_NAMES);
+    assert(bufferLength(proofs) == SOURCE_PROOF_ROWS);
+    if (reversible == 0) {
+      if (
+        sourceClassicalClaimsAbsent(
+          source,
+          scratchKinds,
+          scratchStarts,
+          scratchLengths,
+          scratchModule
+        )
+      ) {
+        return new SourceClassicalCoveragePlan(0, 0, true);
+      }
     }
 
-    if (
-      sourceClassicalClaimsAbsent(
-        source,
-        scratchKinds,
-        scratchStarts,
-        scratchLengths,
-        scratchModule
-      )
-    ) {
-      return new SourceClassicalCoveragePlan(0, 0, true);
-    }
-
-    region local = new region(/* bytes= */ EFFECT_BYTES, /* allocations= */ EFFECT_COLUMNS);
+    region local = new region(/* bytes= */ STAGED_BYTES, /* allocations= */ STAGED_BUFFERS);
     words effects = allocate(local, MAX_CALLABLES);
+    words stagedProofs = allocate(local, SOURCE_PROOF_ROWS);
+    words origins = allocate(local, SOURCE_PROOF_ORIGIN_ROWS);
+    bytes names = allocateBytes(local, SOURCE_PROOF_NAMES);
     long selected = 0;
     while (selected < callableCount) limit MAX_CALLABLES {
       set(effects, selected, callableEffects[firstCallable + selected]);
       selected += 1;
     }
 
-    SourceClassicalProofPlan ordinary = materializeSourceClassicalProofs(
+    SourceClassicalProofPlan bound = materializeSourceClassicalProofs(
       source,
       callableCount,
       effects,
@@ -153,11 +149,54 @@ classical class SourceClassicalCoverage {
       functionNameIds,
       constantNames,
       constants,
-      proofNames,
-      proofs
+      names,
+      stagedProofs,
+      origins
     );
+    boolean valid = bound.valid;
+    if (0 < reversible) {
+      if (
+        generatedInverseCoverageValid(callableCount, bound.proofCount, stagedProofs) == false
+      ) {
+        valid = false;
+      }
+    }
+
+    long proofCount = 0;
+    if (valid) {
+      proofCount = bound.proofCount;
+    }
+
+    SourceClassicalCoveragePlan result = new SourceClassicalCoveragePlan(
+      reversible,
+      proofCount,
+      valid
+    );
+    if (valid) {
+      long column = 0;
+      while (column < SOURCE_PROOF_COLUMNS) limit SOURCE_PROOF_COLUMNS {
+        long proof = 0;
+        while (proof < proofCount) limit MAX_SOURCE_PROOFS {
+          long cell = column * MAX_SOURCE_PROOFS + proof;
+          set(proofs, cell, stagedProofs[cell]);
+          proof += 1;
+        }
+
+        column += 1;
+      }
+
+      long copiedName = 0;
+      while (copiedName < bound.nameBytes) limit SOURCE_PROOF_NAMES {
+        setByte(proofNames, copiedName, names[copiedName]);
+        copiedName += 1;
+      }
+    }
+
+    drop(names);
+    drop(origins);
+    drop(stagedProofs);
     drop(effects);
     drop(local);
-    return new SourceClassicalCoveragePlan(0, ordinary.proofCount, ordinary.valid);
+    return result;
   }
 }

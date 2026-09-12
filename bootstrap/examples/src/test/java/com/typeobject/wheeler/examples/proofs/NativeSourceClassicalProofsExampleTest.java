@@ -56,6 +56,15 @@ final class NativeSourceClassicalProofsExampleTest {
   }
 
   @Test
+  void retainsVisibilityAndUtf8TriviaInsideCompleteClaimOrigins() {
+    String input = source("public /* café 𝄞 */ protected private\r\n"
+        + "theorem first proves steps(alpha, BASE /* café */ + 1);\r\n"
+        + "private public theorem second proves inverse(beta);\n"
+        + "long following() { return 1; }");
+    check(input, true, SourceProofFixture.oracle(input));
+  }
+
+  @Test
   void checksQualifiedCallableOwnershipBeforeBindingTheLocalName() throws Exception {
     String input = source("theorem bound proves steps(alpha, 8);");
     check(SourceProofFixture.program("", "fixture.source_proofs::alpha", "fixture.source_proofs::beta"),
@@ -80,6 +89,16 @@ final class NativeSourceClassicalProofsExampleTest {
   void rejectsInvalidCountedWindowsBeforeChangingCallerStorage(String changes) throws Exception {
     SourceProofFixture.rejectTrapAndReplay(
         SourceProofFixture.machine(SourceProofFixture.program(changes), source("")));
+  }
+
+  @Test
+  void rejectsShortAndExcessOriginBackingsBeforeAnyBindingPublication() throws Exception {
+    for (int words : List.of(SourceProofFixture.ORIGIN_WORDS - 1, SourceProofFixture.ORIGIN_WORDS + 1)) {
+      Program shortBacking = SourceProofFixture.program("", "alpha", "beta", words);
+      SourceProofFixture.rejectTrapAndReplay(SourceProofFixture.machine(shortBacking,
+          source("theorem good proves inverse(beta);")));
+      SourceProofFixture.rejectTrapAndReplay(SourceProofFixture.machine(shortBacking, source("")));
+    }
   }
 
   @Test
@@ -189,11 +208,12 @@ final class NativeSourceClassicalProofsExampleTest {
         machine.stepWithoutRewindHistory();
       }
     }
-    SourceProofFixture.check(prepared, machine, valid, claims);
+    SourceProofFixture.check(source, prepared, machine, valid, claims);
     if (history) {
       SourceProofFixture.replay(machine, initial);
     } else {
       com.typeobject.wheeler.examples.CompilerMachineRunner.runWithoutRewindHistory(machine);
+      SourceProofFixture.cleanup(machine, initial);
     }
   }
 }

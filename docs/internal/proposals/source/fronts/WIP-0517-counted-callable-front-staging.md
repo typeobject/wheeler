@@ -97,6 +97,11 @@ input, then rewinds and replays publication. A malformed member in the second
 module leaves every prepared public buffer and report field unchanged. Private
 staging is not a public artifact or a claim of body compilation.
 
+Commit `d55adee5e50b0caf94a9aa26398f703d0497b30c`, tree
+`541e9cb9793ad07347600734c874caca5f82d2da`, contains this staging feature. All 52
+hosted bootstrap jobs pass, including output comparison. README, site, and
+CodeQL pass on that commit. This does not certify later aggregate compiler work.
+
 The final focused command passes 28 example methods, twelve documentation
 methods, source header/length/layout gates, and Tree-sitter. The longest example
 method takes 6.288 seconds. Source budgets are 5,271 bytes and 802 raw tokens for
@@ -141,4 +146,4 @@ establish repository-wide layout compliance.
 - [x] All resource boundaries and final source budgets have direct evidence.
 - [x] Physical archive intake, selected-body regression, graphs, packages, and locks agree.
 - [x] Examples and documentation describe the implemented boundary.
-- [ ] The verified feature tree is committed, pushed, and checked remotely.
+- [x] The verified feature tree is committed, pushed, and checked remotely.

@@ -532,10 +532,23 @@ Tree-sitter gates. The original physical selection passes in thirteen minutes
 and 22 seconds. Archive intake now checks 483 modules, 2,405 constants, and 1,898
 callables. Independent archives, graph identities, four locks, and the 181-target
 workspace agree. A locked consumer stages the intact mixed-member source within
-the unchanged command bound. Exact-tree publication remains open.
+the unchanged command bound. Commit `d55adee5e` passes all 52 hosted bootstrap
+jobs, including output comparison, plus README, site, and CodeQL.
 [WIP-0516](source/aggregate/WIP-0516-counted-aggregate-primitive-compilation.md)
 still needs to replace the aggregate adapter's internal primitive compiler.
 Replacing only the runner dispatcher would leave that minimal path underneath.
+
+[WIP-0518](source/proofs/WIP-0518-detached-source-claim-origins.md) retains
+modifier-inclusive byte origins beside the existing semantic claims. The binder
+and ordinary and inverse adapters construct reports before publication. Private
+projection checks every range before erasure and preserves line endings and
+nonclaim bytes. Direct evidence retains a bound that passes placeholder code but
+fails actual nominal code. The 81-case direct and 109-case adapter selections
+pass. Original archive intake and selected physical comparison pass in eleven
+minutes and fourteen seconds. Independent packages, four locks, and the 181-target
+workspace agree. A locked consumer retains the original claims, checks complete
+private projection, and halts after 681,286 transitions. Aggregate integration
+and exact-tree publication remain open for this new boundary.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate

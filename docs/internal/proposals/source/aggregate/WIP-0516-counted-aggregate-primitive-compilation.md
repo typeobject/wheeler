@@ -7,7 +7,7 @@
 | Created | 2026-09-12 |
 | Updated | 2026-09-12 |
 | Area | Self-hosting, aggregate lowering, primitive products |
-| Depends on | WIP-0049, WIP-0050, WIP-0051, WIP-0054, WIP-0514, WIP-0517 |
+| Depends on | WIP-0049, WIP-0050, WIP-0051, WIP-0054, WIP-0514, WIP-0517, WIP-0518 |
 | Supersedes | None |
 | Superseded by | None |
 
@@ -32,6 +32,8 @@ primitive bytes and supplemental rows alone.
 WIP-0517 splits out shared callable-front staging. It removes the closure index's
 private delimiter parser and exposes source-local coordinates for this primitive
 view. That producer is not yet connected to the aggregate adapter's compiler.
+WIP-0518 retains original claim coordinates through shared binding so private
+primitive views can omit claims without losing them or deciding their truth.
 
 ## Contract
 
@@ -98,6 +100,15 @@ Capacity fixtures run history-free. Representative successes and failures retain
 real rewind and replay. Check inactive tails, borrowed inputs, private cleanup,
 and late malformed rows before dropping storage. Preserve a final-composition
 regression whose proof decision differs from the primitive placeholder decision.
+
+## Remaining joins
+
+WIP-0518 supplies bound claim origins and private same-length erasure. The
+aggregate adapter does not consume them yet. Original global binding, projection
+coordinates, detached imported targets, and atomic composition publication
+remain required. The old adapter also constructs its result record after copying
+caller outputs. Move that allocation before the first publication rather than
+preserving the ordering defect.
 
 ## Acceptance
 

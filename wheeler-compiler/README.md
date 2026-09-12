@@ -133,7 +133,10 @@ bytes do not become equality, and malformed windows reject before allocation.
 claims against scoped constants and local callable products. Member fronts locate
 actual declarations, including when unrelated bindings are named `theorem`.
 Five source columns retain copied name ranges, rule codes, local subjects, and
-full signed arguments. Invalid batches leave caller rows and name storage alone.
+full signed arguments. Two separate origin columns retain modifier-inclusive
+source byte starts and lengths through each terminating semicolon. Invalid
+batches leave all caller names, semantic rows, and origin rows alone. The binder
+and both coverage adapters construct their result records before publication.
 The inverse adapter applies coverage policy to those shared products.
 `ClassicalSourceProductArtifact.w` consumes the same table, emits either classical
 rule, preserves both argument words, and deduplicates proof names against existing
@@ -145,6 +148,12 @@ columns. `ConstantProductSchema.w` defines the seven-column packet, and
 changing scalar facts. The complete packet remains available to proof binding.
 Claim-free ordinary modules reuse private scratch without new owned buffers.
 The intact mixed-member runner join remains open.
+
+The same source-claim owner erases only validated claim origins from a private
+same-length source copy. Whole-batch range and UTF-8 boundary checks precede every
+write. The caller keeps the original claims for final nominal verification. A
+primitive placeholder can pass a bound that actual nominal code fails. Neither
+binding nor origin projection decides that bound.
 
 `SourceGlobalProducts.w` binds up to eight declared signed states from that
 complete scalar packet. `SourceGlobalSchema.w` separates declaration coordinates
