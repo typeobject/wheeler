@@ -185,6 +185,10 @@ classical class AggregateCompiledCallableBodies {
     assert(sourceStatements.valid);
     SourceValueProductPlan sourceValues = materializeSourceValueProducts(
       originalUtf8,
+      /* globalNames= */ sourceArchive,
+      /* globalCount= */ 0,
+      /* globalProductStart= */ 0,
+      /* globals= */ operationRows,
       sourceStart,
       firstLocalCallable,
       localCallableCount,

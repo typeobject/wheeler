@@ -435,8 +435,8 @@ earlier stores. Raw terminal frame/code checks retain real emission replay.
 
 The access profile rejects ambiguous global/local references and overlapping
 scalar/global names. It does not implement complete scope admission. Nested
-global accesses, conditions, helper-result stores, source-independent
-instruction linking, and the original mixed-member runner remain open. Replacing
+global accesses, conditions, complete helper-result-store integration,
+source-independent instruction linking, and the original mixed-member runner remain open. Replacing
 the synthetic library entry in an execution fixture is not native entry lowering.
 
 The root-location archive and selected physical checks pass with 476 modules,
@@ -464,6 +464,34 @@ with two executable predicates, three globals, one proof, nine locals, and twelv
 instructions. Native retained-global intake and callable replay match the source
 oracle. The 181-target workspace passes. These are source-product and selected-body
 checks, not every physical compiler body, native entry lowering, or a fixed point.
+Commit `13164625a` passes all 52 hosted bootstrap jobs, including output comparison.
+
+[WIP-0511](source/WIP-0511-counted-call-global-destinations.md) joins signed root
+call results to declaration ordinals without a synthetic destination local.
+Complete artifacts and execution pass for zero and 64 arguments, repeated stores,
+and a contextual `entry` helper with a step claim. The raw encoder reaches local
+255, preserves inactive code/type/relocation cells, and replays publication.
+Nested assignments reject before an unjoined path can mistake them for returns.
+Imported target products now pass complete transient artifact and relocation
+comparisons without dependency body source. Oracle-side body binding exercises
+unchanged native callers with real nonzero results. Native retained linking is
+still a separate requirement.
+
+[WIP-0512](source/WIP-0512-root-global-literal-assertions.md) closes the observed
+root global/literal assertion mismatch. A preceding state selects `EXPECT_EQ`
+without frame locals. A later state retains scalar code. Counted declaration-name
+coordinates preserve that distinction without changing stage 0 or reparsing state
+fronts. Final package, physical, and exact-commit verification remain open.
+
+The subsequent physical selection exhausts 65,535 lifetime-buffer identities in
+source scheduling, after product compilation. Archive intake passes separately.
+[WIP-0513](source/WIP-0513-immutable-source-lease-ranges.md) removes temporary
+archive copies from the shared lease publisher and both declaration intake paths.
+Direct range and schedule checks pass, including 512 owners with seven buffers.
+The original three-method physical selection now passes in ten minutes and
+31 seconds. Independent archive and graph measurements agree, and four refreshed
+locks support a 952-byte locked call/store/assertion consumer. Final feature and
+hosted gates remain open. No VM limit or checked source set changed.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate

@@ -191,7 +191,7 @@ classical class StructuredSourceModuleCompiler {
     words callArgumentValues = allocate(products, SOURCE_CALL_ARGUMENT_ROWS);
     words resolvedCalls = allocate(products, /* length= */ 1024);
     words callLocalWidths = allocate(products, /* length= */ 256);
-    words callConditionalValues = allocate(products, /* length= */ 256);
+    words callResultOperands = allocate(products, /* length= */ 256);
     words callInstructionStarts = allocate(products, /* length= */ 256);
     words callWindowRows = allocate(products, /* length= */ 768);
     words valuePhysicalStarts = allocate(products, /* length= */ 1024);
@@ -391,6 +391,10 @@ classical class StructuredSourceModuleCompiler {
     assert(referencedTargetPlan.valid);
     SourceValueProductPlan valuePlan = materializeSourceValueProductsWithCalls(
       source,
+      strings,
+      globalCount,
+      globalProductStart,
+      globals,
       archiveSourceStart,
       firstCallable,
       callableCount,
@@ -630,7 +634,7 @@ classical class StructuredSourceModuleCompiler {
       callStatements,
       callArgumentCounts,
       callLocalWidths,
-      callConditionalValues,
+      callResultOperands,
       valuePlan.valueCount,
       values,
       statementLocalRows,
@@ -701,7 +705,7 @@ classical class StructuredSourceModuleCompiler {
       callRelocationIdentities,
       callTypes,
       callLocalWidths,
-      callConditionalValues,
+      callResultOperands,
       statementPhysicalStarts,
       statementPhysicalWidths,
       callCode
@@ -766,7 +770,7 @@ classical class StructuredSourceModuleCompiler {
       callRelocationIdentities,
       callTypes,
       callLocalWidths,
-      callConditionalValues,
+      callResultOperands,
       statementPhysicalStarts,
       statementPhysicalWidths,
       callCode
@@ -911,7 +915,7 @@ classical class StructuredSourceModuleCompiler {
     drop(valuePhysicalStarts);
     drop(callWindowRows);
     drop(callInstructionStarts);
-    drop(callConditionalValues);
+    drop(callResultOperands);
     drop(callLocalWidths);
     drop(resolvedCalls);
     drop(callArgumentValues);

@@ -150,13 +150,30 @@ publish earlier globals. Root scalar reads and stores now use explicit frame or
 global locations. Loads observe current state, stores keep declaration ordinals,
 and binary values reserve two operand locals plus their result. Complete artifact
 and callable execution checks compare against independent stage 0. They do not
-establish general scope admission, nested global lowering, or helper-result
-stores. Root assertions now share those locations and scalar emission. A predicate
+establish general scope admission or nested global lowering. Root assertions now
+share those locations and scalar emission. A predicate
 must produce a Boolean, and literal-left comparisons preserve operand order.
 Complete type/code preflight precedes publication. False assertions compile and
 reject at runtime without changing the failing instruction's machine state.
-Global conditions, nested control, helper-result stores, entry composition, and
-the intact mixed-member runner remain open.
+Root signed call results also store at validated declaration ordinals.
+Argument preparation and one result local precede the store, without a synthetic
+global local. Nested call assignments reject until their owning lowering path
+can bind the destination. Imported signatures produce verifier stubs and identity
+relocations without dependency body source. Native retained global-instruction
+linking, global conditions, nested control, entry composition, and the intact
+mixed-member runner remain open.
+
+An exact `assert(global == literal)` uses zero-local `EXPECT_EQ` when the state
+declaration precedes the assertion. Source-global products retain the original
+declaration-name byte range for this selection. Later declarations, named
+constants, and other predicates retain their generic scalar instructions.
+
+Active source leases now accept exact immutable ASCII archive ranges. The publisher
+validates the complete range before copying into one of eight generation-checked
+slots. Symbol and callable intake no longer create an intermediate archive copy.
+Scheduling uses two regions and seven buffers for any admitted module count,
+including 512. This preserves the 32,768-byte source limit and removes per-owner
+lifetime-buffer consumption from scheduling.
 
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and

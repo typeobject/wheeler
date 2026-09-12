@@ -172,7 +172,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             words unusedCallStatements = allocate(products, /* length= */ 256);
             words unusedCallArgumentCounts = allocate(products, /* length= */ 256);
             words unusedCallLocalWidths = allocate(products, /* length= */ 256);
-            words unusedCallConditionalValues = allocate(products, /* length= */ 256);
+            words unusedCallResultOperands = allocate(products, /* length= */ 256);
             words unusedCallWindows = allocate(products, /* length= */ 768);
             words unusedCallTypes = allocate(products, /* length= */ 12288);
             bytes unusedCallCode = allocateBytes(products, /* length= */ 262144);
@@ -296,6 +296,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             );
             SourceValueProductPlan valuePlan = materializeSourceValueProducts(
               input,
+              strings, /* globalCount= */ 0, /* globalProductStart= */ 0, globals,
               0,
               0,
               2,
@@ -408,7 +409,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
               unusedCallStatements,
               unusedCallArgumentCounts,
               unusedCallLocalWidths,
-              unusedCallConditionalValues,
+              unusedCallResultOperands,
               valuePlan.valueCount,
               values,
               statementLocalRows,
@@ -812,7 +813,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             drop(signatureTypes); drop(directCode); drop(directTypes);
             drop(returnRows); drop(functionResultTypes);
             drop(unusedCallCode); drop(unusedCallTypes);
-            drop(unusedCallConditionalValues); drop(unusedCallLocalWidths);
+            drop(unusedCallResultOperands); drop(unusedCallLocalWidths);
             drop(unusedCallArgumentCounts); drop(unusedCallWindows);
             drop(unusedCallStatements); drop(unusedCallRows);
             drop(directRows);

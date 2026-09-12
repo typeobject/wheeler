@@ -13,10 +13,11 @@ import java.util.TreeSet;
 import java.util.function.Consumer;
 
 /** Shared scanner-column and full-rewind evidence for source front products. */
-final class NativeSourceFrontFixture {
+public final class NativeSourceFrontFixture {
   private NativeSourceFrontFixture() {}
 
-  static void check(Program program, String source, Consumer<VirtualMachine> assertions) {
+  /** Checks the complete scanner columns and restores the initial machine snapshot. */
+  public static void check(Program program, String source, Consumer<VirtualMachine> assertions) {
     var machine = new VirtualMachine(program, source.getBytes(StandardCharsets.UTF_8));
     var initial = machine.snapshot();
     machine.run();
@@ -27,12 +28,14 @@ final class NativeSourceFrontFixture {
     assertEquals(initial, machine.snapshot());
   }
 
-  static Program program(List<String> owners, int capacity, String globals, String body)
+  /** Builds a source-front fixture with explicit column capacity and no byte output. */
+  public static Program program(List<String> owners, int capacity, String globals, String body)
       throws Exception {
     return program(owners, capacity, globals, body, false);
   }
 
-  static Program program(List<String> owners, int capacity, String globals, String body,
+  /** Builds a source-front fixture with an optional borrowed output window. */
+  public static Program program(List<String> owners, int capacity, String globals, String body,
       boolean byteOutput) throws Exception {
     var imports = new TreeSet<>(owners);
     imports.add("wheeler.compiler.module_linker");

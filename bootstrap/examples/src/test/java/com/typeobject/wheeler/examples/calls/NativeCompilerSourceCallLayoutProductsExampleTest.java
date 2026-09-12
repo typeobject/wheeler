@@ -1,10 +1,12 @@
-package com.typeobject.wheeler.examples;
+package com.typeobject.wheeler.examples.calls;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import com.typeobject.wheeler.examples.CompilerMachineRunner;
+import com.typeobject.wheeler.examples.CompilerSources;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -69,6 +71,18 @@ final class NativeCompilerSourceCallLayoutProductsExampleTest {
       VirtualMachine machine = new VirtualMachine(program(false, 64, 0, mutation), new byte[0]);
       CompilerMachineRunner.runWithoutRewindHistory(machine);
       assertEquals(0, machine.global("valid"), mutation);
+    }
+  }
+
+  @Test
+  void doesNotInterpretSignatureTypeCodesAsCallDestinationKinds() throws Exception {
+    for (int type : new int[] {-1, 3, 4, 5, 6, 7, 8, 9, 10}) {
+      VirtualMachine machine = new VirtualMachine(program(false, 1, 0,
+          "set(targetResultTypes, 2, " + type + ");"), new byte[0]);
+      CompilerMachineRunner.runWithoutRewindHistory(machine);
+      assertEquals(0, machine.global("valid"), "signature type " + type);
+      assertEquals(91, machine.global("firstKind"));
+      assertEquals(92, machine.global("firstCallWidth"));
     }
   }
 

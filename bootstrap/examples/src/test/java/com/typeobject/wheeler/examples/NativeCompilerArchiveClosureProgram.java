@@ -665,7 +665,6 @@ final class NativeCompilerArchiveClosureProgram {
                 );
                 ClosureSourceSchedule schedule = stageClosureSources(
                   archive,
-                  manifest,
                   closure,
                   leafFirstOrder,
                   archiveSourceStarts,

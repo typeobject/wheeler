@@ -9,8 +9,9 @@ import wheeler.compiler.closure.plan;
 classical class ClosureSchedules {
   private const long MAX_LOCAL_MODULES = 512;
   private const long MAX_SOURCE_BYTES = 32768;
-  private const long SCHEDULE_ARENA_BYTES = 8192;
-  private const long SOURCE_ARENA_BYTES = 32768;
+  private const long SCHEDULE_COLUMNS = 2;
+  private const long WORD_BYTES = 8;
+  private const long SCHEDULE_ARENA_BYTES = SCHEDULE_COLUMNS * MAX_LOCAL_MODULES * WORD_BYTES;
 
   /// Summarizes one complete deterministic linked-source staging pass.
   public record ClosureSourceSchedule(
@@ -24,7 +25,6 @@ classical class ClosureSchedules {
   /// Module slot and generation columns publish only after the complete pass succeeds.
   public ClosureSourceSchedule stageClosureSources(
     borrow byteview archive,
-    borrow byteview manifest,
     CountedClosurePlan plan,
     borrow mut words leafFirstOrder,
     borrow mut words sourceStarts,
@@ -34,9 +34,14 @@ classical class ClosureSchedules {
   ) {
     requireMetadata(0 < plan.moduleCount);
     requireMetadata(plan.moduleCount < MAX_LOCAL_MODULES + 1);
+    requireMetadata(plan.moduleCount < bufferLength(leafFirstOrder) + 1);
+    requireMetadata(plan.moduleCount < bufferLength(sourceStarts) + 1);
+    requireMetadata(plan.moduleCount < bufferLength(sourceLengths) + 1);
+    requireMetadata(plan.moduleCount < bufferLength(moduleSlots) + 1);
+    requireMetadata(plan.moduleCount < bufferLength(moduleGenerations) + 1);
     region slotArena = new region(
       /* bytes= */ ACTIVE_SOURCE_SLOT_ARENA_BYTES,
-      /* allocations= */ 6
+      /* allocations= */ ACTIVE_SOURCE_SLOT_BUFFERS
     );
     bytes storage = allocateBytes(slotArena, ACTIVE_SOURCE_SLOT_BYTES);
     words owners = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
@@ -44,9 +49,22 @@ classical class ClosureSchedules {
     words lengths = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     words live = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     assert(initializeActiveSourceSlots(storage, owners, generations, lengths, live));
-    region scheduleArena = new region(/* bytes= */ SCHEDULE_ARENA_BYTES, /* allocations= */ 2);
+    region scheduleArena = new region(
+      /* bytes= */ SCHEDULE_ARENA_BYTES,
+      /* allocations= */ SCHEDULE_COLUMNS
+    );
     words scratchSlots = allocate(scheduleArena, MAX_LOCAL_MODULES);
     words scratchGenerations = allocate(scheduleArena, MAX_LOCAL_MODULES);
+
+    long checked = 0;
+    while (checked < plan.moduleCount) limit MAX_LOCAL_MODULES {
+      long checkedModule = leafFirstOrder[checked];
+      requireMetadata(-1 < checkedModule);
+      requireMetadata(checkedModule < plan.moduleCount);
+      requireMetadata(scratchGenerations[checkedModule] == 0);
+      set(scratchGenerations, checkedModule, 1);
+      checked += 1;
+    }
 
     long position = 0;
     long finalGeneration = 0;
@@ -61,15 +79,6 @@ classical class ClosureSchedules {
       requireMetadata(-1 < sourceStart);
       requireMetadata(sourceStart < bufferLength(archive) + 1);
       requireMetadata(sourceLength < bufferLength(archive) - sourceStart + 1);
-      region sourceArena = new region(/* bytes= */ SOURCE_ARENA_BYTES, /* allocations= */ 1);
-      bytes sourceBytes = allocateBytes(sourceArena, sourceLength);
-      long cursor = 0;
-      while (cursor < sourceLength) limit MAX_SOURCE_BYTES {
-        setByte(sourceBytes, cursor, archive[sourceStart + cursor]);
-        cursor += 1;
-      }
-
-      utf8 source = freezeUtf8(sourceBytes);
       ActiveSourceHandle selected = new ActiveSourceHandle(0, 0, 0);
       ActiveSourceAcquireResult acquired = acquireActiveSourceSlot(
         module,
@@ -89,7 +98,17 @@ classical class ClosureSchedules {
       }
 
       requireMetadata(
-        publishActiveSource(selected, source, storage, owners, generations, lengths, live)
+        publishActiveSource(
+          selected,
+          archive,
+          sourceStart,
+          sourceLength,
+          storage,
+          owners,
+          generations,
+          lengths,
+          live
+        )
       );
       requireMetadata(
         activeSourceLength(selected, owners, generations, lengths, live) == sourceLength
@@ -100,16 +119,7 @@ classical class ClosureSchedules {
       requireMetadata(
         releaseActiveSource(selected, storage, owners, generations, lengths, live)
       );
-      drop(source);
-      drop(sourceArena);
       position += 1;
-    }
-
-    long publishedModule = 0;
-    while (publishedModule < plan.moduleCount) limit MAX_LOCAL_MODULES {
-      set(moduleSlots, publishedModule, scratchSlots[publishedModule]);
-      set(moduleGenerations, publishedModule, scratchGenerations[publishedModule]);
-      publishedModule += 1;
     }
 
     ClosureSourceSchedule result = new ClosureSourceSchedule(
@@ -117,6 +127,13 @@ classical class ClosureSchedules {
       /* peakActiveSources= */ 1,
       finalGeneration
     );
+    long publishedModule = 0;
+    while (publishedModule < plan.moduleCount) limit MAX_LOCAL_MODULES {
+      set(moduleSlots, publishedModule, scratchSlots[publishedModule]);
+      set(moduleGenerations, publishedModule, scratchGenerations[publishedModule]);
+      publishedModule += 1;
+    }
+
     drop(scratchGenerations);
     drop(scratchSlots);
     drop(scheduleArena);

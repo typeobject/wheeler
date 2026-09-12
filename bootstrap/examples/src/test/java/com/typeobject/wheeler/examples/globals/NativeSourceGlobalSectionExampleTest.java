@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 /** Checks complete signed global sections and fail-closed publication without source parsing. */
 final class NativeSourceGlobalSectionExampleTest {
   private static final int GLOBALS = 8;
-  private static final int DECLARATION_COLUMNS = 3;
+  private static final int DECLARATION_COLUMNS = 4;
   private static final int NAME_ID_ROW = DECLARATION_COLUMNS * GLOBALS;
   private static final int PUBLICATION_ROWS = NAME_ID_ROW + GLOBALS;
   private static final int PREFIX = 2;

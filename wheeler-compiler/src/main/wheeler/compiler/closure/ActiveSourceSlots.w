@@ -6,12 +6,18 @@ classical class ActiveSourceSlots {
   private const long MAX_LOCAL_MODULES = 512;
   private const long MAX_SOURCE_BYTES = 32768;
   private const long MAX_SLOT_GENERATION = 1000000;
+  private const long ASCII_BYTE_LIMIT = 128;
+  private const long SLOT_METADATA_COLUMNS = 4;
+  private const long WORD_BYTES = 8;
   /// Names the fixed number of concurrently active linked-source owners.
   public const long ACTIVE_SOURCE_SLOT_COUNT = 8;
   /// Names the complete mutable linked-source storage capacity.
-  public const long ACTIVE_SOURCE_SLOT_BYTES = 262144;
-  /// Names storage plus five eight-word metadata columns.
-  public const long ACTIVE_SOURCE_SLOT_ARENA_BYTES = 262464;
+  public const long ACTIVE_SOURCE_SLOT_BYTES = ACTIVE_SOURCE_SLOT_COUNT * MAX_SOURCE_BYTES;
+  /// Counts storage and its four metadata buffers.
+  public const long ACTIVE_SOURCE_SLOT_BUFFERS = 1 + SLOT_METADATA_COLUMNS;
+  /// Names storage plus the owner, generation, length, and live columns.
+  public const long ACTIVE_SOURCE_SLOT_ARENA_BYTES = ACTIVE_SOURCE_SLOT_BYTES
+    + SLOT_METADATA_COLUMNS * ACTIVE_SOURCE_SLOT_COUNT * WORD_BYTES;
 
   /// Identifies one slot lease. Generation changes whenever the slot is reused.
   public record ActiveSourceHandle(long slot, long generation, long owner) {}
@@ -62,6 +68,22 @@ classical class ActiveSourceSlots {
       return false;
     }
 
+    if (handle.owner < 0) {
+      return false;
+    }
+
+    if (handle.owner < MAX_LOCAL_MODULES) {} else {
+      return false;
+    }
+
+    if (handle.generation < 1) {
+      return false;
+    }
+
+    if (MAX_SLOT_GENERATION < handle.generation) {
+      return false;
+    }
+
     if (live[handle.slot] == 1) {} else {
       return false;
     }
@@ -73,8 +95,19 @@ classical class ActiveSourceSlots {
     return generations[handle.slot] == handle.generation;
   }
 
-  private boolean sourceFits(borrow utf8 source) {
-    long length = bufferLength(source);
+  private boolean sourceFits(borrow byteview source, long start, long length) {
+    if (start < 0) {
+      return false;
+    }
+
+    if (bufferLength(source) < start) {
+      return false;
+    }
+
+    if (bufferLength(source) - start < length) {
+      return false;
+    }
+
     if (0 < length) {} else {
       return false;
     }
@@ -85,7 +118,7 @@ classical class ActiveSourceSlots {
 
     long cursor = 0;
     while (cursor < length) limit MAX_SOURCE_BYTES {
-      if (utf8Width(source, cursor) == 1) {} else {
+      if (source[start + cursor] < ASCII_BYTE_LIMIT) {} else {
         return false;
       }
 
@@ -134,14 +167,16 @@ classical class ActiveSourceSlots {
     long slot = 0;
     while (slot < ACTIVE_SOURCE_SLOT_COUNT) limit ACTIVE_SOURCE_SLOT_COUNT {
       if (live[slot] == 0) {
+        assert(-1 < generations[slot]);
+        assert(generations[slot] < MAX_SLOT_GENERATION);
         long generation = generations[slot] + 1;
-        assert(generation < MAX_SLOT_GENERATION + 1);
+        ActiveSourceHandle handle = new ActiveSourceHandle(slot, generation, owner);
+        ActiveSourceAcquireResult result = new ActiveSourceAcquireResult.Value(handle);
         set(generations, slot, generation);
         set(owners, slot, owner);
         set(lengths, slot, 0);
         set(live, slot, 1);
-        ActiveSourceHandle handle = new ActiveSourceHandle(slot, generation, owner);
-        return new ActiveSourceAcquireResult.Value(handle);
+        return result;
       }
 
       slot += 1;
@@ -150,10 +185,12 @@ classical class ActiveSourceSlots {
     return new ActiveSourceAcquireResult.Full(owner);
   }
 
-  /// Publishes one validated ASCII source under a current slot lease.
+  /// Publishes one complete immutable ASCII byte range under a current slot lease.
   public boolean publishActiveSource(
     ActiveSourceHandle handle,
-    borrow utf8 source,
+    borrow byteview source,
+    long sourceStart,
+    long sourceLength,
     borrow mut bytes storage,
     borrow mut words owners,
     borrow mut words generations,
@@ -168,15 +205,23 @@ classical class ActiveSourceSlots {
       return false;
     }
 
-    if (sourceFits(source)) {} else {
+    if (sourceFits(source, sourceStart, sourceLength)) {} else {
       return false;
     }
 
     long oldLength = lengths[handle.slot];
+    if (oldLength < 0) {
+      return false;
+    }
+
+    if (MAX_SOURCE_BYTES < oldLength) {
+      return false;
+    }
+
     long slotStart = handle.slot * MAX_SOURCE_BYTES;
     long cursor = 0;
-    while (cursor < bufferLength(source)) limit MAX_SOURCE_BYTES {
-      setByte(storage, slotStart + cursor, utf8Scalar(source, cursor));
+    while (cursor < sourceLength) limit MAX_SOURCE_BYTES {
+      setByte(storage, slotStart + cursor, source[sourceStart + cursor]);
       cursor += 1;
     }
 
@@ -185,7 +230,7 @@ classical class ActiveSourceSlots {
       cursor += 1;
     }
 
-    set(lengths, handle.slot, bufferLength(source));
+    set(lengths, handle.slot, sourceLength);
     return true;
   }
 

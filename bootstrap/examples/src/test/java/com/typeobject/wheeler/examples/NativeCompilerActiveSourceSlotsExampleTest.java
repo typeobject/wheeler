@@ -16,7 +16,8 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
   @Test
   void rejectsStaleLeasesAndBoundsTheActiveLinkedSourceFrontier() throws Exception {
     Program program = program();
-    VirtualMachine machine = VirtualMachine.withBinaryInput(program, new byte[0], 6);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program, "abcdefghijxyz".getBytes(java.nio.charset.StandardCharsets.US_ASCII), 6);
 
     machine.run();
 
@@ -24,8 +25,8 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
     assertEquals(1, machine.global("published"));
     String source = CompilerSources.read("compiler/closure/ActiveSourceSlots.w");
     assertTrue(source.contains("public const long ACTIVE_SOURCE_SLOT_COUNT = 8;"));
-    assertTrue(source.contains("public const long ACTIVE_SOURCE_SLOT_BYTES = 262144;"));
-    assertTrue(source.contains("public const long ACTIVE_SOURCE_SLOT_ARENA_BYTES = 262464;"));
+    assertTrue(source.contains("ACTIVE_SOURCE_SLOT_COUNT * MAX_SOURCE_BYTES"));
+    assertTrue(source.contains("SLOT_METADATA_COLUMNS * ACTIVE_SOURCE_SLOT_COUNT * WORD_BYTES"));
   }
 
   @Test
@@ -58,7 +59,7 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
           entry void main(borrow byteview input, borrow mut bytes output) {
             region slots = new region(
               /* bytes= */ ACTIVE_SOURCE_SLOT_ARENA_BYTES,
-              /* allocations= */ 6
+              /* allocations= */ ACTIVE_SOURCE_SLOT_BUFFERS
             );
             bytes storage = allocateBytes(slots, ACTIVE_SOURCE_SLOT_BYTES);
             words owners = allocate(slots, ACTIVE_SOURCE_SLOT_COUNT);
@@ -66,14 +67,6 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
             words lengths = allocate(slots, ACTIVE_SOURCE_SLOT_COUNT);
             words live = allocate(slots, ACTIVE_SOURCE_SLOT_COUNT);
             assert(initializeActiveSourceSlots(storage, owners, generations, lengths, live));
-            region sourceArena = new region(/* bytes= */ 32769, /* allocations= */ 1);
-            bytes sourceBytes = allocateBytes(sourceArena, bufferLength(input));
-            long cursor = 0;
-            while (cursor < bufferLength(input)) limit 32769 {
-              setByte(sourceBytes, cursor, input[cursor]);
-              cursor += 1;
-            }
-            utf8 source = freezeUtf8(sourceBytes);
             ActiveSourceHandle selected = new ActiveSourceHandle(0, 0, 0);
             ActiveSourceAcquireResult acquired = acquireActiveSourceSlot(
               0,
@@ -93,7 +86,9 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
             }
             if (publishActiveSource(
               selected,
-              source,
+              input,
+              /* sourceStart= */ 0,
+              bufferLength(input),
               storage,
               owners,
               generations,
@@ -102,8 +97,6 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
             )) {
               setByte(output, 0, 1);
             }
-            drop(source);
-            drop(sourceArena);
             drop(live);
             drop(lengths);
             drop(generations);
@@ -129,13 +122,18 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
         import wheeler.compiler.closure.active_source_slots;
 
         classical class ActiveSourceSlotsExample {
+          private const long FIRST_SOURCE_BYTES = 10;
+          private const long SECOND_SOURCE_BYTES = 3;
+          private const long SOURCE_BYTES = FIRST_SOURCE_BYTES + SECOND_SOURCE_BYTES;
+          private const long COPY_BYTES = FIRST_SOURCE_BYTES + SECOND_SOURCE_BYTES * 2;
+          private const long COPY_BUFFERS = 1 + 2;
           state long published = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            assert(bufferLength(input) == 0);
+            assert(bufferLength(input) == SOURCE_BYTES);
             region slots = new region(
               /* bytes= */ ACTIVE_SOURCE_SLOT_ARENA_BYTES,
-              /* allocations= */ 6
+              /* allocations= */ ACTIVE_SOURCE_SLOT_BUFFERS
             );
             bytes storage = allocateBytes(slots, ACTIVE_SOURCE_SLOT_BYTES);
             words owners = allocate(slots, ACTIVE_SOURCE_SLOT_COUNT);
@@ -144,16 +142,10 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
             words live = allocate(slots, ACTIVE_SOURCE_SLOT_COUNT);
             assert(initializeActiveSourceSlots(storage, owners, generations, lengths, live));
 
-            region payloads = new region(/* bytes= */ 29, /* allocations= */ 5);
-            bytes firstBytes = allocateBytes(payloads, /* length= */ 10);
-            writeAscii(firstBytes, 0, "abcdefghij");
-            utf8 firstSource = freezeUtf8(firstBytes);
-            bytes secondBytes = allocateBytes(payloads, /* length= */ 3);
-            writeAscii(secondBytes, 0, "xyz");
-            utf8 secondSource = freezeUtf8(secondBytes);
-            bytes firstCopy = allocateBytes(payloads, /* length= */ 10);
-            bytes secondCopy = allocateBytes(payloads, /* length= */ 3);
-            bytes staleCopy = allocateBytes(payloads, /* length= */ 3);
+            region payloads = new region(/* bytes= */ COPY_BYTES, /* allocations= */ COPY_BUFFERS);
+            bytes firstCopy = allocateBytes(payloads, FIRST_SOURCE_BYTES);
+            bytes secondCopy = allocateBytes(payloads, SECOND_SOURCE_BYTES);
+            bytes staleCopy = allocateBytes(payloads, SECOND_SOURCE_BYTES);
             setByte(staleCopy, 0, 9);
             setByte(staleCopy, 1, 9);
             setByte(staleCopy, 2, 9);
@@ -176,13 +168,8 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
               }
             }
             assert(publishActiveSource(
-              first,
-              firstSource,
-              storage,
-              owners,
-              generations,
-              lengths,
-              live
+              first, input, /* sourceStart= */ 0, /* sourceLength= */ 10,
+              storage, owners, generations, lengths, live
             ));
             assert(copyActiveSource(
               first,
@@ -236,13 +223,8 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
             assert(second.slot == first.slot);
             assert(second.generation == first.generation + 1);
             assert(publishActiveSource(
-              second,
-              secondSource,
-              storage,
-              owners,
-              generations,
-              lengths,
-              live
+              second, input, /* sourceStart= */ 10, /* sourceLength= */ 3,
+              storage, owners, generations, lengths, live
             ));
             assert(copyActiveSource(
               second,
@@ -254,13 +236,8 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
               secondCopy
             ));
             assert(publishActiveSource(
-              first,
-              firstSource,
-              storage,
-              owners,
-              generations,
-              lengths,
-              live
+              first, input, /* sourceStart= */ 0, /* sourceLength= */ 10,
+              storage, owners, generations, lengths, live
             ) == false);
             assert(activeSourceLength(second, owners, generations, lengths, live) == 3);
             assert(storage[second.slot * 32768 + 3] == 0);
@@ -314,8 +291,6 @@ final class NativeCompilerActiveSourceSlotsExampleTest {
             drop(staleCopy);
             drop(secondCopy);
             drop(firstCopy);
-            drop(secondSource);
-            drop(firstSource);
             drop(payloads);
             drop(live);
             drop(lengths);

@@ -261,6 +261,7 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
             assert(statementPlan.valid);
             SourceValueProductPlan valuePlan = materializeSourceValueProducts(
               input,
+              symbolNames, /* globalCount= */ 0, /* globalProductStart= */ 0, bodyLengths,
               /* archiveSourceStart= */ 0,
               /* firstCallable= */ 0,
               /* callableCount= */ 1,

@@ -127,7 +127,9 @@ The first implementation retains existing proved ceilings:
 - 32,768 bytes per physical or active linked source.
 - 16 MiB per physical evidence file.
 
-The first work-slot profile owns eight active sources and 262,144 mutable source bytes. `ACTIVE_SOURCE_SLOT_ARENA_BYTES = 262464` adds five eight-word metadata columns. These independent constants are not inferred from the module limit.
+The work-slot profile owns eight active sources and `8 * 32,768 = 262,144` mutable source bytes. Four eight-word metadata columns bring `ACTIVE_SOURCE_SLOT_ARENA_BYTES` to `262,144 + 4 * 8 * 8 = 262,400`. The slot count remains independent of the module limit.
+
+[WIP-0513](source/WIP-0513-immutable-source-lease-ranges.md) removes temporary archive copies from lease publication. Symbol and callable intake copy only the published active source for scanning. Scheduling consumes immutable archive ranges directly and owns seven buffers for any admitted module count. The original three-method physical selection passes after this change, with unchanged source and VM limits.
 
 ## Migration
 

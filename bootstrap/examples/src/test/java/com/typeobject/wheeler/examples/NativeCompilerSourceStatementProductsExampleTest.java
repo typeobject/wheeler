@@ -197,6 +197,7 @@ final class NativeCompilerSourceStatementProductsExampleTest {
               valid = 1;
               SourceValueProductPlan valuePlan = materializeSourceValueProducts(
                 input,
+                output, /* globalCount= */ 0, /* globalProductStart= */ 0, bodyLengths,
                 /* archiveSourceStart= */ 0,
                 /* firstCallable= */ 0,
                 /* callableCount= */ 2,

@@ -28,7 +28,7 @@ final class NativeDirectAssertionProductsExampleTest {
   private static final int LOOP_STATEMENT_COLUMNS = 7;
   private static final int STATEMENT_LOCAL_COLUMNS = 2;
   private static final int SOURCE_VALUE_COLUMNS = 7;
-  private static final int GLOBAL_COLUMNS = 3;
+  private static final int GLOBAL_COLUMNS = 4;
   private static final int TYPE_COLUMNS = 3;
   private static final int TYPE_ROWS = STATEMENTS * TYPE_COLUMNS;
   private static final int SYMBOLS = 16384;
@@ -49,18 +49,25 @@ final class NativeDirectAssertionProductsExampleTest {
       + Instruction.of(Opcode.LOCAL_EQ, 0, 0, 0).encodedLength()
       + Instruction.of(Opcode.EXPECT_TRUE, 0).encodedLength();
 
-  private record Case(boolean binary, long cursor, long base, long typeStart, int typeLength,
+  private static final int GLOBAL_BYTES = Instruction.of(Opcode.EXPECT_EQ, 0, 5).encodedLength();
+
+  private enum Profile { SCALAR, BINARY, GLOBAL_LITERAL }
+
+  private record Case(Profile profile, long cursor, long base, long typeStart, int typeLength,
                       boolean valid, boolean trap) {}
 
   @Test
   void publishesOnlyActiveTypesAndCodeAtTerminalWindows() throws Exception {
     for (Case row : List.of(
-        new Case(false, 3, 0, 2, TYPE_ROWS, true, false),
-        new Case(true, 3, 0, 2, TYPE_ROWS, true, false),
-        new Case(false, CODE_BYTES - SCALAR_BYTES, FRAME_LOCALS - SCALAR_LOCALS,
+        new Case(Profile.SCALAR, 3, 0, 2, TYPE_ROWS, true, false),
+        new Case(Profile.BINARY, 3, 0, 2, TYPE_ROWS, true, false),
+        new Case(Profile.GLOBAL_LITERAL, 3, 0, 2, TYPE_ROWS, true, false),
+        new Case(Profile.SCALAR, CODE_BYTES - SCALAR_BYTES, FRAME_LOCALS - SCALAR_LOCALS,
             STATEMENTS - SCALAR_LOCALS, TYPE_ROWS, true, false),
-        new Case(true, CODE_BYTES - BINARY_BYTES, FRAME_LOCALS - BINARY_LOCALS,
-            STATEMENTS - BINARY_LOCALS, TYPE_ROWS, true, false))) {
+        new Case(Profile.BINARY, CODE_BYTES - BINARY_BYTES, FRAME_LOCALS - BINARY_LOCALS,
+            STATEMENTS - BINARY_LOCALS, TYPE_ROWS, true, false),
+        new Case(Profile.GLOBAL_LITERAL, CODE_BYTES - GLOBAL_BYTES, FRAME_LOCALS,
+            STATEMENTS, TYPE_ROWS, true, false))) {
       check(row);
     }
   }
@@ -68,13 +75,19 @@ final class NativeDirectAssertionProductsExampleTest {
   @Test
   void rejectsFirstExcessAndMalformedLateBackingWithoutPublishing() throws Exception {
     for (Case row : List.of(
-        new Case(false, 3, 0, STATEMENTS, TYPE_ROWS, false, false),
-        new Case(true, 3, 0, STATEMENTS - BINARY_LOCALS + 1, TYPE_ROWS, false, false),
-        new Case(true, 3, 0, -1, TYPE_ROWS, false, false),
-        new Case(true, 3, 0, Long.MAX_VALUE, TYPE_ROWS, false, false),
-        new Case(true, 3, FRAME_LOCALS - BINARY_LOCALS + 1, 2, TYPE_ROWS, false, false),
-        new Case(true, CODE_BYTES - BINARY_BYTES + 1, 0, 2, TYPE_ROWS, false, false),
-        new Case(true, 3, 0, 2, TYPE_ROWS - 1, false, true))) {
+        new Case(Profile.SCALAR, 3, 0, STATEMENTS, TYPE_ROWS, false, false),
+        new Case(Profile.BINARY, 3, 0, STATEMENTS - BINARY_LOCALS + 1, TYPE_ROWS, false, false),
+        new Case(Profile.BINARY, 3, 0, -1, TYPE_ROWS, false, false),
+        new Case(Profile.BINARY, 3, 0, Long.MAX_VALUE, TYPE_ROWS, false, false),
+        new Case(Profile.BINARY, 3, FRAME_LOCALS - BINARY_LOCALS + 1, 2, TYPE_ROWS, false, false),
+        new Case(Profile.BINARY, CODE_BYTES - BINARY_BYTES + 1, 0, 2, TYPE_ROWS, false, false),
+        new Case(Profile.BINARY, 3, 0, 2, TYPE_ROWS - 1, false, true),
+        new Case(Profile.GLOBAL_LITERAL, -1, 0, 2, TYPE_ROWS, false, false),
+        new Case(Profile.GLOBAL_LITERAL, 3, -1, 2, TYPE_ROWS, false, false),
+        new Case(Profile.GLOBAL_LITERAL, 3, FRAME_LOCALS + 1, 2, TYPE_ROWS, false, false),
+        new Case(Profile.GLOBAL_LITERAL, CODE_BYTES - GLOBAL_BYTES + 1, 0, 2, TYPE_ROWS, false, false),
+        new Case(Profile.GLOBAL_LITERAL, 3, 0, STATEMENTS + 1, TYPE_ROWS, false, false),
+        new Case(Profile.GLOBAL_LITERAL, 3, 0, 2, TYPE_ROWS - 1, false, true))) {
       check(row);
     }
   }
@@ -156,7 +169,11 @@ final class NativeDirectAssertionProductsExampleTest {
         """.formatted(words, Long.BYTES, NAME.length(), CODE_BYTES, row.typeLength(), dimensions.size() + 2,
             declarations, GLOBALS, SENTINEL, SENTINEL, row.typeStart(), row.cursor(), row.base(), drops));
     var program = new WheelerCompiler().compileModuleFiles(sources, "example.assertion_windows");
-    String input = "// café 𝄞\n" + (row.binary() ? "assert(Alpha == 5);" : "assert(true);");
+    String input = "// café 𝄞\n" + switch (row.profile()) {
+      case SCALAR -> "assert(true);";
+      case BINARY -> "assert(Alpha < 5);";
+      case GLOBAL_LITERAL -> "assert(Alpha == 5);";
+    };
     var machine = new VirtualMachine(program, input.getBytes(StandardCharsets.UTF_8));
     long preparation = 0;
     while (machine.global("prepared") == 0 && preparation++ < program.maxSteps()) machine.stepWithoutRewindHistory();
@@ -165,18 +182,26 @@ final class NativeDirectAssertionProductsExampleTest {
     execute(machine, row.trap(), program.maxSteps());
     var after = machine.snapshot();
     assertEquals(row.trap() ? -1 : row.valid() ? 1 : 0, machine.global("valid"));
-    int localCount = row.binary() ? BINARY_LOCALS : SCALAR_LOCALS;
+    int localCount = switch (row.profile()) {
+      case SCALAR -> SCALAR_LOCALS;
+      case BINARY -> BINARY_LOCALS;
+      case GLOBAL_LITERAL -> 0;
+    };
     var expectedCode = ByteBuffer.allocate(CODE_BYTES).order(ByteOrder.LITTLE_ENDIAN);
     java.util.Arrays.fill(expectedCode.array(), (byte) SENTINEL);
     var instructions = new ArrayList<Instruction>();
     if (row.valid()) {
       expectedCode.position((int) row.cursor());
-      if (row.binary()) {
-        instructions.add(Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, row.base(), 0));
-        instructions.add(Instruction.of(Opcode.LOCAL_CONST, row.base() + 1, 5));
-        instructions.add(Instruction.of(Opcode.LOCAL_EQ, row.base() + 2, row.base(), row.base() + 1));
-      } else instructions.add(Instruction.of(Opcode.LOCAL_CONST, row.base(), 1));
-      instructions.add(Instruction.of(Opcode.EXPECT_TRUE, row.base() + localCount - 1));
+      if (row.profile() == Profile.GLOBAL_LITERAL) {
+        instructions.add(Instruction.of(Opcode.EXPECT_EQ, 0, 5));
+      } else {
+        if (row.profile() == Profile.BINARY) {
+          instructions.add(Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, row.base(), 0));
+          instructions.add(Instruction.of(Opcode.LOCAL_CONST, row.base() + 1, 5));
+          instructions.add(Instruction.of(Opcode.LOCAL_LT, row.base() + 2, row.base(), row.base() + 1));
+        } else instructions.add(Instruction.of(Opcode.LOCAL_CONST, row.base(), 1));
+        instructions.add(Instruction.of(Opcode.EXPECT_TRUE, row.base() + localCount - 1));
+      }
       for (Instruction instruction : instructions) {
         expectedCode.putShort((short) instruction.opcode().code()).putShort((short) instruction.operands().size())
             .putInt(instruction.encodedLength());

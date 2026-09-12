@@ -1,8 +1,9 @@
-package com.typeobject.wheeler.examples;
+package com.typeobject.wheeler.examples.calls;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.examples.NativeSourceFrontFixture;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,9 +16,9 @@ final class NativeCompilerCallStatementWindowExampleTest {
   private static final String CALL = "remote";
 
   @Test
-  void acceptsOnlyCompleteCallReturnAndScalarDeclarationWindowsAndRewinds() throws Exception {
-    for (String prefix : List.of("", "return ", "long result = ", "boolean result = ")) {
-      int head = prefix.isEmpty() ? 0 : prefix.startsWith("return") ? 1 : 3;
+  void acceptsCompleteCallReturnStoreAndScalarDeclarationWindowsAndRewinds() throws Exception {
+    for (String prefix : List.of("", "return ", "Alpha = ", "long result = ", "boolean result = ")) {
+      int head = prefix.isEmpty() ? 0 : prefix.startsWith("return") ? 1 : prefix.startsWith("Alpha") ? 2 : 3;
       for (String qualifier : List.of("", "dep.alpha::")) {
         String statement = prefix + qualifier + "remote(/* é */ value, flag);";
         check(statement, head, 2, true);
@@ -38,6 +39,10 @@ final class NativeCompilerCallStatementWindowExampleTest {
     check("long result = remote(value) + value;", 3, 1, false);
     check("boolean result == remote(value);", 3, 1, false);
     check("remote(value) + value;", 0, 1, false);
+    for (String statement : List.of("Alpha += remote(value);", "Alpha == remote(value);",
+        "Alpha = remote(value) + value;", "Alpha = remote(value); extra;")) {
+      check(statement, 2, 1, false);
+    }
   }
 
   @Test
@@ -137,13 +142,29 @@ final class NativeCompilerCallStatementWindowExampleTest {
   }
 
   @Test
+  void rejectsMalformedHeadInputsBeforeClassifyingAPrefix() throws Exception {
+    String call = "sourceCallHeadTokens(source, kinds, starts, lengths, count, 0)";
+    String body = "assert(" + call + " == 2);\n";
+    for (String count : List.of("-1", "-9223372036854775807 - 1", "4097")) {
+      body += "assert(" + call.replace("count,", count + ",") + " == -1);\n";
+    }
+    for (String first : List.of("-1", "count", "9223372036854775807")) {
+      body += "assert(" + call.replace(", 0)", ", " + first + ")") + " == -1);\n";
+    }
+    body += "long original = starts[1]; set(starts, 1, -1); assert(" + call
+        + " == -1); set(starts, 1, original);";
+    NativeSourceFrontFixture.check(program(body), "Alpha = remote(value);", machine -> {});
+  }
+
+  @Test
   void preservesAllValueAndFrameProductsWhenAReturnWindowRejects() throws Exception {
     String source = "classical class Calls { public long recurse(long number) { "
         + "return recurse(number) + number; } }";
     int bodyStart = source.indexOf('{', source.indexOf("recurse("));
     int bodyLength = source.indexOf('}', bodyStart) - bodyStart + 1;
     String body = """
-        region products = new region(/* bytes= */ 395776, /* allocations= */ 8);
+        region products = new region(PRODUCT_BYTES, /* allocations= */ 9);
+        bytes emptyNames = allocateBytes(products, EMPTY_NAME_BYTES);
         words bodies = allocate(products, 4096);
         words bodyLengths = allocate(products, 4096);
         words statements = allocate(products, 24576);
@@ -170,7 +191,7 @@ final class NativeCompilerCallStatementWindowExampleTest {
           cell += 1;
         }
         SourceValueProductPlan valuesPlan = materializeSourceValueProductsWithCalls(
-          source, 0, 0, 1, 0, bodies, 1, statements, 16384, 20480,
+          source, emptyNames, 0, 0, bodyLengths, 0, 0, 1, 0, bodies, 1, statements, 16384, 20480,
           1, calls, callStatements, values, functionLocals, statementLocals
         );
         assert(valuesPlan.valid == false);
@@ -189,11 +210,16 @@ final class NativeCompilerCallStatementWindowExampleTest {
         drop(statements);
         drop(bodyLengths);
         drop(bodies);
+        drop(emptyNames);
         drop(products);
         """.formatted(bodyStart, bodyLength, source.lastIndexOf("recurse"));
     Program program = NativeSourceFrontFixture.program(List.of(OWNER,
         "wheeler.compiler.closure.source_statement_products",
-        "wheeler.compiler.closure.source_value_products"), 4096, "", body);
+        "wheeler.compiler.closure.source_value_products"), 4096, """
+        const long EMPTY_NAME_BYTES = 1;
+        const long PRODUCT_WORDS = 4096 * 2 + 24576 + 1024 + 256 + 7168 + 64 + 8192;
+        const long PRODUCT_BYTES = PRODUCT_WORDS * 8 + EMPTY_NAME_BYTES;
+        """, body);
     NativeSourceFrontFixture.check(program, source, machine -> {});
   }
 
@@ -203,7 +229,9 @@ final class NativeCompilerCallStatementWindowExampleTest {
     int name = bytes(source.substring(0, source.indexOf(CALL)));
     String call = invocation("count", "1", Integer.toString(bytes(statement)),
         Integer.toString(name), "6", Integer.toString(arity), Integer.toString(head));
-    NativeSourceFrontFixture.check(program("assert(starts[1] == " + start + ");\nassert(" + call
+    String headCheck = valid ? "assert(sourceCallHeadTokens(source, kinds, starts, lengths, count, 1) == "
+        + head + ");\n" : "";
+    NativeSourceFrontFixture.check(program(headCheck + "assert(starts[1] == " + start + ");\nassert(" + call
         + " == " + valid + ");"), source, machine -> assertEquals(7, machine.snapshot().buffers().size()));
   }
 

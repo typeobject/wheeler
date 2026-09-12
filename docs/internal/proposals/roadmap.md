@@ -41,6 +41,9 @@ refer to the required products, not a demand that every umbrella finish first.
 | [WIP-0508](WIP-0508-checked-imported-nominal-fragments.md) | Share nominal fragments without kind-tag aliases or partial publication |
 | [WIP-0509](source/WIP-0509-root-scalar-global-locations.md) | Join root scalar locations, stores, and frame widths without closing the wider global access contract |
 | [WIP-0510](source/WIP-0510-root-scalar-assertion-products.md) | Bind root predicates through shared locations and checked assertion windows |
+| [WIP-0511](source/WIP-0511-counted-call-global-destinations.md) | Store counted call results at validated declaration ordinals |
+| [WIP-0512](source/WIP-0512-root-global-literal-assertions.md) | Join canonical zero-local global/literal assertions |
+| [WIP-0513](source/WIP-0513-immutable-source-lease-ranges.md) | Publish immutable source ranges without temporary lease buffers |
 
 Keep the distinction between implementation and evidence. WIP-0049 owns source
 lowering, WIP-0054 owns its artifact integration, and WIP-0048 owns final linking.

@@ -24,6 +24,10 @@ import java.util.Map;
 /** Compares retained call products without reopening imported dependency source. */
 final class NativeRetainedCallFixture {
   static final String MODULE = "example.structured_call";
+  private static final int ARTIFACT_BYTES = 32 * 1024;
+  private static final int IDENTITY_BYTES = 256 / Byte.SIZE;
+  private static final int PUBLICATION_BYTES = ARTIFACT_BYTES + IDENTITY_BYTES;
+  private static final int PUBLICATION_BUFFERS = 2;
 
   private NativeRetainedCallFixture() {}
 
@@ -126,23 +130,29 @@ final class NativeRetainedCallFixture {
       String source, boolean imported, int[] callerTypes, int[] targetTypes,
       int resultType, int effect) throws Exception {
     VirtualMachine machine = machine(source, imported, callerTypes, targetTypes, resultType, effect).machine();
+    while (machine.global("prepared") != 1) {
+      machine.stepWithoutRewindHistory();
+    }
+    var before = machine.snapshot();
+    byte[] originalOutput = machine.hostOutput();
+    var publicationRegions = before.regions().stream()
+        .filter(region -> region.maxBytes() == PUBLICATION_BYTES
+            && region.maxObjects() == PUBLICATION_BUFFERS).toList();
+    assertEquals(1, publicationRegions.size());
+    int region = publicationRegions.getFirst().id();
+    var publication = before.buffers().stream()
+        .filter(buffer -> buffer.regionId() == region).toList();
+    assertEquals(List.of(ARTIFACT_BYTES, IDENTITY_BYTES),
+        publication.stream().map(buffer -> buffer.length()).toList());
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
     assertEquals(0, machine.global("artifactLength"));
-    assertArrayEquals(new byte[32_768], machine.hostOutput());
-    var snapshot = machine.snapshot();
-    var publicationRegions = snapshot.regions().stream()
-        .filter(region -> region.maxBytes() == 32800 && region.maxObjects() == 2).toList();
-    assertFalse(publicationRegions.isEmpty());
-    // Publication storage precedes compiler staging and must remain untouched.
-    int region = publicationRegions.getFirst().id();
-    var publication = snapshot.buffers().stream()
-        .filter(buffer -> buffer.regionId() == region).toList();
-    assertEquals(List.of(32768, 32), publication.stream().map(buffer -> buffer.length()).toList());
+    assertEquals(0, machine.global("published"));
+    assertArrayEquals(originalOutput, machine.hostOutput());
+    var after = machine.snapshot();
+    assertEquals(publicationRegions.getFirst(), after.regions().get(region));
     for (var buffer : publication) {
       assertFalse(buffer.dropped());
-      for (long cell : buffer.elements()) {
-        assertEquals(0, cell, "unpublished artifact or identity");
-      }
+      assertEquals(buffer, after.buffers().get(buffer.id()), "unpublished artifact or identity");
     }
   }
 
@@ -158,6 +168,6 @@ final class NativeRetainedCallFixture {
     Program driver = StructuredCallSourceProductDriver.driverWithParameters(
         bodyStart, bodyLength, callerTypes, imported, targetTypes, resultType, effect,
         StructuredCallSourceProductDriver.SymbolProduct.none(), resultType);
-    return new Probe(driver, new VirtualMachine(driver, source.getBytes(StandardCharsets.UTF_8), 32_768));
+    return new Probe(driver, new VirtualMachine(driver, source.getBytes(StandardCharsets.UTF_8), ARTIFACT_BYTES));
   }
 }

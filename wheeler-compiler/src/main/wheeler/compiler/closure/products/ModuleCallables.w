@@ -22,6 +22,7 @@ classical class CountedModuleCallables {
   private const long MAX_DIRECT_IMPORTS = 64;
   private const long MAX_IMPORTS = 3072;
   private const long MAX_LOCAL_MODULES = 512;
+  private const long MAX_SOURCE_BYTES = 32768;
   private const long TOKEN_ARENA_BYTES = 98320;
 
   /// Describes one completely published closure-wide callable table.
@@ -522,7 +523,7 @@ classical class CountedModuleCallables {
 
     region slotArena = new region(
       /* bytes= */ ACTIVE_SOURCE_SLOT_ARENA_BYTES,
-      /* allocations= */ 6
+      /* allocations= */ ACTIVE_SOURCE_SLOT_BUFFERS
     );
     bytes storage = allocateBytes(slotArena, ACTIVE_SOURCE_SLOT_BYTES);
     words owners = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
@@ -595,15 +596,6 @@ classical class CountedModuleCallables {
         rank += 1;
       }
 
-      region sourceArena = new region(/* bytes= */ 65536, /* allocations= */ 2);
-      bytes archiveSource = allocateBytes(sourceArena, sourceLengths[module]);
-      long copied = 0;
-      while (copied < sourceLengths[module]) limit 32768 {
-        setByte(archiveSource, copied, archive[sourceStarts[module] + copied]);
-        copied += 1;
-      }
-
-      utf8 source = freezeUtf8(archiveSource);
       ActiveSourceHandle selected = new ActiveSourceHandle(-1, 0, module);
       ActiveSourceAcquireResult acquired = acquireActiveSourceSlot(
         module,
@@ -626,7 +618,9 @@ classical class CountedModuleCallables {
       requireMetadata(
         publishActiveSource(
           selected,
-          source,
+          archive,
+          sourceStarts[module],
+          sourceLengths[module],
           storage,
           owners,
           generations,
@@ -634,6 +628,7 @@ classical class CountedModuleCallables {
           live
         )
       );
+      region sourceArena = new region(/* bytes= */ MAX_SOURCE_BYTES, /* allocations= */ 1);
       bytes activeBytes = allocateBytes(sourceArena, sourceLengths[module]);
       requireMetadata(
         copyActiveSource(
@@ -695,11 +690,17 @@ classical class CountedModuleCallables {
       drop(tokenKinds);
       drop(tokenArena);
       drop(activeSource);
-      drop(source);
       drop(sourceArena);
       position += 1;
     }
 
+    CountedModuleCallablePlan result = new CountedModuleCallablePlan(
+      plan.moduleCount,
+      callableCount,
+      parameterTotal[0],
+      /* peakActiveSources= */ 1,
+      finalGeneration
+    );
     long publishedModule = 0;
     while (publishedModule < plan.moduleCount) limit MAX_LOCAL_MODULES {
       set(moduleFirstCallables, publishedModule, scratchFirstCallables[publishedModule]);
@@ -741,13 +742,6 @@ classical class CountedModuleCallables {
       parameter += 1;
     }
 
-    CountedModuleCallablePlan result = new CountedModuleCallablePlan(
-      plan.moduleCount,
-      callableCount,
-      parameterTotal[0],
-      /* peakActiveSources= */ 1,
-      finalGeneration
-    );
     drop(moduleRangeScratch);
     drop(processed);
     drop(parameterTotal);

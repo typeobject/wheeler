@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 /** Validates the whole global name window before selecting a declaration ordinal. */
 final class NativeSourceGlobalReferencesExampleTest {
   private static final int CAPACITY = 8;
-  private static final int COLUMNS = 3;
+  private static final int COLUMNS = 4;
   private static final int NAME_BYTES = 256;
   private static final int PREFIX = 2;
   private static final int TAIL = 3;

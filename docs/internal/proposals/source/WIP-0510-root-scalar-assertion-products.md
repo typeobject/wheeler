@@ -125,6 +125,11 @@ and twelve instructions. Publication takes 1,799,759 native transitions. Native
 global intake and callable execution replay also pass. The 181-target workspace,
 source documentation, formatter, and six-root Tree-sitter checks pass.
 
+Commit `13164625a` contains this implementation. Bootstrap run `34692581246`
+passes all 52 jobs, including `compare-bootstrap-outputs`. README, site, and
+CodeQL workflows also pass for that exact commit. Local publication produces
+identical documentation sites. These results do not change the proposal status.
+
 ## Acceptance
 
 - [x] The original three global assertion sources compile without member projection.
@@ -134,7 +139,7 @@ source documentation, formatter, and six-root Tree-sitter checks pass.
 - [x] False predicates, terminal windows, and phase replay have complete evidence.
 - [x] Affected adapters and physical source budgets pass against the final tree.
 - [x] Archive, graph, locks, and locked-consumer artifacts independently agree.
-- [ ] Documentation and hosted verification agree with the exact committed tree.
+- [x] Documentation and hosted verification agree with the exact committed tree.
 
 These checks do not establish native entry lowering, every physical compiler
 body, a compiler fixed point, or the parent access contract.

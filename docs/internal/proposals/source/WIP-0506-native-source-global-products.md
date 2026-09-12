@@ -41,7 +41,9 @@ as an initializer is not constant evaluation.
 
 `SourceGlobalProducts.w` uses shared member fronts to find declarations. It
 publishes declaration-ordered columns for copied name start, copied name length,
-and signed initial value. The product type already fixes the state type as
+signed initial value, and the declaration name's byte start in the module source.
+[WIP-0512](WIP-0512-root-global-literal-assertions.md) adds that source coordinate
+to preserve declaration-sensitive canonical assertion selection. The product type fixes the state type as
 signed 64-bit. It does not encode Boolean or nominal state by pretending that
 those values are signed words.
 
@@ -51,9 +53,9 @@ in a source-local artifact. Callable names occupy their existing separate
 namespace. A method may share a global's spelling.
 
 The native source window has eight globals, independent of the retained closure's
-4,096-global table. Its three columns need `8 * 3` words. Copied names need at
+4,096-global table. Its four columns need `8 * 4` words. Copied names need at
 most `8 * 256` bytes. Private value staging therefore needs
-`8 * 3 * 8 + 8 * 256` bytes in two buffers.
+`8 * 4 * 8 + 8 * 256 = 2,304` bytes in two buffers.
 
 The caller supplies three 4,096-token scratch columns. Another private window
 holds the two module coordinates and two eight-row front columns, for
@@ -95,13 +97,14 @@ it. No new owner relies on a dummy import for graph reachability.
 Artifact storage remains 32,768 bytes and identities remain 32 bytes. The native
 lifetime limit remains 65,535 buffers. Callable compilation reuses three private
 4,096-word columns for scanning and keeps its 17 metadata buffers. Name ordering
-needs four 256-row columns, followed by 32 global publication cells. The resulting
-metadata arena is 1,029,888 bytes.
+needs four 256-row columns, followed by `8 * (4 + 1) = 40` global publication
+cells. The declaration-coordinate extension adds `8 * 8 = 64` bytes to the
+original metadata arena, giving `1,029,888 + 64 = 1,029,952` bytes.
 
 Callable-free compilation needs a source copy, three scanner columns, and name
 products which its old empty facade did not read. Its calculated arena holds
-278,785 bytes and 14 buffers. State-bearing binding temporarily adds 2,240 bytes
-in two buffers. State-free binding itself still adds no owned storage. These
+`278,785 + 64 = 278,849` bytes and 14 buffers. State-bearing binding temporarily
+adds 2,304 bytes in two buffers. State-free binding itself still adds no owned storage. These
 per-call budgets do not establish full-closure lifetime headroom.
 
 [WIP-0499](../WIP-0499-native-global-call-assignments.md) covers the bounded scalar

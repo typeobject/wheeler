@@ -166,8 +166,28 @@ load order, and false predicates remain executable `EXPECT_TRUE` instructions.
 
 [WIP-0510](../docs/internal/proposals/source/WIP-0510-root-scalar-assertion-products.md)
 records this assertion join. It removes the root loop-opcode adapter and reduces
-the direct arena by 163,840 bytes and one buffer. Global conditions, helper-result
-stores, nested accesses, entry/nominal composition, and source-independent
+the direct arena by 163,840 bytes and one buffer. Root signed call results
+now store through the same declaration ordinals. They reserve argument evaluation
+and ABI transfer locals plus one result, without a synthetic destination local.
+[WIP-0511](../docs/internal/proposals/source/WIP-0511-counted-call-global-destinations.md)
+tracks that join. Counted imported targets carry signature stubs and identity
+relocations without dependency source. Final native global-instruction linking
+remains separate.
+
+[WIP-0512](../docs/internal/proposals/source/WIP-0512-root-global-literal-assertions.md)
+retains declaration-name source coordinates to select canonical global/literal
+assertions. A preceding state declaration selects zero-local `EXPECT_EQ` for an
+exact right-hand signed literal. Later states and nonliteral predicates retain
+their generic scalar code. Both paths validate complete windows before publication.
+
+[WIP-0513](../docs/internal/proposals/source/WIP-0513-immutable-source-lease-ranges.md)
+removes temporary archive buffers from source-lease publication. The scheduler
+uses seven buffers for two or 512 owners. Symbol and callable intake retain only
+the active-source copy needed for scanning. This addresses lifetime-buffer
+exhaustion in the selected physical check without increasing VM limits. The
+original physical selection now passes. Final feature and hosted gates remain open.
+
+Global conditions, nested accesses, entry/nominal composition, and source-independent
 instruction relocation remain open in
 [WIP-0507](../docs/internal/proposals/source/WIP-0507-native-source-global-access-products.md).
 

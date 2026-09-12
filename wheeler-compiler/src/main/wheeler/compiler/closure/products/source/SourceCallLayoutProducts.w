@@ -3,12 +3,17 @@
 module wheeler.compiler.closure.source_call_layout_products;
 
 import wheeler.compiler.closure.source_call_argument_layouts;
+import wheeler.compiler.closure.source_global_schema;
+import wheeler.compiler.encoding_widths;
+import wheeler.compiler.instruction_forms;
+import wheeler.compiler.opcodes;
 import wheeler.compiler.type_codes;
 
 classical class SourceCallLayoutProducts {
   private const long CALL_COUNT_LIMIT = SOURCE_CALL_COUNT_LIMIT;
   private const long CALL_ROWS = 1024;
-  private const long CALL_VOID = 0;
+  /// Names a call without a result destination.
+  public const long CALL_VOID = 0;
   /// Names a Boolean helper call guarding an exact `return false;` child.
   public const long CALL_CONDITION_FALSE_BOOLEAN = 5;
   /// Names a Boolean helper call guarding an exact `return true;` child.
@@ -17,12 +22,23 @@ classical class SourceCallLayoutProducts {
   public const long CALL_CONDITION_SIGNED_CONSTANT = 7;
   /// Names a Boolean helper call guarding an exact signed-literal return.
   public const long CALL_CONDITION_SIGNED_LITERAL = 8;
-  private const long CALL_FORWARD_BOOLEAN = 4;
-  private const long CALL_FORWARD_SIGNED = 3;
-  private const long CALL_VALUE_BOOLEAN = 2;
-  private const long CALL_VALUE_SIGNED = 1;
+  /// Names an immediate Boolean return destination.
+  public const long CALL_FORWARD_BOOLEAN = 4;
+  /// Names an immediate signed return destination.
+  public const long CALL_FORWARD_SIGNED = 3;
+  /// Names a new Boolean local destination.
+  public const long CALL_VALUE_BOOLEAN = 2;
+  /// Names a new signed local destination.
+  public const long CALL_VALUE_SIGNED = 1;
+  /// Names a validated declaration-ordinal signed store destination.
+  public const long CALL_STORE_GLOBAL_SIGNED = 9;
   private const long MAX_SIGNATURE_TYPES = 4096;
   private const long MAX_STATEMENTS = 4096;
+  private const long RESULT_LOCALS = 1;
+  private const long DECLARATION_LOCALS = 1;
+  private const long STAGING_WORDS = CALL_ROWS + MAX_STATEMENTS + CALL_COUNT_LIMIT;
+  private const long STAGING_BYTES = STAGING_WORDS * ENCODING_WIDTH_U64;
+  private const long STAGING_BUFFERS = 3;
 
   /// Reports one complete call-kind and physical-width product set.
   public record SourceCallLayoutPlan(long callCount, long localTypeCount, boolean valid) {}
@@ -61,7 +77,36 @@ classical class SourceCallLayoutProducts {
       return true;
     }
 
-    return kind == CALL_CONDITION_SIGNED_LITERAL;
+    if (kind == CALL_CONDITION_SIGNED_LITERAL) {
+      return true;
+    }
+
+    return kind == CALL_STORE_GLOBAL_SIGNED;
+  }
+
+  /// Validates the selected child value or global ordinal, including inactive zeroes.
+  public boolean sourceCallResultOperandValid(long kind, long operand) {
+    if (validSourceCallKind(kind) == false) {
+      return false;
+    }
+
+    if (kind == CALL_STORE_GLOBAL_SIGNED) {
+      if (operand < 0) {
+        return false;
+      }
+
+      return operand < MAX_SOURCE_GLOBALS;
+    }
+
+    if (kind == CALL_CONDITION_TRUE_BOOLEAN) {
+      return operand == 1;
+    }
+
+    if (sourceCallReturnsSignedChild(kind)) {
+      return true;
+    }
+
+    return operand == 0;
   }
 
   /// Reports whether one call condition returns a signed child value.
@@ -100,43 +145,58 @@ classical class SourceCallLayoutProducts {
     assert(validSourceCallKind(kind));
     assert(-1 < arity);
     assert(arity < SOURCE_CALL_ARITY_LIMIT + 1);
+    long argumentInstructions = arity * SOURCE_CALL_ARGUMENT_PHASES;
+    long callInstructions = 1;
     if (kind == CALL_VOID) {
-      if (arity == 0) {
-        return 1;
-      }
-
-      return arity * 2 + 1;
+      return argumentInstructions + callInstructions;
     }
 
     if (sourceCallConditionsResult(kind)) {
-      return arity * 2 + 5;
+      long branchInstructions = 1;
+      long childInstructions = 2;
+      long exitInstructions = 1;
+      return argumentInstructions + callInstructions + branchInstructions + childInstructions
+        + exitInstructions;
     }
 
-    return arity * 2 + 2;
+    long destinationInstructions = 1;
+    return argumentInstructions + callInstructions + destinationInstructions;
   }
 
-  /// Returns the exact encoded byte length for one typed call.
+  private long instructionBytes(long opcode) {
+    return ENCODING_INSTRUCTION_HEADER_BYTES + expectedOperandCount(opcode) * ENCODING_WIDTH_U64;
+  }
+
+  /// Derives byte lengths from canonical forms and argument preparation phases.
   public long sourceCallLength(long kind, long arity) {
     assert(validSourceCallKind(kind));
     assert(-1 < arity);
     assert(arity < SOURCE_CALL_ARITY_LIMIT + 1);
+    long argumentBytes = arity * SOURCE_CALL_ARGUMENT_PHASES * instructionBytes(OPCODE_LOCAL_MOVE);
     if (kind == CALL_VOID) {
       if (arity == 0) {
-        return 16;
+        return instructionBytes(OPCODE_CALL);
       }
 
-      return arity * 48 + 32;
+      return argumentBytes + instructionBytes(OPCODE_CALL_VOID);
     }
 
+    long callBytes = argumentBytes + instructionBytes(OPCODE_CALL_VALUE);
     if (sourceCallForwardsResult(kind)) {
-      return arity * 48 + 56;
+      return callBytes + instructionBytes(OPCODE_RETURN_VALUE);
     }
 
     if (sourceCallConditionsResult(kind)) {
-      return arity * 48 + 120;
+      return callBytes + instructionBytes(OPCODE_JUMP_IF_ZERO) + instructionBytes(
+        OPCODE_LOCAL_CONST
+      ) + instructionBytes(OPCODE_RETURN_VALUE) + instructionBytes(OPCODE_JUMP);
     }
 
-    return arity * 48 + 64;
+    if (kind == CALL_STORE_GLOBAL_SIGNED) {
+      return callBytes + instructionBytes(OPCODE_LOCAL_STORE_GLOBAL);
+    }
+
+    return callBytes + instructionBytes(OPCODE_LOCAL_MOVE);
   }
 
   /// Returns the exact physical local width for one typed call.
@@ -144,19 +204,41 @@ classical class SourceCallLayoutProducts {
     assert(validSourceCallKind(kind));
     assert(-1 < arity);
     assert(arity < SOURCE_CALL_ARITY_LIMIT + 1);
+    long argumentLocals = arity * SOURCE_CALL_ARGUMENT_PHASES;
     if (kind == CALL_VOID) {
-      return arity * 2;
+      return argumentLocals;
+    }
+
+    long resultLocals = argumentLocals + RESULT_LOCALS;
+    if (kind == CALL_STORE_GLOBAL_SIGNED) {
+      return resultLocals;
     }
 
     if (sourceCallForwardsResult(kind)) {
-      return arity * 2 + 1;
+      return resultLocals;
     }
 
     if (sourceCallConditionsResult(kind)) {
-      return arity * 2 + 1;
+      return resultLocals;
     }
 
-    return arity * 2 + 2;
+    return resultLocals + DECLARATION_LOCALS;
+  }
+
+  private long kindForSourceResult(long type) {
+    if (type == 0) {
+      return CALL_VOID;
+    }
+
+    if (type == TYPE_SIGNED) {
+      return CALL_VALUE_SIGNED;
+    }
+
+    if (type == TYPE_BOOLEAN) {
+      return CALL_VALUE_BOOLEAN;
+    }
+
+    return -1;
   }
 
   /// Validates and publishes exact typed call-statement widths atomically.
@@ -195,7 +277,7 @@ classical class SourceCallLayoutProducts {
     assert(bufferLength(resolvedCalls) == CALL_ROWS);
     assert(bufferLength(callLocalWidths) == CALL_COUNT_LIMIT);
 
-    region staging = new region(/* bytes= */ 43008, /* allocations= */ 3);
+    region staging = new region(STAGING_BYTES, STAGING_BUFFERS);
     words stagedCalls = allocate(staging, CALL_ROWS);
     words stagedWidths = allocate(staging, MAX_STATEMENTS);
     words stagedCallWidths = allocate(staging, CALL_COUNT_LIMIT);
@@ -253,7 +335,7 @@ classical class SourceCallLayoutProducts {
       long kind = -1;
       if (-1 < target) {
         if (target < targetCount) {
-          kind = targetResultTypes[target];
+          kind = kindForSourceResult(targetResultTypes[target]);
           if (targetParameterCounts[target] != arity) {
             valid = false;
           }
@@ -335,6 +417,7 @@ classical class SourceCallLayoutProducts {
       valid = false;
     }
 
+    SourceCallLayoutPlan result = new SourceCallLayoutPlan(callCount, localTypeCount, valid);
     if (valid) {
       long column = 0;
       while (column < 4) limit 4 {
@@ -364,6 +447,6 @@ classical class SourceCallLayoutProducts {
     drop(stagedWidths);
     drop(stagedCalls);
     drop(staging);
-    return new SourceCallLayoutPlan(callCount, localTypeCount, valid);
+    return result;
   }
 }

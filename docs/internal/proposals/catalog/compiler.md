@@ -180,3 +180,6 @@ Each record appears in one catalog. Cross-cutting work links its other owners fr
 | [WIP-0508](../WIP-0508-checked-imported-nominal-fragments.md) | Draft | Checked imported nominal fragments |
 | [WIP-0509](../source/WIP-0509-root-scalar-global-locations.md) | Draft | Root scalar global locations |
 | [WIP-0510](../source/WIP-0510-root-scalar-assertion-products.md) | Draft | Root scalar assertion products |
+| [WIP-0511](../source/WIP-0511-counted-call-global-destinations.md) | Draft | Counted call global destinations |
+| [WIP-0512](../source/WIP-0512-root-global-literal-assertions.md) | Draft | Root global literal assertions |
+| [WIP-0513](../source/WIP-0513-immutable-source-lease-ranges.md) | Draft | Immutable source lease ranges |

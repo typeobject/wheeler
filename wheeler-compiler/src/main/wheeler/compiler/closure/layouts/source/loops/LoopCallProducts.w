@@ -15,9 +15,6 @@ classical class LoopCallProducts {
   private const long CALL_KIND_ROW = 256;
   private const long CALL_TARGET_ROW = 768;
   private const long CALL_ROWS = 1024;
-  private const long CALL_FORWARD_BOOLEAN = 4;
-  private const long CALL_VOID = 0;
-  private const long CALL_VALUE_BOOLEAN = 2;
   private const long IDENTITY_BYTES = 32;
   private const long LOCAL_TYPE_COUNT_LIMIT = 4096;
   private const long LOCAL_TYPE_ROWS = 12288;
@@ -30,6 +27,10 @@ classical class LoopCallProducts {
   private const long STATEMENT_COUNT_LIMIT = 4096;
   private const long U64 = ENCODING_WIDTH_U64;
   private const long VALUE_COUNT_LIMIT = 1024;
+  private const long STAGING_WORDS = RELOCATION_ROWS + LOCAL_TYPE_ROWS + CALL_COUNT_LIMIT;
+  private const long STAGING_BYTES = STAGING_WORDS * U64 + RELOCATION_IDENTITY_BYTES
+    + MAX_CODE_BYTES;
+  private const long STAGING_BUFFERS = 3 + 2;
 
   /// Reports one complete loop call, local-type, and relocation extent.
   public record LoopCallPlan(
@@ -154,7 +155,7 @@ classical class LoopCallProducts {
     long localBase,
     long instructionStart,
     long target,
-    long conditionalValue,
+    long resultOperand,
     long firstArgument,
     long arity,
     borrow mut words argumentRows,
@@ -223,7 +224,7 @@ classical class LoopCallProducts {
         INSTRUCTION_FORM_BINARY
       );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2 + 1, U64);
-      cursor = writeSignedLittleEndian(output, cursor, conditionalValue, U64);
+      cursor = writeSignedLittleEndian(output, cursor, resultOperand, U64);
       cursor = writeInstructionHeader(
         output,
         cursor,
@@ -243,6 +244,22 @@ classical class LoopCallProducts {
         INSTRUCTION_FORM_UNARY
       );
       return writeUnsignedLittleEndian(output, cursor, localBase + arity * 2, U64);
+    }
+
+    if (kind == CALL_STORE_GLOBAL_SIGNED) {
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_STORE_GLOBAL,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, resultOperand, U64);
+      return writeUnsignedLittleEndian(
+        output,
+        cursor,
+        localBase + arity * SOURCE_CALL_ARGUMENT_PHASES,
+        U64
+      );
     }
 
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
@@ -298,7 +315,12 @@ classical class LoopCallProducts {
       set(stagedTypes, 4096 + typeCursor, localBase + arity * 2);
       set(stagedTypes, 8192 + typeCursor, resultType);
       typeCursor += 1;
-      if (sourceCallForwardsResult(kind) == false) {
+      boolean extraLocal = sourceCallForwardsResult(kind) == false;
+      if (kind == CALL_STORE_GLOBAL_SIGNED) {
+        extraLocal = false;
+      }
+
+      if (extraLocal) {
         long destinationType = resultType;
         if (sourceCallReturnsSignedChild(kind)) {
           destinationType = TYPE_SIGNED;
@@ -314,7 +336,7 @@ classical class LoopCallProducts {
     return typeCursor;
   }
 
-  /// Emits typed zero- through eight-argument calls and relocations atomically.
+  /// Emits typed calls within the shared arity bound and publishes relocations atomically.
   public LoopCallPlan writeLoopCallProducts(
     long callCount,
     borrow mut words callRows,
@@ -334,7 +356,7 @@ classical class LoopCallProducts {
     borrow mut bytes relocationIdentities,
     borrow mut words localTypeRows,
     borrow mut words callLocalWidths,
-    borrow mut words callConditionalValues,
+    borrow mut words callResultOperands,
     borrow mut words statementPhysicalStarts,
     borrow mut words statementPhysicalWidths,
     borrow mut bytes output
@@ -359,7 +381,7 @@ classical class LoopCallProducts {
     assert(bufferLength(relocationIdentities) == RELOCATION_IDENTITY_BYTES);
     assert(bufferLength(localTypeRows) == LOCAL_TYPE_ROWS);
     assert(bufferLength(callLocalWidths) == CALL_COUNT_LIMIT);
-    assert(bufferLength(callConditionalValues) == CALL_COUNT_LIMIT);
+    assert(bufferLength(callResultOperands) == CALL_COUNT_LIMIT);
     assert(bufferLength(statementPhysicalStarts) == STATEMENT_COUNT_LIMIT);
     assert(bufferLength(statementPhysicalWidths) == STATEMENT_COUNT_LIMIT);
     assert(bufferLength(output) == MAX_CODE_BYTES);
@@ -382,23 +404,8 @@ classical class LoopCallProducts {
         valid = false;
       }
 
-      long conditionalValue = callConditionalValues[call];
-      if (kind == CALL_CONDITION_FALSE_BOOLEAN) {
-        if (conditionalValue != 0) {
-          valid = false;
-        }
-      } else {
-        if (kind == CALL_CONDITION_TRUE_BOOLEAN) {
-          if (conditionalValue != 1) {
-            valid = false;
-          }
-        } else {
-          if (sourceCallReturnsSignedChild(kind) == false) {
-            if (conditionalValue != 0) {
-              valid = false;
-            }
-          }
-        }
+      if (sourceCallResultOperandValid(kind, callResultOperands[call]) == false) {
+        valid = false;
       }
 
       if (statement < 0) {
@@ -539,7 +546,7 @@ classical class LoopCallProducts {
       return new LoopCallPlan(0, 0, 0, 0, false);
     }
 
-    region staging = new region(/* bytes= */ 376832, /* allocations= */ 5);
+    region staging = new region(STAGING_BYTES, STAGING_BUFFERS);
     words stagedRelocations = allocate(staging, RELOCATION_ROWS);
     bytes stagedIdentities = allocateBytes(staging, RELOCATION_IDENTITY_BYTES);
     words stagedTypes = allocate(staging, LOCAL_TYPE_ROWS);
@@ -575,7 +582,7 @@ classical class LoopCallProducts {
         emittedLocalBase,
         callInstructionStarts[call],
         emittedTarget,
-        callConditionalValues[call],
+        callResultOperands[call],
         emittedFirstArgument,
         emittedArity,
         argumentRows,
@@ -597,6 +604,15 @@ classical class LoopCallProducts {
       call += 1;
     }
 
+    assert(cursor == length);
+    assert(typeCursor == localTypeCount);
+    LoopCallPlan result = new LoopCallPlan(
+      instructionCount,
+      cursor,
+      callCount,
+      typeCursor,
+      true
+    );
     long column = 0;
     while (column < 3) limit 3 {
       long relocationRow = 0;
@@ -651,6 +667,6 @@ classical class LoopCallProducts {
     drop(stagedIdentities);
     drop(stagedRelocations);
     drop(staging);
-    return new LoopCallPlan(instructionCount, cursor, callCount, typeCursor, true);
+    return result;
   }
 }

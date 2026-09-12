@@ -27,12 +27,13 @@ public final class NativeGlobalExecutionAssertions {
   private NativeGlobalExecutionAssertions() {}
 
   /** Checks state reads and stores with arguments distinct from the declared initializer. */
-  public static void assertExecution(byte[] artifact, Program oracle, boolean assertionFails) {
+  public static void assertExecution(
+      byte[] artifact, Program oracle, String subjectName, boolean assertionFails) {
     Program nativeProgram = new BytecodeReader().read(artifact);
     for (long argument : new long[] {5, 8}) {
-      VirtualMachine expected = new VirtualMachine(withEntry(oracle, argument));
+      VirtualMachine expected = new VirtualMachine(withEntry(oracle, subjectName, argument));
       run(expected, oracle.maxSteps(), assertionFails);
-      VirtualMachine actual = new VirtualMachine(withEntry(nativeProgram, argument));
+      VirtualMachine actual = new VirtualMachine(withEntry(nativeProgram, subjectName, argument));
       var before = actual.snapshot();
       run(actual, nativeProgram.maxSteps(), assertionFails);
       var after = actual.snapshot();
@@ -70,8 +71,8 @@ public final class NativeGlobalExecutionAssertions {
     assertEquals(MachineStatus.HALTED, machine.status());
   }
 
-  private static Program withEntry(Program module, long argument) {
-    FunctionBody subject = module.functions().stream().filter(row -> row.name().endsWith("::compute"))
+  private static Program withEntry(Program module, String subjectName, long argument) {
+    FunctionBody subject = module.functions().stream().filter(row -> row.name().equals(subjectName))
         .findFirst().orElseThrow();
     assertEquals(1, subject.parameterCount());
     assertEquals(ValueType.SIGNED, subject.resultType());

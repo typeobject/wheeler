@@ -216,9 +216,93 @@ classical class SourceCallArgumentProducts {
     return punctuationAt(source, kinds, starts, cursor + 1, PUNCTUATION_COLON);
   }
 
+  /// Selects a call prefix without binding its callee or destination.
+  public long sourceCallHeadTokens(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long count,
+    long first
+  ) {
+    if (count < 1) {
+      return -1;
+    }
+
+    if (MAX_COMPILER_TOKENS < count) {
+      return -1;
+    }
+
+    if (bufferLength(kinds) != MAX_COMPILER_TOKENS) {
+      return -1;
+    }
+
+    if (bufferLength(starts) != MAX_COMPILER_TOKENS) {
+      return -1;
+    }
+
+    if (bufferLength(lengths) != MAX_COMPILER_TOKENS) {
+      return -1;
+    }
+
+    if (first < 0) {
+      return -1;
+    }
+
+    if (count - 1 < first) {
+      return -1;
+    }
+
+    long checked = first;
+    while (checked < first + 2) limit 2 {
+      if (checked < count) {
+        long start = starts[checked];
+        long length = lengths[checked];
+        if (start < 0) {
+          return -1;
+        }
+
+        if (bufferLength(source) < start) {
+          return -1;
+        }
+
+        if (length < 1) {
+          return -1;
+        }
+
+        if (bufferLength(source) - start < length) {
+          return -1;
+        }
+      }
+
+      checked += 1;
+    }
+
+    long word = sourceTokenCode(source, starts, lengths, first);
+    if (word == TOKEN_RETURN) {
+      return 1;
+    }
+
+    if (word == TOKEN_LONG) {
+      return 3;
+    }
+
+    if (word == TOKEN_BOOLEAN) {
+      return 3;
+    }
+
+    if (first + 1 < count) {
+      if (punctuationAt(source, kinds, starts, first + 1, PUNCTUATION_ASSIGN)) {
+        return 2;
+      }
+    }
+
+    return 0;
+  }
+
   /// Checks a complete call statement against its retained call-name and arity rows.
   ///
-  /// Heads contain zero tokens for a call, one for a return, or three for a scalar declaration.
+  /// Heads contain zero tokens for a call, one for a return, two for a store, or three for a declaration.
   /// Scanner columns own token spelling and trivia. Target and value binding remain separate.
   public boolean sourceCallStatementValid(
     borrow utf8 source,
@@ -235,6 +319,10 @@ classical class SourceCallArgumentProducts {
   ) {
     boolean headValid = headTokens == 0;
     if (headTokens == 1) {
+      headValid = true;
+    }
+
+    if (headTokens == 2) {
       headValid = true;
     }
 
@@ -347,6 +435,14 @@ classical class SourceCallArgumentProducts {
 
     if (headTokens == 1) {
       if (sourceTokenCode(source, starts, lengths, first) != TOKEN_RETURN) {
+        return false;
+      }
+    }
+
+    if (headTokens == 2) {
+      if (
+        punctuationAt(source, kinds, starts, first + 1, PUNCTUATION_ASSIGN) == false
+      ) {
         return false;
       }
     }

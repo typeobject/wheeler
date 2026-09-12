@@ -8,6 +8,7 @@ import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.closure.source_call_argument_products;
+import wheeler.compiler.closure.source_global_assertion_profile;
 import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
@@ -27,6 +28,14 @@ classical class SourceValueProducts {
   private const long MAX_VALUES = 1024;
   private const long SOURCE_STATEMENT_ROWS = 24576;
   private const long VALUE_ROWS = 7168;
+  private const long TOKEN_COLUMNS = 3;
+  private const long STATEMENT_LOCAL_COLUMNS = 2;
+  private const long STATEMENT_LOCAL_ROWS = MAX_STATEMENTS * STATEMENT_LOCAL_COLUMNS;
+  private const long WORD_BYTES = 8;
+  private const long STAGING_WORDS = MAX_COMPILER_TOKENS * TOKEN_COLUMNS + VALUE_ROWS
+    + FUNCTION_LOCAL_ROWS + STATEMENT_LOCAL_ROWS;
+  private const long STAGING_BYTES = STAGING_WORDS * WORD_BYTES;
+  private const long STAGING_BUFFERS = TOKEN_COLUMNS + 3;
 
   /// Reports named values and reserved widths, not complete operand-name admission.
   /// Instruction binding must still validate every assertion before statement publication.
@@ -41,6 +50,10 @@ classical class SourceValueProducts {
   /// Publishes named locals for one source product that contains no calls.
   public SourceValueProductPlan materializeSourceValueProducts(
     borrow utf8 source,
+    borrow byteview globalNames,
+    long globalCount,
+    long globalProductStart,
+    borrow mut words globals,
     long archiveSourceStart,
     long firstCallable,
     long callableCount,
@@ -59,6 +72,10 @@ classical class SourceValueProducts {
     words callStatements = allocate(noCalls, /* length= */ 256);
     SourceValueProductPlan plan = materializeSourceValueProductsWithCalls(
       source,
+      globalNames,
+      globalCount,
+      globalProductStart,
+      globals,
       archiveSourceStart,
       firstCallable,
       callableCount,
@@ -84,6 +101,10 @@ classical class SourceValueProducts {
   /// Publishes named locals from statement and exact source-call products.
   public SourceValueProductPlan materializeSourceValueProductsWithCalls(
     borrow utf8 source,
+    borrow byteview globalNames,
+    long globalCount,
+    long globalProductStart,
+    borrow mut words globals,
     long archiveSourceStart,
     long firstCallable,
     long callableCount,
@@ -131,15 +152,16 @@ classical class SourceValueProducts {
     assert(bufferLength(callStatements) == 256);
     assert(bufferLength(valueRows) == VALUE_ROWS);
     assert(bufferLength(functionLocalCounts) == FUNCTION_LOCAL_ROWS);
-    assert(bufferLength(statementLocalRows) == 8192);
+    assert(bufferLength(statementLocalRows) == STATEMENT_LOCAL_ROWS);
+    requireSourceGlobalDeclarationRanges(source, globalCount, globalProductStart, globals);
 
-    region staging = new region(/* bytes= */ 221696, /* allocations= */ 6);
+    region staging = new region(STAGING_BYTES, STAGING_BUFFERS);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedValues = allocate(staging, VALUE_ROWS);
     words stagedLocalCounts = allocate(staging, FUNCTION_LOCAL_ROWS);
-    words stagedStatementLocals = allocate(staging, /* length= */ 8192);
+    words stagedStatementLocals = allocate(staging, STATEMENT_LOCAL_ROWS);
     boolean valid = true;
     long failureFunction = -1;
     long failureStatement = -1;
@@ -600,6 +622,22 @@ classical class SourceValueProducts {
               );
               if (assertion.valid) {
                 localWidth = scalarRelationValueWidth(assertion.kind);
+                if (statementRows[4096 + statement] == functionRootBlock) {
+                  long assertionGlobal = globalLiteralAssertionOrdinal(
+                    assertion,
+                    source,
+                    tokenStarts,
+                    tokenLengths,
+                    globalNames,
+                    globalCount,
+                    globalProductStart,
+                    globals
+                  );
+                  if (-1 < assertionGlobal) {
+                    localWidth = 0;
+                  }
+                }
+
                 resultLocal = -1;
               } else {
                 valid = false;
@@ -653,61 +691,48 @@ classical class SourceValueProducts {
           if (-1 < statementCall) {
             if (-1 < statementToken) {
               long callArity = callRows[512 + statementCall];
-              boolean completeCall = sourceCallStatementValid(
-                source,
-                tokenKinds,
-                tokenStarts,
-                tokenLengths,
-                semanticCount,
-                statementToken,
-                statementRows[statementLengthRow + statement],
-                callRows[statementCall],
-                callRows[256 + statementCall],
-                callArity,
-                /* headTokens= */ 0
-              );
-              if (completeCall) {
-                localWidth = callArity * 2;
-                resultLocal = -1;
-              } else {
-                long word = sourceTokenCode(source, tokenStarts, tokenLengths, statementToken);
-                if (word != TOKEN_IF) {
-                  long headTokens = -1;
-                  if (word == TOKEN_RETURN) {
-                    headTokens = 1;
+              long word = sourceTokenCode(source, tokenStarts, tokenLengths, statementToken);
+              if (word != TOKEN_IF) {
+                long headTokens = sourceCallHeadTokens(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  tokenLengths,
+                  semanticCount,
+                  statementToken
+                );
+                boolean completeCall = sourceCallStatementValid(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  tokenLengths,
+                  semanticCount,
+                  statementToken,
+                  statementRows[statementLengthRow + statement],
+                  callRows[statementCall],
+                  callRows[256 + statementCall],
+                  callArity,
+                  headTokens
+                );
+                if (headTokens == 2) {
+                  if (statementRows[4096 + statement] != functionRootBlock) {
+                    completeCall = false;
+                  }
+                }
+
+                if (completeCall) {
+                  localWidth = callArity * SOURCE_CALL_ARGUMENT_PHASES;
+                  resultLocal = -1;
+                  if (0 < headTokens) {
+                    localWidth += SCALAR_RESULT_LOCALS;
                   }
 
-                  if (word == TOKEN_LONG) {
-                    headTokens = 3;
+                  if (headTokens == 3) {
+                    localWidth += SCALAR_RESULT_LOCALS;
+                    resultLocal = localBase + localWidth - 1;
                   }
-
-                  if (word == TOKEN_BOOLEAN) {
-                    headTokens = 3;
-                  }
-
-                  completeCall = sourceCallStatementValid(
-                    source,
-                    tokenKinds,
-                    tokenStarts,
-                    tokenLengths,
-                    semanticCount,
-                    statementToken,
-                    statementRows[statementLengthRow + statement],
-                    callRows[statementCall],
-                    callRows[256 + statementCall],
-                    callArity,
-                    headTokens
-                  );
-                  if (completeCall) {
-                    localWidth = callArity * 2 + 1;
-                    resultLocal = -1;
-                    if (headTokens == 3) {
-                      localWidth += 1;
-                      resultLocal = localBase + localWidth - 1;
-                    }
-                  } else {
-                    valid = false;
-                  }
+                } else {
+                  valid = false;
                 }
               }
             }

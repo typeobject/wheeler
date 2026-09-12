@@ -58,14 +58,14 @@ classical class DirectStatementPublication {
     boolean valid,
     borrow mut words stagedRows,
     borrow mut words stagedCallKinds,
-    borrow mut words stagedCallConditionalValues,
+    borrow mut words stagedCallResultOperands,
     borrow mut words stagedResultTypes,
     borrow mut words stagedTypes,
     borrow mut words stagedWidths,
     borrow byteview stagedCode,
     borrow mut words directRows,
     borrow mut words callRows,
-    borrow mut words callConditionalValues,
+    borrow mut words callResultOperands,
     borrow mut words functionResultTypes,
     borrow mut words typeRows,
     borrow mut words statementPhysicalWidths,
@@ -100,9 +100,9 @@ classical class DirectStatementPublication {
     assert(bufferLength(output) == MAX_CODE_BYTES);
     if (0 < callCount) {
       assert(bufferLength(stagedCallKinds) == DIRECT_CALLS);
-      assert(bufferLength(stagedCallConditionalValues) == DIRECT_CALLS);
+      assert(bufferLength(stagedCallResultOperands) == DIRECT_CALLS);
       assert(bufferLength(callRows) == DIRECT_CALLS * 4);
-      assert(bufferLength(callConditionalValues) == DIRECT_CALLS);
+      assert(bufferLength(callResultOperands) == DIRECT_CALLS);
     }
 
     DirectStatementPlan result = new DirectStatementPlan(
@@ -129,7 +129,7 @@ classical class DirectStatementPublication {
     long call = 0;
     while (call < callCount) limit DIRECT_CALLS {
       set(callRows, DIRECT_CALLS + call, stagedCallKinds[call]);
-      set(callConditionalValues, call, stagedCallConditionalValues[call]);
+      set(callResultOperands, call, stagedCallResultOperands[call]);
       call += 1;
     }
 

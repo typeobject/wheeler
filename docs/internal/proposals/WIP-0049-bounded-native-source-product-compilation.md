@@ -329,7 +329,9 @@ product publication evidence, not compilation of every physical body.
 [WIP-0506](source/WIP-0506-native-source-global-products.md) joins signed state
 initializers with canonical source-module emission. Shared member fronts and the
 complete scalar packet produce declaration-ordered names and values. The archive
-adapter retains the three declaration columns and adds canonical name IDs. Both
+adapter retains the declaration columns and adds canonical name IDs.
+[WIP-0512](source/WIP-0512-root-global-literal-assertions.md) adds original name
+coordinates so assertion selection preserves declaration order. Both
 callable and callable-free paths emit globals before container verification.
 They no longer discard unused state or invent a fixed class-name ID after adding
 global strings.

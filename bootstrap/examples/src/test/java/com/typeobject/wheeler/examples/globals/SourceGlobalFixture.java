@@ -20,7 +20,7 @@ import java.util.Map;
 /** Runs the native state binder and compares every caller cell with a separate source oracle. */
 final class SourceGlobalFixture {
   static final int GLOBALS = 8;
-  static final int COLUMNS = 3;
+  static final int COLUMNS = 4;
   static final int NAME_WIDTH = 256;
   static final int TOKENS = 4096;
   static final int PREFIX = 2;
@@ -133,6 +133,11 @@ final class SourceGlobalFixture {
       products[PREFIX + global] = cursor;
       products[PREFIX + GLOBALS + global] = value.name().length();
       products[PREFIX + GLOBALS * 2 + global] = value.initialValue();
+      String declarationPrefix = "state long ";
+      int declaration = source.indexOf(declarationPrefix + value.name() + " =") + declarationPrefix.length();
+      assertTrue(declaration >= declarationPrefix.length());
+      products[PREFIX + GLOBALS * 3 + global] = source.substring(0, declaration)
+          .getBytes(StandardCharsets.UTF_8).length;
       for (byte scalar : value.name().getBytes(StandardCharsets.UTF_8)) {
         names[cursor++] = Byte.toUnsignedInt(scalar);
       }

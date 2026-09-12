@@ -133,6 +133,23 @@ and uses the same scalar locations as returns and stores.
 The three cases now match independent complete artifacts. The wider matrix keeps
 ordinary local and Boolean assertions, literal-left order, actual loads after
 stores, and atomic rejection of malformed later predicates. The old root loop
-opcode adapter and its scratch table are gone. WIP-0510 records the passing adapter, package, and selected physical checks
-separately from pending committed-tree verification. No synthetic local or projected
-source replaces a global assertion.
+opcode adapter and its scratch table are gone. Commit `13164625a` passes the
+adapter, package, selected physical, and all 52 hosted bootstrap checks.
+No synthetic local or projected source replaces a global assertion.
+
+## Counted call destinations
+
+[WIP-0511](WIP-0511-counted-call-global-destinations.md) owns root counted-call
+stores. A terminating recursive archive case keeps two globals and assigns the
+call result to declaration ordinal one. Its original native value plan rejected
+statement 2, `Alpha = compute(zero);`, with failure code 2. Shared prefix admission
+and destination binding now produce complete matching artifacts and execution.
+
+Local cases cover ordinals zero, one, and seven, repeated calls, zero and 64
+arguments, and a helper named `entry` with an ordinary step claim. Nested call
+assignments reject rather than inherit a return destination. Imported target
+products now preserve complete caller artifacts and identity relocations without
+dependency source. WIP-0512 preserves the distinct canonical global/literal
+assertion forms for both declaration orders. Final package, physical, and
+exact-commit acceptance evidence remains open.
+Do not reuse a fixed state-zero destination or reopen dependency bodies.

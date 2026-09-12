@@ -2,9 +2,11 @@
 
 module wheeler.compiler.closure.direct_assertion_products;
 
+import wheeler.compiler.closure.direct_global_literal_assertions;
 import wheeler.compiler.closure.direct_scalar_encoding;
 import wheeler.compiler.closure.direct_scalar_relations;
 import wheeler.compiler.closure.direct_statement_publication;
+import wheeler.compiler.closure.source_global_assertion_profile;
 import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.source_scalars;
@@ -72,6 +74,14 @@ classical class DirectAssertionProducts {
       return invalidAssertion();
     }
 
+    if (localBase < 0) {
+      return invalidAssertion();
+    }
+
+    if (INTERPRETER_LOCAL_WIDTH < localBase) {
+      return invalidAssertion();
+    }
+
     SourceReversibleResultRelation syntax = sourceAssertionRelation(
       source,
       token,
@@ -132,6 +142,43 @@ classical class DirectAssertionProducts {
       ) == false
     ) {
       return invalidAssertion();
+    }
+
+    long global = globalLiteralAssertionOrdinal(
+      syntax,
+      source,
+      tokenStarts,
+      tokenLengths,
+      globalNames,
+      globalCount,
+      globalProductStart,
+      globals
+    );
+    if (-1 < global) {
+      DirectScalarExtent globalExtent = measureGlobalLiteralAssertion(cursor, global);
+      if (globalExtent.valid == false) {
+        return invalidAssertion();
+      }
+
+      if (MAX_STATEMENTS < typeCount) {
+        return invalidAssertion();
+      }
+
+      DirectAssertionProduct globalResult = new DirectAssertionProduct(
+        globalExtent.next,
+        globalExtent.instructionCount,
+        typeCount,
+        true
+      );
+      DirectScalarExtent globalWritten = writeGlobalLiteralAssertion(
+        output,
+        cursor,
+        global,
+        syntax.immediate
+      );
+      assert(globalWritten.valid);
+      assert(globalWritten.next == globalExtent.next);
+      return globalResult;
     }
 
     DirectScalarExtent extent = measureDirectScalarDestination(

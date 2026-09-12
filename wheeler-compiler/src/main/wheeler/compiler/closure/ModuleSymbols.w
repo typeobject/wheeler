@@ -446,7 +446,7 @@ classical class CountedModuleSymbols {
 
     region slotArena = new region(
       /* bytes= */ ACTIVE_SOURCE_SLOT_ARENA_BYTES,
-      /* allocations= */ 6
+      /* allocations= */ ACTIVE_SOURCE_SLOT_BUFFERS
     );
     bytes storage = allocateBytes(slotArena, ACTIVE_SOURCE_SLOT_BYTES);
     words owners = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
@@ -529,15 +529,6 @@ classical class CountedModuleSymbols {
       requireMetadata(sourceLength < MAX_SOURCE_BYTES + 1);
       requireMetadata(-1 < sourceStart);
       requireMetadata(sourceLength < bufferLength(archive) - sourceStart + 1);
-      region sourceArena = new region(/* bytes= */ 65536, /* allocations= */ 2);
-      bytes archiveBytes = allocateBytes(sourceArena, sourceLength);
-      long cursor = 0;
-      while (cursor < sourceLength) limit MAX_SOURCE_BYTES {
-        setByte(archiveBytes, cursor, archive[sourceStart + cursor]);
-        cursor += 1;
-      }
-
-      utf8 archiveSource = freezeUtf8(archiveBytes);
       ActiveSourceHandle selected = new ActiveSourceHandle(0, 0, 0);
       ActiveSourceAcquireResult acquired = acquireActiveSourceSlot(
         module,
@@ -559,7 +550,9 @@ classical class CountedModuleSymbols {
       requireMetadata(
         publishActiveSource(
           selected,
-          archiveSource,
+          archive,
+          sourceStart,
+          sourceLength,
           storage,
           owners,
           generations,
@@ -567,6 +560,7 @@ classical class CountedModuleSymbols {
           live
         )
       );
+      region sourceArena = new region(/* bytes= */ MAX_SOURCE_BYTES, /* allocations= */ 1);
       bytes activeBytes = allocateBytes(sourceArena, sourceLength);
       requireMetadata(
         copyActiveSource(
@@ -629,11 +623,16 @@ classical class CountedModuleSymbols {
       drop(tokenKinds);
       drop(tokenArena);
       drop(activeSource);
-      drop(archiveSource);
       drop(sourceArena);
       position += 1;
     }
 
+    CountedModuleSymbolPlan result = new CountedModuleSymbolPlan(
+      plan.moduleCount,
+      symbolCount,
+      /* peakActiveSources= */ 1,
+      finalGeneration
+    );
     long publishedModule = 0;
     while (publishedModule < plan.moduleCount) limit MAX_LOCAL_MODULES {
       set(moduleFirstSymbols, publishedModule, scratchFirstSymbols[publishedModule]);
@@ -665,12 +664,6 @@ classical class CountedModuleSymbols {
       symbol += 1;
     }
 
-    CountedModuleSymbolPlan result = new CountedModuleSymbolPlan(
-      plan.moduleCount,
-      symbolCount,
-      /* peakActiveSources= */ 1,
-      finalGeneration
-    );
     drop(processed);
     drop(scratchImportedRows);
     drop(scratchResolved);

@@ -139,6 +139,7 @@ classical class SourceGlobalProducts {
       set(staged, global, nameBytes);
       set(staged, SOURCE_GLOBAL_LENGTH_ROW + global, length);
       set(staged, SOURCE_GLOBAL_VALUE_ROW + global, initial.value);
+      set(staged, SOURCE_GLOBAL_DECLARATION_ROW + global, starts[nameToken]);
       nameBytes += length;
       global += 1;
     }
@@ -173,6 +174,11 @@ classical class SourceGlobalProducts {
           products,
           productStart + SOURCE_GLOBAL_VALUE_ROW + published,
           staged[SOURCE_GLOBAL_VALUE_ROW + published]
+        );
+        set(
+          products,
+          productStart + SOURCE_GLOBAL_DECLARATION_ROW + published,
+          staged[SOURCE_GLOBAL_DECLARATION_ROW + published]
         );
         published += 1;
       }
