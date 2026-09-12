@@ -516,8 +516,26 @@ Independent archives, the 224,981-byte graph, four refreshed locks, and the
 A locked public-API consumer emits an 872-byte executable with entry zero, a later
 helper, three globals, and a checked step claim. Complete publication, retention,
 unchanged entry execution, rewind, and replay agree below the command step bound.
-Exact-tree hosted gates remain open. The intact mixed-member runner still needs
-nominal instruction composition and replacement of its minimal dispatcher.
+Commit `fd496b110` passes all 52 hosted bootstrap jobs, including output
+comparison. README, site, and CodeQL also pass. That follow-up preserves the
+original final-entry call mutation as a Java-accepted verifier control and adds
+an actual out-of-range target rejection. The intact mixed-member runner still
+needs nominal instruction composition and replacement of its minimal dispatcher.
+
+[WIP-0517](source/fronts/WIP-0517-counted-callable-front-staging.md) extracts
+source-local callable staging from the counted closure index. Shared member,
+modifier, parameter, and type fronts replace its private delimiter parser.
+Direct fixtures check complete mixed-member coordinates, terminal windows,
+private storage identities, and atomic two-module publication. The final
+28-example and twelve-documentation selection passes, along with source and
+Tree-sitter gates. The original physical selection passes in thirteen minutes
+and 22 seconds. Archive intake now checks 483 modules, 2,405 constants, and 1,898
+callables. Independent archives, graph identities, four locks, and the 181-target
+workspace agree. A locked consumer stages the intact mixed-member source within
+the unchanged command bound. Exact-tree publication remains open.
+[WIP-0516](source/aggregate/WIP-0516-counted-aggregate-primitive-compilation.md)
+still needs to replace the aggregate adapter's internal primitive compiler.
+Replacing only the runner dispatcher would leave that minimal path underneath.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate

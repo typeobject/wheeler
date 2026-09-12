@@ -156,8 +156,15 @@ The consumer artifact identity is
 Two independent documentation sites contain the same 34 files and bytes. The
 literal repository audit finds no overlong text files, but nineteen source
 directories and 45 physical directories still exceed ten files. Narrow source
-gates do not close that repository-wide requirement. Exact-tree publication and
-hosted acceptance remain open.
+gates do not close that repository-wide requirement.
+
+Commit `c540db0f1` publishes entry support. Follow-up
+`fd496b110b422db39d2e67b3eb21443b30603773` repairs the stale verifier target test
+recorded in WIP-0515, without changing compiler source or native identities.
+Bootstrap run `34715602116` passes all 52 jobs, including output comparison.
+README quickstart `34715602154`, documentation site `34715602093`, and CodeQL
+`34715601865` also pass on that exact commit. Later callable-front and aggregate
+work needs its own evidence.
 
 ## Acceptance
 
@@ -170,4 +177,4 @@ hosted acceptance remain open.
 - [x] Actual-code claims verify after entry composition, including rejection cases.
 - [x] A locked consumer exercises the public entry compilation API without dependency source.
 - [x] Source budgets, affected physical evidence, archives, locks, and documentation agree.
-- [ ] The exact verified feature tree is committed, pushed, and checked remotely.
+- [x] The exact verified feature tree is committed, pushed, and checked remotely.

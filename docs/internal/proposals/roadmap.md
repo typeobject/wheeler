@@ -46,6 +46,8 @@ refer to the required products, not a demand that every umbrella finish first.
 | [WIP-0513](source/WIP-0513-immutable-source-lease-ranges.md) | Publish immutable source ranges without temporary lease buffers |
 | [WIP-0514](source/WIP-0514-counted-executable-entry-products.md) | Bind executable targets and compose counted entry artifacts |
 | [WIP-0515](source/WIP-0515-manifest-selected-entry-verification.md) | Verify manifest-selected entries and complete function references |
+| [WIP-0516](source/aggregate/WIP-0516-counted-aggregate-primitive-compilation.md) | Replace minimal aggregate primitive compilation with counted products |
+| [WIP-0517](source/fronts/WIP-0517-counted-callable-front-staging.md) | Share callable-front staging and retain atomic closure publication |
 
 Keep the distinction between implementation and evidence. WIP-0049 owns source
 lowering, WIP-0054 owns its artifact integration, and WIP-0048 owns final linking.

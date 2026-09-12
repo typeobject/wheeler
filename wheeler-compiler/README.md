@@ -58,6 +58,9 @@ special-case source topologies:
 5. `ModuleSymbols.w` and the symbol owners publish scalar declarations and
    direct-import values. Callable products retain exact signatures, body ranges,
    effects, parameter types, and loan modes without keeping dependency source.
+   `SourceCallableFrontProducts.w` stages those coordinates through shared member,
+   modifier, parameter, and type fronts. Its scratch may change on rejection.
+   `ModuleCallables.w` publishes only after every source in the closure passes.
 6. Structured compilation lowers selected source bodies into canonical module
    artifacts. Archive emission consumes lexical module and class-name ranges
    from declaration products. Comments do not define another declaration identity.
@@ -88,7 +91,10 @@ primitive body products. Temporary scalar carriers are not final nominal types.
 Their frame-local coordinates exclude the optional serialized result-type word.
 The final type linker preserves that result prefix and rejects carriers outside
 the actual frame. Type-linker artifact and execution checks do not assemble the
-complete nominal source compiler.
+complete nominal source compiler. The aggregate adapter still obtains primitive
+code through the minimal compiler. WIP-0516 tracks that internal replacement.
+The outer runner handoff remains a separate join. Shared callable-front staging
+alone does not remove either dependency.
 
 `SourceAggregateProducts.w` admits enums as nonempty, payload-free variants.
 Enum tags follow lexical case-name order, while ordinary variants keep declaration

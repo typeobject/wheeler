@@ -6,15 +6,10 @@ import wheeler.compiler.closure.active_source_slots;
 import wheeler.compiler.closure.callable_signature_products;
 import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.plan;
+import wheeler.compiler.closure.source_callable_front_products;
 import wheeler.compiler.compiler_token_limits;
-import wheeler.compiler.keyword_tokens;
-import wheeler.compiler.module_headers;
-import wheeler.compiler.module_linker;
-import wheeler.compiler.source_scalars;
-import wheeler.compiler.tokens;
 
 classical class CountedModuleCallables {
-  private const long CALLABLE_ARENA_BYTES = 898000;
   private const long MAX_CALLABLES = 4096;
   private const long MAX_CALLABLE_NAME_BYTES = 1048576;
   private const long MAX_CALLABLE_NAME_LENGTH = 256;
@@ -23,7 +18,22 @@ classical class CountedModuleCallables {
   private const long MAX_IMPORTS = 3072;
   private const long MAX_LOCAL_MODULES = 512;
   private const long MAX_SOURCE_BYTES = 32768;
-  private const long TOKEN_ARENA_BYTES = 98320;
+  private const long WORD_BYTES = 8;
+  private const long TOKEN_COLUMNS = 3;
+  private const long MODULE_PRODUCT_COLUMNS = 3;
+  private const long MODULE_WORK_COLUMNS = 1;
+  private const long CALLABLE_PRODUCT_COLUMNS = 14;
+  private const long PARAMETER_PRODUCT_COLUMNS = 3;
+  private const long MODULE_RANGE_WORDS = 2;
+  private const long PARAMETER_TOTAL_WORDS = 1;
+  private const long CALLABLE_ARENA_WORDS = MAX_LOCAL_MODULES * (
+    MODULE_PRODUCT_COLUMNS + MODULE_WORK_COLUMNS
+  ) + MAX_IMPORTS + MAX_CALLABLES * CALLABLE_PRODUCT_COLUMNS + MAX_CLOSURE_PARAMETERS
+    * PARAMETER_PRODUCT_COLUMNS + MODULE_RANGE_WORDS + PARAMETER_TOTAL_WORDS;
+  private const long CALLABLE_ARENA_BYTES = CALLABLE_ARENA_WORDS * WORD_BYTES;
+  private const long CALLABLE_ARENA_BUFFERS = MODULE_PRODUCT_COLUMNS + MODULE_WORK_COLUMNS
+    + CALLABLE_PRODUCT_COLUMNS + PARAMETER_PRODUCT_COLUMNS + 1 + 1 + 1;
+  private const long TOKEN_ARENA_BYTES = MAX_COMPILER_TOKENS * TOKEN_COLUMNS * WORD_BYTES;
 
   /// Describes one completely published closure-wide callable table.
   public record CountedModuleCallablePlan(
@@ -33,325 +43,6 @@ classical class CountedModuleCallables {
     long peakActiveSources,
     long finalGeneration
   ) {}
-
-  private long closingBrace(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    long open,
-    long tokenCount
-  ) {
-    long depth = 1;
-    long cursor = open + 1;
-    while (cursor < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_OPEN_BRACE)
-      ) {
-        depth += 1;
-      }
-
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_BRACE)
-      ) {
-        depth -= 1;
-        if (depth == 0) {
-          return cursor;
-        }
-      }
-
-      cursor += 1;
-    }
-
-    return -1;
-  }
-
-  private long closingParen(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    long open,
-    long limitToken
-  ) {
-    long depth = 1;
-    long cursor = open + 1;
-    while (cursor < limitToken) limit MAX_COMPILER_TOKENS {
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_OPEN_PAREN)
-      ) {
-        depth += 1;
-      }
-
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_PAREN)
-      ) {
-        depth -= 1;
-        if (depth == 0) {
-          return cursor;
-        }
-      }
-
-      cursor += 1;
-    }
-
-    return -1;
-  }
-
-  private long indexSourceCallables(
-    borrow utf8 source,
-    long archiveSourceStart,
-    long owner,
-    long firstCallable,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    borrow mut words moduleRange,
-    borrow mut words callableOwners,
-    borrow mut words callableVisibilities,
-    borrow mut words callableNameStarts,
-    borrow mut words callableNameLengths,
-    borrow mut words callableSignatureStarts,
-    borrow mut words callableSignatureLengths,
-    borrow mut words callableBodyStarts,
-    borrow mut words callableBodyLengths,
-    borrow mut words callableParameterCounts,
-    borrow mut words callableFirstParameters,
-    borrow mut words callableResultTypeStarts,
-    borrow mut words callableResultTypeLengths,
-    borrow mut words callableEffects,
-    borrow mut words callableResultSlotWidths,
-    borrow mut words parameterTypeStarts,
-    borrow mut words parameterTypeLengths,
-    borrow mut words parameterModes,
-    borrow mut words parameterTotal
-  ) {
-    long tokenCount = scanSemanticTokens(source, tokenKinds, tokenStarts, tokenLengths);
-    if (0 < tokenCount) {} else {
-      return -1;
-    }
-
-    long body = moduleBodyStart(
-      source,
-      tokenKinds,
-      tokenStarts,
-      tokenLengths,
-      moduleRange,
-      tokenCount
-    );
-    if (-1 < body) {} else {
-      return -1;
-    }
-
-    long cursor = body + 4;
-    long callableCount = 0;
-    boolean classClosed = false;
-    while (cursor < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_BRACE)
-      ) {
-        classClosed = cursor + 1 == tokenCount;
-        break;
-      }
-
-      long declarationStart = cursor;
-      long firstParen = -1;
-      long delimiter = -1;
-      boolean bodyDelimiter = false;
-      while (cursor < tokenCount) limit MAX_COMPILER_TOKENS {
-        if (
-          punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_OPEN_PAREN)
-        ) {
-          if (firstParen < 0) {
-            firstParen = cursor;
-          }
-        }
-
-        if (
-          punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_SEMICOLON)
-        ) {
-          delimiter = cursor;
-          break;
-        }
-
-        if (
-          punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_OPEN_BRACE)
-        ) {
-          delimiter = cursor;
-          bodyDelimiter = true;
-          break;
-        }
-
-        cursor += 1;
-      }
-
-      if (-1 < delimiter) {} else {
-        return -1;
-      }
-
-      if (bodyDelimiter) {
-        long closeBody = closingBrace(source, tokenKinds, tokenStarts, delimiter, tokenCount);
-        if (-1 < closeBody) {} else {
-          return -1;
-        }
-
-        long nextDeclaration = closeBody + 1;
-        if (nextDeclaration + 1 < tokenCount) {
-          if (
-            sourceTokenCode(source, tokenStarts, tokenLengths, nextDeclaration) == TOKEN_REVERSE
-          ) {
-            if (
-              punctuationAt(
-                source,
-                tokenKinds,
-                tokenStarts,
-                nextDeclaration + 1,
-                PUNCTUATION_OPEN_BRACE
-              )
-            ) {
-              long closeReverse = closingBrace(
-                source,
-                tokenKinds,
-                tokenStarts,
-                nextDeclaration + 1,
-                tokenCount
-              );
-              if (-1 < closeReverse) {} else {
-                return -1;
-              }
-
-              closeBody = closeReverse;
-              nextDeclaration = closeReverse + 1;
-            }
-          }
-        }
-
-        boolean callable = 0 < firstParen;
-        long nameToken = firstParen - 1;
-        if (callable) {
-          if (0 < nameToken) {} else {
-            return -1;
-          }
-
-          if (
-            sourceTokenCode(source, tokenStarts, tokenLengths, nameToken - 1) == TOKEN_RECORD
-          ) {
-            callable = false;
-          }
-        }
-
-        if (callable) {
-          long closeParameters = closingParen(
-            source,
-            tokenKinds,
-            tokenStarts,
-            firstParen,
-            delimiter
-          );
-          if (-1 < closeParameters) {} else {
-            return -1;
-          }
-
-          long parameters = parameterCount(
-            source,
-            tokenKinds,
-            tokenStarts,
-            firstParen,
-            closeParameters
-          );
-          if (-1 < parameters) {} else {
-            return -1;
-          }
-
-          CallableHeader header = callableHeader(
-            source,
-            tokenStarts,
-            tokenLengths,
-            declarationStart,
-            nameToken
-          );
-          if (header.valid) {} else {
-            return -1;
-          }
-
-          long nextParameter = writeParameterProducts(
-            source,
-            archiveSourceStart,
-            tokenKinds,
-            tokenStarts,
-            tokenLengths,
-            firstParen,
-            closeParameters,
-            parameters,
-            parameterTotal[0],
-            parameterTypeStarts,
-            parameterTypeLengths,
-            parameterModes
-          );
-          if (-1 < nextParameter) {} else {
-            return -1;
-          }
-
-          if (callableCount < MAX_CALLABLES_PER_MODULE) {} else {
-            return -1;
-          }
-
-          long callableIndex = firstCallable + callableCount;
-          if (callableIndex < MAX_CALLABLES) {} else {
-            return -1;
-          }
-
-          long visibility = 0;
-          if (
-            sourceTokenCode(source, tokenStarts, tokenLengths, declarationStart) == TOKEN_PUBLIC
-          ) {
-            visibility = 1;
-          }
-
-          long signatureStart = tokenStarts[declarationStart];
-          long bodyStart = tokenStarts[delimiter];
-          long bodyEnd = tokenStarts[closeBody] + tokenLengths[closeBody];
-          set(callableOwners, callableIndex, owner);
-          set(callableVisibilities, callableIndex, visibility);
-          set(callableNameStarts, callableIndex, archiveSourceStart + tokenStarts[nameToken]);
-          set(callableNameLengths, callableIndex, tokenLengths[nameToken]);
-          set(callableSignatureStarts, callableIndex, archiveSourceStart + signatureStart);
-          set(callableSignatureLengths, callableIndex, bodyStart - signatureStart);
-          set(callableBodyStarts, callableIndex, archiveSourceStart + bodyStart);
-          set(callableBodyLengths, callableIndex, bodyEnd - bodyStart);
-          set(callableParameterCounts, callableIndex, parameters);
-          set(callableFirstParameters, callableIndex, parameterTotal[0]);
-          long resultTypeStart = tokenStarts[header.resultTypeToken];
-          long finalResultType = nameToken - 1;
-          long resultTypeEnd = tokenStarts[finalResultType] + tokenLengths[finalResultType];
-          set(callableResultTypeStarts, callableIndex, archiveSourceStart + resultTypeStart);
-          set(callableResultTypeLengths, callableIndex, resultTypeEnd - resultTypeStart);
-          set(callableEffects, callableIndex, header.effects);
-          long resultSlotWidth = 0;
-          if (header.effects / 2 % 2 == 1) {
-            if (
-              sourceTokenCode(source, tokenStarts, tokenLengths, header.resultTypeToken)
-                == TOKEN_VOID
-            ) {} else {
-              resultSlotWidth = 2;
-            }
-          }
-
-          set(callableResultSlotWidths, callableIndex, resultSlotWidth);
-          set(parameterTotal, 0, nextParameter);
-          callableCount += 1;
-        }
-
-        cursor = nextDeclaration;
-      } else {
-        cursor = delimiter + 1;
-      }
-    }
-
-    if (classClosed) {
-      return callableCount;
-    }
-
-    return -1;
-  }
 
   private boolean columnsValid(
     borrow mut words moduleFirstCallables,
@@ -462,7 +153,6 @@ classical class CountedModuleCallables {
   /// Stages each source once and publishes callable products after the complete pass.
   public CountedModuleCallablePlan indexCountedModuleCallables(
     borrow byteview archive,
-    borrow byteview manifest,
     CountedClosurePlan plan,
     borrow mut words edgeTargets,
     borrow mut words firstImports,
@@ -531,7 +221,10 @@ classical class CountedModuleCallables {
     words activeLengths = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     words live = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     assert(initializeActiveSourceSlots(storage, owners, generations, activeLengths, live));
-    region callableArena = new region(/* bytes= */ CALLABLE_ARENA_BYTES, /* allocations= */ 24);
+    region callableArena = new region(
+      /* bytes= */ CALLABLE_ARENA_BYTES,
+      /* allocations= */ CALLABLE_ARENA_BUFFERS
+    );
     words scratchFirstCallables = allocate(callableArena, MAX_LOCAL_MODULES);
     words scratchCallableCounts = allocate(callableArena, MAX_LOCAL_MODULES);
     words scratchImportedCounts = allocate(callableArena, MAX_LOCAL_MODULES);
@@ -553,9 +246,9 @@ classical class CountedModuleCallables {
     words scratchParameterTypeStarts = allocate(callableArena, MAX_CLOSURE_PARAMETERS);
     words scratchParameterTypeLengths = allocate(callableArena, MAX_CLOSURE_PARAMETERS);
     words scratchParameterModes = allocate(callableArena, MAX_CLOSURE_PARAMETERS);
-    words parameterTotal = allocate(callableArena, 1);
+    words parameterTotal = allocate(callableArena, PARAMETER_TOTAL_WORDS);
     words processed = allocate(callableArena, MAX_LOCAL_MODULES);
-    words moduleRangeScratch = allocate(callableArena, 2);
+    words moduleRangeScratch = allocate(callableArena, MODULE_RANGE_WORDS);
     long callableCount = 0;
     long finalGeneration = 0;
     long position = 0;
@@ -642,12 +335,15 @@ classical class CountedModuleCallables {
         )
       );
       utf8 activeSource = freezeUtf8(activeBytes);
-      region tokenArena = new region(/* bytes= */ TOKEN_ARENA_BYTES, /* allocations= */ 3);
+      region tokenArena = new region(
+        /* bytes= */ TOKEN_ARENA_BYTES,
+        /* allocations= */ TOKEN_COLUMNS
+      );
       words tokenKinds = allocate(tokenArena, MAX_COMPILER_TOKENS);
       words tokenStarts = allocate(tokenArena, MAX_COMPILER_TOKENS);
       words tokenLengths = allocate(tokenArena, MAX_COMPILER_TOKENS);
       set(scratchFirstCallables, module, callableCount);
-      long localCallables = indexSourceCallables(
+      long localCallables = stageSourceCallableProducts(
         activeSource,
         sourceStarts[module],
         module,

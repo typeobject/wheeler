@@ -80,8 +80,13 @@ negative test that treated the final function index as out of range. Its unchang
 mutation names the actual entry, which the canonical Java reader accepts. The
 fixture now keeps that mutation as a positive control and derives a separate
 invalid index from the function count. Both readers reject the latter. No source
-fixture, compiler behavior, or artifact identity changed. Exact-tree hosted
-acceptance remains open.
+fixture, compiler behavior, or artifact identity changed.
+
+Commit `fd496b110b422db39d2e67b3eb21443b30603773` contains that repair. Bootstrap
+run `34715602116` passes all 52 jobs, including output comparison. README
+quickstart `34715602154`, documentation site `34715602093`, and CodeQL
+`34715601865` also pass on that exact commit. These results do not certify later
+callable-front or aggregate changes.
 
 ## Acceptance
 
@@ -92,4 +97,4 @@ acceptance remains open.
 - [x] Complete input state, cleanup, and verification rewind/replay agree.
 - [x] The original WIP-0514 source regression passes unchanged.
 - [x] Physical budgets, affected artifacts, packages, and documentation agree.
-- [ ] The exact verified feature tree is committed, pushed, and checked remotely.
+- [x] The exact verified feature tree is committed, pushed, and checked remotely.

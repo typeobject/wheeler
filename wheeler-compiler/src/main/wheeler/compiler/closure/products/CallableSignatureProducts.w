@@ -3,8 +3,11 @@
 module wheeler.compiler.closure.callable_signature_products;
 
 import wheeler.compiler.compiler_token_limits;
-import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.source_member_modifiers;
+import wheeler.compiler.source_member_names;
+import wheeler.compiler.source_parameter_modes;
 import wheeler.compiler.source_scalars;
+import wheeler.compiler.source_type_syntax;
 import wheeler.compiler.tokens;
 
 classical class CallableSignatureProducts {
@@ -60,7 +63,12 @@ classical class CallableSignatureProducts {
   }
 
   /// Identifies one result type and its canonical effect mask.
-  public record CallableHeader(long resultTypeToken, long effects, boolean valid) {}
+  public record CallableHeader(
+    long resultTypeToken,
+    long effects,
+    boolean exported,
+    boolean valid
+  ) {}
 
   /// Separates visibility and effect modifiers from a callable result type.
   public CallableHeader callableHeader(
@@ -70,48 +78,33 @@ classical class CallableSignatureProducts {
     long declarationStart,
     long nameToken
   ) {
-    long cursor = declarationStart;
-    long first = sourceTokenCode(source, tokenStarts, tokenLengths, cursor);
-    if (first == TOKEN_PUBLIC) {
-      cursor += 1;
-    } else {
-      if (first == TOKEN_PRIVATE) {
-        cursor += 1;
+    if (nameToken < bufferLength(tokenStarts)) {} else {
+      return new CallableHeader(0, 0, false, false);
+    }
+
+    if (nameToken < bufferLength(tokenLengths)) {} else {
+      return new CallableHeader(0, 0, false, false);
+    }
+
+    MemberModifiers modifiers = sourceCallableModifiers(
+      source,
+      tokenStarts,
+      tokenLengths,
+      declarationStart,
+      nameToken
+    );
+    if (modifiers.valid) {
+      if (modifiers.nextToken < nameToken) {
+        return new CallableHeader(
+          modifiers.nextToken,
+          modifiers.effects,
+          modifiers.exported,
+          true
+        );
       }
     }
 
-    long effects = 0;
-    boolean scanning = true;
-    while (scanning) limit 4 {
-      long modifier = sourceTokenCode(source, tokenStarts, tokenLengths, cursor);
-      if (modifier == TOKEN_ENTRY) {
-        effects += 1;
-        cursor += 1;
-      } else {
-        if (modifier == TOKEN_REV) {
-          effects += 2;
-          cursor += 1;
-        } else {
-          if (modifier == TOKEN_COHERENT) {
-            effects += 4;
-            cursor += 1;
-          } else {
-            if (modifier == TOKEN_TEST) {
-              effects += 8;
-              cursor += 1;
-            } else {
-              scanning = false;
-            }
-          }
-        }
-      }
-    }
-
-    if (cursor < nameToken) {
-      return new CallableHeader(cursor, effects, true);
-    }
-
-    return new CallableHeader(0, 0, false);
+    return new CallableHeader(0, 0, false, false);
   }
 
   /// Publishes canonical parameter type ranges and owner or loan modes.
@@ -148,26 +141,43 @@ classical class CallableSignatureProducts {
         return -1;
       }
 
-      long typeToken = segmentStart;
-      long mode = 0;
       if (
-        sourceTokenCode(source, tokenStarts, tokenLengths, typeToken) == TOKEN_BORROW
+        sourceValueNameValid(source, tokenKinds, tokenStarts, tokenLengths, nameToken) == false
       ) {
-        mode = 1;
-        typeToken += 1;
-        if (typeToken < nameToken) {} else {
-          return -1;
-        }
-
-        if (
-          sourceTokenCode(source, tokenStarts, tokenLengths, typeToken) == TOKEN_MUT
-        ) {
-          mode = 2;
-          typeToken += 1;
-        }
+        return -1;
       }
 
-      if (typeToken < nameToken) {} else {
+      ParameterPrefix prefix = sourceParameterPrefix(
+        source,
+        tokenStarts,
+        tokenLengths,
+        segmentStart,
+        nameToken
+      );
+      if (prefix.valid == false) {
+        return -1;
+      }
+
+      long typeToken = prefix.typeToken;
+      long mode = prefix.mode;
+      SourceTypeFront type = sourceTypeFront(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        nameToken,
+        typeToken,
+        false
+      );
+      if (type.valid == false) {
+        return -1;
+      }
+
+      if (type.nextToken != nameToken) {
+        return -1;
+      }
+
+      if (sourceParameterModeValid(type.baseType, type.compound, mode) == false) {
         return -1;
       }
 

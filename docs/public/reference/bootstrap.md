@@ -189,6 +189,13 @@ signature, inverse, and actual-code checks. Entry and helper claims verify befor
 complete artifact hashing and publication. Relocation reports use the same
 prepublication result record rather than allocating a replacement afterward.
 
+Callable coordinate staging now uses the shared member, modifier, parameter, and
+type fronts. It preserves source-relative module names and archive-relative
+callable and parameter ranges. Its mutable columns are private scratch, not
+published products. The closure owner validates every module before publishing
+rows and reports. Neither this staging boundary nor entry binding removes the
+aggregate adapter's remaining minimal compiler dependency.
+
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and
 entry binding validate complete owner windows before rebasing. This closes one

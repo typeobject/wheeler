@@ -425,7 +425,6 @@ final class NativeCompilerArchiveClosureProgram {
                 );
                 CountedModuleCallablePlan callables = indexCountedModuleCallables(
                   archive,
-                  manifest,
                   closure,
                   edgeTargets,
                   firstImports,
