@@ -7,7 +7,10 @@ module wheeler.compiler.closure.archive_structured_source_module_compiler;
 import wheeler.compiler.closure.imported_source_call_targets;
 import wheeler.compiler.closure.scoped_constant_products;
 import wheeler.compiler.closure.source_call_target_table;
+import wheeler.compiler.closure.source_classical_proofs;
+import wheeler.compiler.closure.source_module_name_products;
 import wheeler.compiler.closure.source_module_product_artifact;
+import wheeler.compiler.closure.source_module_strings;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.closure.structured_source_module_compiler;
 import wheeler.compiler.constant_product_schema;
@@ -17,6 +20,29 @@ classical class ArchiveStructuredSourceModuleCompiler {
   private const long MAX_CALLABLES = 64;
   private const long MAX_PARAMETERS = 16384;
   private const long MAX_SIGNATURE_TYPES = 4096;
+  private const long MAX_CLOSURE_CALLABLES = 4096;
+  private const long ARTIFACT_BYTES = 32768;
+  private const long WORD_BYTES = 8;
+  private const long SYMBOL_COLUMNS = 6;
+  private const long SIGNATURE_COLUMNS = 3;
+  private const long LOCAL_COLUMNS = 3;
+  private const long BODY_COLUMNS = 3;
+  private const long STRING_COLUMNS = 2;
+  private const long SIGNATURE_ROWS = MAX_SIGNATURE_TYPES * SIGNATURE_COLUMNS;
+  private const long METADATA_WORDS = MAX_CONSTANT_PRODUCTS * SYMBOL_COLUMNS + SIGNATURE_ROWS
+    + MAX_CALLABLES * LOCAL_COLUMNS + MAX_CLOSURE_CALLABLES * BODY_COLUMNS
+    + MAX_SOURCE_MODULE_STRINGS * STRING_COLUMNS + SOURCE_MODULE_NAME_ROWS;
+  private const long METADATA_BYTES = METADATA_WORDS * WORD_BYTES + ARTIFACT_BYTES;
+  private const long METADATA_BUFFERS = SYMBOL_COLUMNS + 1 + LOCAL_COLUMNS + BODY_COLUMNS
+    + STRING_COLUMNS + 2;
+  private const long CALLABLE_COLUMNS = 5;
+  private const long CALLABLE_ROWS = MAX_CALLABLES * CALLABLE_COLUMNS;
+  private const long EMPTY_CODE_BYTES = 1;
+  private const long EMPTY_WORDS = CALLABLE_ROWS + MAX_CALLABLES * LOCAL_COLUMNS + SIGNATURE_ROWS
+    + MAX_SOURCE_MODULE_STRINGS * STRING_COLUMNS + MAX_CLOSURE_CALLABLES * BODY_COLUMNS
+    + SOURCE_MODULE_NAME_ROWS;
+  private const long EMPTY_BYTES = EMPTY_WORDS * WORD_BYTES + ARTIFACT_BYTES * 2 + EMPTY_CODE_BYTES;
+  private const long EMPTY_BUFFERS = 1 + LOCAL_COLUMNS + 1 + STRING_COLUMNS + BODY_COLUMNS + 4;
 
   private void requireArchiveSourceNames(
     borrow byteview archive,
@@ -45,32 +71,27 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(classNameLength < sourceStart + sourceLength - classNameStart + 1);
   }
 
-  private boolean nameBefore(
+  private void requireArchiveConstantPacket(
+    long count,
+    borrow mut words rows,
     borrow byteview names,
-    long leftStart,
-    long leftLength,
-    long rightStart,
-    long rightLength
+    borrow mut words nameStarts
   ) {
-    long shared = leftLength;
-    if (rightLength < shared) {
-      shared = rightLength;
+    assert(-1 < count);
+    assert(count < MAX_CONSTANT_PRODUCTS + 1);
+    assert(bufferLength(rows) == CONSTANT_PRODUCT_ROWS);
+    assert(rows[0] == count);
+    assert(
+      measureScopedConstantProducts(names, names, count, rows, CONSTANT_PRODUCT_NAME_BYTES)
+        < CONSTANT_PRODUCT_NAME_BYTES + 1
+    );
+    assert(MAX_CONSTANT_PRODUCTS < bufferLength(nameStarts) + 1);
+    long row = 0;
+    while (row < count) limit MAX_CONSTANT_PRODUCTS {
+      long first = CONSTANT_PRODUCT_HEADER_ROWS + row * CONSTANT_PRODUCT_COLUMNS;
+      assert(nameStarts[row] == rows[first + CONSTANT_NAME_START]);
+      row += 1;
     }
-
-    long index = 0;
-    while (index < shared) limit 256 {
-      if (names[leftStart + index] < names[rightStart + index]) {
-        return true;
-      }
-
-      if (names[rightStart + index] < names[leftStart + index]) {
-        return false;
-      }
-
-      index += 1;
-    }
-
-    return leftLength < rightLength;
   }
 
   private long localParameterType(long type, long mode) {
@@ -170,8 +191,14 @@ classical class ArchiveStructuredSourceModuleCompiler {
     if (callableCount == 0) {
       return compileCallableFreeArchiveModule(
         archive,
+        sourceStart,
+        sourceLength,
         classNameStart,
         classNameLength,
+        importedCount,
+        importedRows,
+        importedNames,
+        importedNameStarts,
         artifact,
         identity
       );
@@ -248,28 +275,65 @@ classical class ArchiveStructuredSourceModuleCompiler {
 
   private SourceProductArtifactPlan compileCallableFreeArchiveModule(
     borrow byteview archive,
+    long sourceStart,
+    long sourceLength,
     long classNameStart,
     long classNameLength,
+    long constantCount,
+    borrow mut words constants,
+    borrow byteview constantNames,
+    borrow mut words constantNameStarts,
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
-    region empty = new region(/* bytes= */ 140000, /* allocations= */ 9);
-    words callables = allocate(empty, /* length= */ 320);
-    words parameterCounts = allocate(empty, /* length= */ 64);
-    words resultTypes = allocate(empty, /* length= */ 64);
-    words functionNameIds = allocate(empty, /* length= */ 64);
-    words localTypes = allocate(empty, /* length= */ 12288);
-    bytes code = allocateBytes(empty, /* length= */ 1);
-    bytes strings = allocateBytes(empty, /* length= */ 32768);
-    words stringStarts = allocate(empty, /* length= */ 256);
-    words stringLengths = allocate(empty, /* length= */ 256);
-    writeAscii(strings, /* outputStart= */ 0, "$library");
-    set(stringStarts, 0, 0);
-    set(stringLengths, 0, 8);
-    set(stringStarts, 1, 8);
-    set(stringLengths, 1, classNameLength);
-    long stringBytes = copyRange(archive, classNameStart, classNameLength, strings, 8);
+    requireArchiveConstantPacket(constantCount, constants, constantNames, constantNameStarts);
+    region empty = new region(/* bytes= */ EMPTY_BYTES, /* allocations= */ EMPTY_BUFFERS);
+    words callables = allocate(empty, CALLABLE_ROWS);
+    words parameterCounts = allocate(empty, MAX_CALLABLES);
+    words resultTypes = allocate(empty, MAX_CALLABLES);
+    words functionNameIds = allocate(empty, MAX_CALLABLES);
+    words localTypes = allocate(empty, SIGNATURE_ROWS);
+    bytes code = allocateBytes(empty, EMPTY_CODE_BYTES);
+    bytes strings = allocateBytes(empty, ARTIFACT_BYTES);
+    words stringStarts = allocate(empty, MAX_SOURCE_MODULE_STRINGS);
+    words stringLengths = allocate(empty, MAX_SOURCE_MODULE_STRINGS);
+    words kinds = allocate(empty, MAX_CLOSURE_CALLABLES);
+    words starts = allocate(empty, MAX_CLOSURE_CALLABLES);
+    words lengths = allocate(empty, MAX_CLOSURE_CALLABLES);
+    bytes sourceBytes = allocateBytes(empty, sourceLength);
+    assert(copyRange(archive, sourceStart, sourceLength, sourceBytes, 0) == sourceLength);
+    utf8 source = freezeUtf8(sourceBytes);
+    words nameProducts = allocate(empty, SOURCE_MODULE_NAME_ROWS);
+    SourceModuleNamePlan names = materializeSourceModuleNames(
+      source,
+      archive,
+      classNameStart,
+      classNameLength,
+      archive,
+      /* moduleNameStart= */ 0,
+      /* moduleNameLength= */ 0,
+      /* firstCallable= */ 0,
+      /* callableCount= */ 0,
+      archive,
+      callables,
+      resultTypes,
+      constantNames,
+      constants,
+      kinds,
+      starts,
+      lengths,
+      strings,
+      stringStarts,
+      stringLengths,
+      functionNameIds,
+      nameProducts
+    );
+    assert(sourceClassicalClaimsAbsent(source, kinds, starts, lengths, functionNameIds));
     SourceProductArtifactPlan result = publishClassicalSourceModuleArtifact(
+      names.classNameId,
+      names.globalCount,
+      SOURCE_MODULE_GLOBAL_START,
+      nameProducts,
       /* callableCount= */ 0,
       callables,
       parameterCounts,
@@ -280,13 +344,18 @@ classical class ArchiveStructuredSourceModuleCompiler {
       code,
       /* codeLength= */ 0,
       strings,
-      stringBytes,
-      /* stringCount= */ 2,
+      names.stringBytes,
+      names.stringCount,
       stringStarts,
       stringLengths,
       artifact,
       identity
     );
+    drop(nameProducts);
+    drop(source);
+    drop(lengths);
+    drop(starts);
+    drop(kinds);
     drop(stringLengths);
     drop(stringStarts);
     drop(strings);
@@ -362,20 +431,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(importedTargetCount < 4097);
     assert(bufferLength(callableBodyStarts) == 4096);
     assert(bufferLength(callableBodyLengths) == 4096);
-    assert(-1 < importedCount);
-    assert(importedCount < MAX_CONSTANT_PRODUCTS + 1);
-    assert(bufferLength(importedRows) == CONSTANT_PRODUCT_ROWS);
-    assert(importedRows[0] == importedCount);
-    assert(
-      measureScopedConstantProducts(
-        importedNames,
-        importedNames,
-        importedCount,
-        importedRows,
-        CONSTANT_PRODUCT_NAME_BYTES
-      ) < CONSTANT_PRODUCT_NAME_BYTES + 1
-    );
-    assert(16384 < bufferLength(importedNameStarts) + 1);
+    requireArchiveConstantPacket(importedCount, importedRows, importedNames, importedNameStarts);
     assert(bufferLength(callableFirstParameters) == 4096);
     assert(bufferLength(callableParameterCounts) == 4096);
     assert(bufferLength(callableResultTypes) == 4096);
@@ -389,14 +445,20 @@ classical class ArchiveStructuredSourceModuleCompiler {
     if (callableCount == 0) {
       return compileCallableFreeArchiveModule(
         archive,
+        sourceStart,
+        sourceLength,
         classNameStart,
         classNameLength,
+        importedCount,
+        importedRows,
+        importedNames,
+        importedNameStarts,
         artifact,
         identity
       );
     }
 
-    region sourceArena = new region(/* bytes= */ 32768, /* allocations= */ 1);
+    region sourceArena = new region(/* bytes= */ ARTIFACT_BYTES, /* allocations= */ 1);
     bytes sourceBytes = allocateBytes(sourceArena, sourceLength);
     long copiedSourceLength = copyRange(
       archive,
@@ -407,29 +469,52 @@ classical class ArchiveStructuredSourceModuleCompiler {
     );
     assert(copiedSourceLength == sourceLength);
     utf8 source = freezeUtf8(sourceBytes);
-    region metadata = new region(/* bytes= */ 1021952, /* allocations= */ 17);
-    words symbolOwners = allocate(metadata, /* length= */ 16384);
-    words symbolStarts = allocate(metadata, /* length= */ 16384);
-    words symbolLengths = allocate(metadata, /* length= */ 16384);
-    words symbolTypes = allocate(metadata, /* length= */ 16384);
-    words symbolValues = allocate(metadata, /* length= */ 16384);
-    words symbolResolved = allocate(metadata, /* length= */ 16384);
-    words signatureTypes = allocate(metadata, /* length= */ 12288);
-    words localParameterCounts = allocate(metadata, /* length= */ 64);
-    words localResultTypes = allocate(metadata, /* length= */ 64);
-    bytes strings = allocateBytes(metadata, /* length= */ 32768);
-    words stringStarts = allocate(metadata, /* length= */ 256);
-    words stringLengths = allocate(metadata, /* length= */ 256);
-    words functionNameIds = allocate(metadata, /* length= */ 64);
-    words localBodyStarts = allocate(metadata, /* length= */ 4096);
-    words localBodyLengths = allocate(metadata, /* length= */ 4096);
-    words localCallableEffects = allocate(metadata, /* length= */ 4096);
-    words selectedCallableNames = allocate(metadata, /* length= */ 64);
+    region metadata = new region(/* bytes= */ METADATA_BYTES, /* allocations= */ METADATA_BUFFERS);
+    words symbolOwners = allocate(metadata, MAX_CONSTANT_PRODUCTS);
+    words symbolStarts = allocate(metadata, MAX_CONSTANT_PRODUCTS);
+    words symbolLengths = allocate(metadata, MAX_CONSTANT_PRODUCTS);
+    words symbolTypes = allocate(metadata, MAX_CONSTANT_PRODUCTS);
+    words symbolValues = allocate(metadata, MAX_CONSTANT_PRODUCTS);
+    words symbolResolved = allocate(metadata, MAX_CONSTANT_PRODUCTS);
+    words signatureTypes = allocate(metadata, SIGNATURE_ROWS);
+    words localParameterCounts = allocate(metadata, MAX_CALLABLES);
+    words localResultTypes = allocate(metadata, MAX_CALLABLES);
+    bytes strings = allocateBytes(metadata, ARTIFACT_BYTES);
+    words stringStarts = allocate(metadata, MAX_SOURCE_MODULE_STRINGS);
+    words stringLengths = allocate(metadata, MAX_SOURCE_MODULE_STRINGS);
+    words functionNameIds = allocate(metadata, MAX_CALLABLES);
+    words localBodyStarts = allocate(metadata, MAX_CLOSURE_CALLABLES);
+    words localBodyLengths = allocate(metadata, MAX_CLOSURE_CALLABLES);
+    words localCallableEffects = allocate(metadata, MAX_CLOSURE_CALLABLES);
+    words nameProducts = allocate(metadata, SOURCE_MODULE_NAME_ROWS);
+    SourceModuleNamePlan names = materializeSourceModuleNames(
+      source,
+      archive,
+      classNameStart,
+      classNameLength,
+      moduleNames,
+      moduleNameStart,
+      moduleNameLength,
+      firstCallable,
+      callableCount,
+      callableNames,
+      callableNameStarts,
+      callableNameLengths,
+      importedNames,
+      importedRows,
+      localBodyStarts,
+      localBodyLengths,
+      localCallableEffects,
+      strings,
+      stringStarts,
+      stringLengths,
+      functionNameIds,
+      nameProducts
+    );
 
     long imported = 0;
     while (imported < importedCount) limit MAX_CONSTANT_PRODUCTS {
       long importedBase = CONSTANT_PRODUCT_HEADER_ROWS + imported * CONSTANT_PRODUCT_COLUMNS;
-      assert(importedNameStarts[imported] == importedRows[importedBase + CONSTANT_NAME_START]);
       set(symbolOwners, imported, moduleOwner);
       set(symbolStarts, imported, importedRows[importedBase + CONSTANT_NAME_START]);
       set(symbolLengths, imported, importedRows[importedBase + CONSTANT_NAME_LENGTH]);
@@ -438,15 +523,6 @@ classical class ArchiveStructuredSourceModuleCompiler {
       set(symbolResolved, imported, importedRows[importedBase + CONSTANT_RESOLVED]);
       imported += 1;
     }
-
-    long stringCursor = 0;
-    writeAscii(strings, stringCursor, "$library");
-    set(stringStarts, 0, stringCursor);
-    set(stringLengths, 0, 8);
-    stringCursor += 8;
-    set(stringStarts, 1, stringCursor);
-    set(stringLengths, 1, classNameLength);
-    stringCursor = copyRange(archive, classNameStart, classNameLength, strings, stringCursor);
 
     long signatureTypeCount = 0;
     long callable = 0;
@@ -486,63 +562,11 @@ classical class ArchiveStructuredSourceModuleCompiler {
       callable += 1;
     }
 
-    long nameRank = 0;
-    while (nameRank < callableCount) limit MAX_CALLABLES {
-      long selected = -1;
-      long candidate = 0;
-      while (candidate < callableCount) limit MAX_CALLABLES {
-        if (selectedCallableNames[candidate] == 0) {
-          if (selected < 0) {
-            selected = candidate;
-          } else {
-            long candidateCallable = firstCallable + candidate;
-            long selectedCallable = firstCallable + selected;
-            if (
-              nameBefore(
-                callableNames,
-                callableNameStarts[candidateCallable],
-                callableNameLengths[candidateCallable],
-                callableNameStarts[selectedCallable],
-                callableNameLengths[selectedCallable]
-              )
-            ) {
-              selected = candidate;
-            }
-          }
-        }
-
-        candidate += 1;
-      }
-
-      assert(-1 < selected);
-      set(selectedCallableNames, selected, 1);
-      long selectedSourceCallable = firstCallable + selected;
-      long selectedNameLength = callableNameLengths[selectedSourceCallable];
-      assert(0 < selectedNameLength);
-      long string = nameRank + 2;
-      set(stringStarts, string, stringCursor);
-      stringCursor = copyRange(
-        moduleNames,
-        moduleNameStart,
-        moduleNameLength,
-        strings,
-        stringCursor
-      );
-      writeAscii(strings, stringCursor, "::");
-      stringCursor += 2;
-      stringCursor = copyRange(
-        callableNames,
-        callableNameStarts[selectedSourceCallable],
-        selectedNameLength,
-        strings,
-        stringCursor
-      );
-      set(stringLengths, string, moduleNameLength + 2 + selectedNameLength);
-      set(functionNameIds, selected, string);
-      nameRank += 1;
-    }
-
     SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
+      names.classNameId,
+      names.globalCount,
+      SOURCE_MODULE_GLOBAL_START,
+      nameProducts,
       source,
       importedNames,
       /* constantNames= */ importedNames,
@@ -575,8 +599,8 @@ classical class ArchiveStructuredSourceModuleCompiler {
       localParameterCounts,
       localResultTypes,
       strings,
-      stringCursor,
-      callableCount + 2,
+      names.stringBytes,
+      names.stringCount,
       stringStarts,
       stringLengths,
       functionNameIds,
@@ -587,7 +611,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
       identity
     );
 
-    drop(selectedCallableNames);
+    drop(nameProducts);
     drop(localCallableEffects);
     drop(localBodyLengths);
     drop(localBodyStarts);

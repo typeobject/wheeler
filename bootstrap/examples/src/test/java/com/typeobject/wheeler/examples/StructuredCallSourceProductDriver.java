@@ -164,6 +164,7 @@ final class StructuredCallSourceProductDriver {
         import wheeler.compiler.closure.callable_function_rows;
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.imported_callable_stubs;
+        import wheeler.compiler.closure.source_global_schema;
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.structured_source_module_compiler;
         import wheeler.compiler.constant_product_schema;
@@ -171,6 +172,7 @@ final class StructuredCallSourceProductDriver {
 
         classical class StructuredCallSourceProductExample {
           CONSTANT_PRODUCT_LIMITS
+          const long GLOBAL_BYTES = SOURCE_GLOBAL_PUBLICATION_ROWS * FIXTURE_WORD_BYTES;
           state long valid = 0;
           state long artifactLength = 0;
           state long functionCount = 0;
@@ -204,6 +206,8 @@ final class StructuredCallSourceProductDriver {
             words stringStarts = allocate(products, /* length= */ 256);
             words stringLengths = allocate(products, /* length= */ 256);
             words functionNameIds = allocate(products, /* length= */ 64);
+            region globalArena = new region(GLOBAL_BYTES, /* buffers= */ 1);
+            words globals = allocate(globalArena, SOURCE_GLOBAL_PUBLICATION_ROWS);
             bytes artifact = allocateBytes(publication, /* length= */ 32768);
             bytes identity = allocateBytes(publication, /* length= */ 32);
             words importedRows = allocate(products, /* length= */ 32768);
@@ -239,6 +243,8 @@ final class StructuredCallSourceProductDriver {
             set(functionNameIds, 0, 2);
             CONSTANT_PRODUCT_SETUP
             SourceProductArtifactPlan plan = compileStructuredSourceModuleWithTargets(
+              /* classNameId= */ 1, /* globalCount= */ 0, /* globalProductStart= */ 0,
+              globals,
               input,
               /* symbolNames= */ strings,
               /* constantNames= */ strings,
@@ -391,6 +397,7 @@ final class StructuredCallSourceProductDriver {
             drop(identity);
             drop(artifact);
             drop(publication);
+            drop(globals); drop(globalArena);
             drop(functionNameIds);
             drop(stringLengths);
             drop(stringStarts);

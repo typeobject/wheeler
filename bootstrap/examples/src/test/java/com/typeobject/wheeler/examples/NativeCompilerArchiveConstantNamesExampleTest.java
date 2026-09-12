@@ -10,13 +10,19 @@ import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import com.typeobject.wheeler.examples.globals.NativeGlobalRetentionAssertions;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /** Archive emission resolves constants from packed names, never guessed source uses. */
 final class NativeCompilerArchiveConstantNamesExampleTest {
+  private static final int ARTIFACT_BYTES = 32768;
+  private static final int IDENTITY_BYTES = 32;
+  private static final int PUBLICATION_BYTES = ARTIFACT_BYTES + IDENTITY_BYTES;
+  private static final int PUBLICATION_BUFFERS = 2;
   private static final String MODULE = "example.constant_names";
   private static final String PREFIX = "outside archive range\n";
 
@@ -54,6 +60,38 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
   void resolvesTheLastAdmittedNameLength() throws Exception {
     String name = "A".repeat(256);
     assertArtifact(fixture("return " + name + ";", name, 1, 1, 1, null));
+  }
+
+  @Test
+  void retainsUnusedStatesAndTheirScopedConstantInitializers() throws Exception {
+    Fixture globals = fixture("return mod;", "LIMIT", 1, 1, 1, null, """
+        state long Zulu = -9223372036854775808;
+        state long Alpha = example.values::LIMIT + 5;
+        """);
+    assertPhaseReplay(globals,
+        "wheeler.compiler.closure.source_module_name_products::materializeSourceModuleNames", false);
+    assertArtifact(globals);
+  }
+
+  @Test
+  void retainsGlobalsWhenProofNamesReorderOrShareStrings() throws Exception {
+    for (String proof : new String[] {"A", "Bound", "Zulu"}) {
+      assertArtifact(fixture("return mod;", "LIMIT", 1, 1, 1, null,
+          "state long Bound = -9223372036854775808; state long ConstantNames = 9;\n"
+              + "theorem " + proof + " proves steps(compute, example.values::LIMIT + 5);"));
+    }
+  }
+
+  @Test
+  void rejectsInvalidStatesBeforePublishingCallableArtifacts() throws Exception {
+    for (String declarations : new String[] {
+        "state long first = 1; state long first = 2;",
+        "state long first = 1; state long second = true;",
+        "state long first = 1; state long second = missing;",
+        "state long first = 1; state long second = 9223372036854775807 + 1;"
+    }) {
+      assertUnpublished(fixture("return mod;", "LIMIT", 1, 1, 1, null, declarations));
+    }
   }
 
   @Test
@@ -110,8 +148,12 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
   }
 
   private static void assertCoverageReplay(Fixture fixture, boolean absent) {
-    int function = fixture.program().functions().stream().filter(row -> row.name().equals(
-        "wheeler.compiler.closure.source_classical_coverage::materializeSourceClassicalCoverage"))
+    assertPhaseReplay(fixture,
+        "wheeler.compiler.closure.source_classical_coverage::materializeSourceClassicalCoverage", absent);
+  }
+
+  private static void assertPhaseReplay(Fixture fixture, String name, boolean absent) {
+    int function = fixture.program().functions().stream().filter(row -> row.name().equals(name))
         .findFirst().orElseThrow().id();
     VirtualMachine machine = fixture.machine();
     long budget = fixture.program().maxSteps();
@@ -124,11 +166,11 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
       }
       machine.stepWithoutRewindHistory();
     }
-    assertTrue(entered, "coverage entry must be reached within the fixture manifest");
+    assertTrue(entered, "phase entry must be reached within the fixture manifest");
     var before = machine.snapshot();
     int depth = before.selectedFrames().size();
     while (machine.snapshot().selectedFrames().size() >= depth) {
-      assertTrue(machine.historySize() < budget, "coverage must return within its work budget");
+      assertTrue(machine.historySize() < budget, "phase must return within its work budget");
       machine.step();
     }
     var after = machine.snapshot();
@@ -147,13 +189,39 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
 
   private static void assertArtifact(Fixture fixture) throws Exception {
     VirtualMachine machine = fixture.machine();
-    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    long transitions = 0;
+    while (machine.global("published") == 0 && transitions < fixture.program().maxSteps()) {
+      machine.stepWithoutRewindHistory();
+      transitions++;
+    }
     String dependency = "module example.values; classical class Values { public const long "
         + fixture.name() + " = 3; }";
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
         Map.of("Source.w", fixture.source(), "Values.w", dependency), MODULE);
     assertEquals(1, machine.global("published"));
-    assertArrayEquals(new BytecodeWriter().write(expected), machine.hostOutput());
+    byte[] expectedBytes = new BytecodeWriter().write(expected);
+    var snapshot = machine.snapshot();
+    int publication = snapshot.regions().stream()
+        .filter(row -> row.maxBytes() == PUBLICATION_BYTES && row.maxObjects() == PUBLICATION_BUFFERS)
+        .findFirst().orElseThrow().id();
+    var buffers = snapshot.buffers().stream().filter(row -> row.regionId() == publication).toList();
+    assertEquals(2, buffers.size());
+    for (int index = 0; index < expectedBytes.length; index++) {
+      assertEquals(Byte.toUnsignedInt(expectedBytes[index]), buffers.getFirst().elements().get(index));
+    }
+    for (int index = expectedBytes.length; index < ARTIFACT_BYTES; index++) {
+      assertEquals(211, buffers.getFirst().elements().get(index));
+    }
+    byte[] digest = MessageDigest.getInstance("SHA-256").digest(expectedBytes);
+    assertEquals(digest.length, buffers.getLast().elements().size());
+    for (int index = 0; index < digest.length; index++) {
+      assertEquals(Byte.toUnsignedInt(digest[index]), buffers.getLast().elements().get(index));
+    }
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    assertArrayEquals(expectedBytes, machine.hostOutput());
+    if (!expected.globals().isEmpty()) {
+      NativeGlobalRetentionAssertions.assertRetained(machine.hostOutput(), expected);
+    }
   }
 
   private static void assertUnpublished(Fixture fixture) {
@@ -162,7 +230,7 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
     assertEquals(0, machine.global("published"));
     var snapshot = machine.snapshot();
     int region = snapshot.regions().stream()
-        .filter(row -> row.maxBytes() == 32800 && row.maxObjects() == 2)
+        .filter(row -> row.maxBytes() == PUBLICATION_BYTES && row.maxObjects() == PUBLICATION_BUFFERS)
         .findFirst().orElseThrow().id();
     var buffers = snapshot.buffers().stream().filter(row -> row.regionId() == region).toList();
     assertEquals(2, buffers.size());
@@ -171,13 +239,13 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
         assertEquals(211, cell, "rejected artifact or identity cell");
       }
     }
-    assertArrayEquals(new byte[32768], machine.hostOutput());
+    assertArrayEquals(new byte[ARTIFACT_BYTES], machine.hostOutput());
   }
 
   private record Fixture(Program program, String input, String source, String name) {
     VirtualMachine machine() {
       return VirtualMachine.withBinaryInput(
-          program, input.getBytes(StandardCharsets.UTF_8), 32768);
+          program, input.getBytes(StandardCharsets.UTF_8), ARTIFACT_BYTES);
     }
   }
 

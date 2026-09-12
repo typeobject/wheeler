@@ -398,14 +398,33 @@ Literal, local-constant, and qualified imported step bounds produce complete
 stage-0-identical artifacts. Full-width excessive bounds reject without publishing.
 The intact mixed-member runner join remains open.
 
-The scoped-product join passes 274 focused examples, 25 source checks, the archive,
-and both selected physical closure methods. The archive binds 464 modules,
-2,256 constants, and 1,860 callables. Independent packages and the 2,210-import
-graph agree. The selected 603,784-byte container keeps its independently
+The scoped-product join at `8931f2eb3` passed 274 focused examples, 25 source checks,
+the archive, and both selected physical closure methods. That archive bound 464
+modules, 2,256 constants, and 1,860 callables. Independent packages and its
+2,210-import graph agreed. The selected 603,784-byte container keeps its independently
 reconstructed identity. A locked external consumer compiles the qualified claim
 and matches a complete 568-byte reference artifact. Claim-absence snapshots show
 no additional owned buffer or region. These checks do not establish every
 physical body or a compiler fixed point.
+
+[WIP-0506](source/WIP-0506-native-source-global-products.md) closes a separate
+state-retention gap. Both callable and callable-free archive paths now bind and
+emit signed global initializers instead of discarding unused state. Shared name
+ordering updates manifest, callable, and global name IDs. Focused checks cover
+complete artifacts, shared proof/global spellings, signed words, publication
+rejection, cleanup, native digest bytes, and representative phase replay. Native
+intake retains all five global columns from those emitted artifacts and checks
+caller prefixes and tails against independent names and values.
+
+The new archive intake and both selected physical methods pass with 470 modules,
+2,316 constants, and 1,868 callables. Independent packages, four dependent locks,
+and the 2,235-import graph agree. The 603,784-byte selected linked reference stays
+unchanged. A locked and vendored external consumer emits a complete 632-byte
+artifact with three globals and a step claim. Its bytes and execution agree with
+independent stage 0. The 181-target workspace check and build pass.
+[WIP-0507](source/WIP-0507-native-source-global-access-products.md) retains the
+missing global read/write contract. These declaration products do not complete
+entry or nominal composition, the mixed-member runner, or every physical body.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate

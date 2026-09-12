@@ -808,12 +808,14 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
         module example.structured_comparison_source_product;
 
         import wheeler.compiler.closure.local_structured_source_module_compiler;
+        import wheeler.compiler.closure.source_global_schema;
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.constant_product_schema;
         import wheeler.core.encoding.binary;
 
         classical class StructuredComparisonSourceProductExample {
           CONSTANT_PRODUCT_LIMITS
+          const long GLOBAL_BYTES = SOURCE_GLOBAL_PUBLICATION_ROWS * FIXTURE_WORD_BYTES;
           state long valid = 0;
           state long artifactLength = 0;
 
@@ -834,6 +836,8 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             words stringStarts = allocate(products, /* length= */ 256);
             words stringLengths = allocate(products, /* length= */ 256);
             words functionNameIds = allocate(products, /* length= */ 64);
+            region globalArena = new region(GLOBAL_BYTES, /* buffers= */ 1);
+            words globals = allocate(globalArena, SOURCE_GLOBAL_PUBLICATION_ROWS);
             bytes artifact = allocateBytes(products, /* length= */ 32768);
             bytes identity = allocateBytes(products, /* length= */ 32);
             set(bodyStarts, 0, %d);
@@ -877,6 +881,8 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             set(functionNameIds, 0, 2);
             CONSTANT_PRODUCT_SETUP
             SourceProductArtifactPlan plan = compileStructuredSourceModule(
+              /* classNameId= */ 1, /* globalCount= */ 0, /* globalProductStart= */ 0,
+              globals,
               input,
               /* symbolNames= */ strings,
               /* constantNames= */ strings,
@@ -919,6 +925,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             CONSTANT_PRODUCT_CLEANUP
             drop(identity);
             drop(artifact);
+            drop(globals); drop(globalArena);
             drop(functionNameIds);
             drop(stringLengths);
             drop(stringStarts);

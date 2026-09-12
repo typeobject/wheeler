@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.source_proof_strings;
 
 import wheeler.compiler.closure.source_classical_proofs;
+import wheeler.compiler.closure.source_string_ranges;
 import wheeler.compiler.encoding;
 import wheeler.core.encoding.binary;
 
@@ -15,45 +16,6 @@ classical class SourceProofStrings {
   private const long WORD_BYTES = 4;
   private const long MAX_NAME_BYTES = SOURCE_PROOF_NAMES / MAX_SOURCE_PROOFS;
   private const long ARTIFACT_BYTES = 32768;
-
-  private long compareNames(
-    borrow byteview left,
-    long leftStart,
-    long leftLength,
-    borrow byteview right,
-    long rightStart,
-    long rightLength
-  ) {
-    long shared = leftLength;
-    if (rightLength < shared) {
-      shared = rightLength;
-    }
-
-    long offset = 0;
-    while (offset < shared) limit ARTIFACT_BYTES {
-      long leftByte = left[leftStart + offset];
-      long rightByte = right[rightStart + offset];
-      if (leftByte < rightByte) {
-        return -1;
-      }
-
-      if (rightByte < leftByte) {
-        return 1;
-      }
-
-      offset += 1;
-    }
-
-    if (leftLength < rightLength) {
-      return -1;
-    }
-
-    if (rightLength < leftLength) {
-      return 1;
-    }
-
-    return 0;
-  }
 
   /// Indexes a complete canonical string section and unique source proof names.
   /// Effects: writes private mapping columns only. Callers must not publish them on rejection.
@@ -95,7 +57,7 @@ classical class SourceProofStrings {
       set(oldLengths, old, oldLength);
       if (0 < old) {
         assert(
-          compareNames(
+          compareSourceStringRanges(
             artifact,
             oldStarts[old - 1],
             oldLengths[old - 1],
@@ -123,7 +85,7 @@ classical class SourceProofStrings {
       long earlier = 0;
       while (earlier < proof) limit MAX_SOURCE_PROOFS {
         assert(
-          compareNames(
+          compareSourceStringRanges(
             names,
             proofs[earlier],
             proofs[SOURCE_PROOF_LENGTH_ROW + earlier],
@@ -139,7 +101,14 @@ classical class SourceProofStrings {
       old = 0;
       while (old < oldCount) limit MAX_SOURCE_PROOF_STRINGS {
         if (
-          compareNames(artifact, oldStarts[old], oldLengths[old], names, start, length) == 0
+          compareSourceStringRanges(
+            artifact,
+            oldStarts[old],
+            oldLengths[old],
+            names,
+            start,
+            length
+          ) == 0
         ) {
           matched = old;
         }
@@ -163,7 +132,7 @@ classical class SourceProofStrings {
       while (proof < proofCount) limit MAX_SOURCE_PROOFS {
         if (proofIds[EXISTING_STRING_ROW + proof] < 0) {
           if (
-            compareNames(
+            compareSourceStringRanges(
               names,
               proofs[proof],
               proofs[SOURCE_PROOF_LENGTH_ROW + proof],
@@ -193,7 +162,7 @@ classical class SourceProofStrings {
         old = 0;
         while (old < oldCount) limit MAX_SOURCE_PROOF_STRINGS {
           if (
-            compareNames(
+            compareSourceStringRanges(
               artifact,
               oldStarts[old],
               oldLengths[old],
@@ -212,7 +181,7 @@ classical class SourceProofStrings {
         while (other < proofCount) limit MAX_SOURCE_PROOFS {
           if (proofIds[EXISTING_STRING_ROW + other] < 0) {
             if (
-              compareNames(
+              compareSourceStringRanges(
                 names,
                 proofs[other],
                 proofs[SOURCE_PROOF_LENGTH_ROW + other],

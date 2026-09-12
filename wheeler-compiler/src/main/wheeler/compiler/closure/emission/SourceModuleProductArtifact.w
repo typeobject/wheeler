@@ -4,6 +4,7 @@ module wheeler.compiler.closure.source_module_product_artifact;
 
 import wheeler.compiler.closure.linked_manifest_section;
 import wheeler.compiler.closure.source_call_argument_layouts;
+import wheeler.compiler.closure.source_global_section;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.encoding;
 import wheeler.compiler.opcodes;
@@ -156,6 +157,10 @@ classical class SourceModuleProductArtifact {
 
   /// Builds one local-only canonical artifact.
   public SourceProductArtifactPlan publishClassicalSourceModuleArtifact(
+    long classNameId,
+    long globalCount,
+    long globalProductStart,
+    borrow mut words globals,
     long callableCount,
     borrow mut words callableRows,
     borrow mut words parameterCounts,
@@ -180,6 +185,10 @@ classical class SourceModuleProductArtifact {
     words stubResultTypes = allocate(emptyStubs, /* length= */ 4096);
     words stubEffects = allocate(emptyStubs, /* length= */ 4096);
     SourceProductArtifactPlan result = publishClassicalSourceModuleArtifactWithStubs(
+      classNameId,
+      globalCount,
+      globalProductStart,
+      globals,
       callableCount,
       /* reversibleCallableCount= */ 0,
       /* stubCount= */ 0,
@@ -215,6 +224,10 @@ classical class SourceModuleProductArtifact {
 
   /// Builds canonical sections with verifier-only imported signature stubs.
   public SourceProductArtifactPlan publishClassicalSourceModuleArtifactWithStubs(
+    long classNameId,
+    long globalCount,
+    long globalProductStart,
+    borrow mut words globals,
     long callableCount,
     long reversibleCallableCount,
     long stubCount,
@@ -266,6 +279,8 @@ classical class SourceModuleProductArtifact {
     assert(bufferLength(output) == ARTIFACT_BYTES);
     assert(bufferLength(identity) == 32);
 
+    assert(-1 < classNameId);
+    assert(classNameId < stringCount);
     region sections = new region(/* bytes= */ 33792, /* allocations= */ 3);
     bytes sectionArchive = allocateBytes(sections, ARTIFACT_BYTES);
     words sectionStarts = allocate(sections, /* length= */ 64);
@@ -274,7 +289,7 @@ classical class SourceModuleProductArtifact {
 
     set(sectionStarts, 0, cursor);
     ModuleManifestProduct manifest = new ModuleManifestProduct(
-      /* nameString= */ 1,
+      /* nameString= */ classNameId,
       /* entryFunction= */ callableCount + stubCount,
       /* maxHistory= */ 4000000,
       /* kind= */ 0,
@@ -300,14 +315,16 @@ classical class SourceModuleProductArtifact {
     cursor += stringSectionLength;
 
     set(sectionStarts, 2, cursor);
-    long zeroByte = 0;
-    while (zeroByte < 16) limit 16 {
-      setByte(sectionArchive, cursor + zeroByte, 0);
-      zeroByte += 1;
-    }
-
-    set(sectionLengths, 2, 16);
-    cursor += 16;
+    long typeSectionBytes = writeSourceGlobalTypeSection(
+      globalCount,
+      globalProductStart,
+      globals,
+      stringCount,
+      sectionArchive,
+      cursor
+    );
+    set(sectionLengths, 2, typeSectionBytes);
+    cursor += typeSectionBytes;
 
     set(sectionStarts, 3, cursor);
     writeUnsigned(sectionArchive, cursor, 4, 0);

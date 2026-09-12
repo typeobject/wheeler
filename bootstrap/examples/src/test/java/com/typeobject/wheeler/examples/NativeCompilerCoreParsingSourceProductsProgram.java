@@ -75,6 +75,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
         import wheeler.compiler.closure.resolved_loop_body_products;
         import wheeler.compiler.closure.resolved_loop_products;
         import wheeler.compiler.closure.source_callable_coordinate_products;
+        import wheeler.compiler.closure.source_global_schema;
         import wheeler.compiler.closure.source_loop_products;
         import wheeler.compiler.closure.source_module_product_artifact;
         import wheeler.compiler.closure.source_product_artifact;
@@ -85,6 +86,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
 
         classical class CoreParsingSourceProductsExample {
           CONSTANT_PRODUCT_LIMITS
+          const long GLOBAL_BYTES = SOURCE_GLOBAL_PUBLICATION_ROWS * FIXTURE_WORD_BYTES;
           state long valid = 0;
           state long blockValid = 0;
           state long loopValid = 0;
@@ -186,6 +188,8 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             words stringLengths = allocate(products, /* length= */ 256);
             words parameterCounts = allocate(products, /* length= */ 64);
             words functionNameIds = allocate(products, /* length= */ 64);
+            region globalArena = new region(GLOBAL_BYTES, /* buffers= */ 1);
+            words globals = allocate(globalArena, SOURCE_GLOBAL_PUBLICATION_ROWS);
             bytes artifact = allocateBytes(products, /* length= */ 32768);
             bytes identity = allocateBytes(products, /* length= */ 32);
             bytes structuredArtifact = allocateBytes(products, /* length= */ 32768);
@@ -517,6 +521,8 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
               compositionValid = 1;
             }
             SourceProductArtifactPlan artifactPlan = publishClassicalSourceModuleArtifact(
+              /* classNameId= */ 1, /* globalCount= */ 0, /* globalProductStart= */ 0,
+              globals,
               2,
               composedCallables,
               parameterCounts,
@@ -539,6 +545,8 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             }
             CONSTANT_PRODUCT_SETUP
             SourceProductArtifactPlan structuredPlan = compileStructuredSourceModule(
+              /* classNameId= */ 1, /* globalCount= */ 0, /* globalProductStart= */ 0,
+              globals,
               input,
               binarySource,
               /* constantNames= */ binarySource,
@@ -795,6 +803,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             drop(archivePublication);
             drop(structuredIdentity); drop(structuredArtifact);
             drop(identity); drop(artifact);
+            drop(globals); drop(globalArena);
             drop(functionNameIds); drop(parameterCounts);
             drop(stringLengths); drop(stringStarts); drop(strings);
             drop(composedCode); drop(composedTypes); drop(composedCallables);

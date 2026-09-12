@@ -324,6 +324,24 @@ retained its independently reconstructed bytes and identity. A locked package
 consumer published and checked a complete 544-byte step artifact. This was
 product publication evidence, not compilation of every physical body.
 
+### Declared global products
+
+[WIP-0506](source/WIP-0506-native-source-global-products.md) joins signed state
+initializers with canonical source-module emission. Shared member fronts and the
+complete scalar packet produce declaration-ordered names and values. The archive
+adapter retains the three declaration columns and adds canonical name IDs. Both
+callable and callable-free paths emit globals before container verification.
+They no longer discard unused state or invent a fixed class-name ID after adding
+global strings.
+
+The structured compiler, direction publisher, and source emitter receive the
+class-name ID, global count, global product base, and global rows explicitly.
+All direct callers use that contract. Private staging protects artifact and
+identity publication on later invalid states, names, and proof bounds.
+[WIP-0507](source/WIP-0507-native-source-global-access-products.md) owns the
+remaining read/write lowering. Entry, nominal, and intact test-runner composition
+remain open. Initializer retention is not their acceptance evidence.
+
 ### Scoped constants and ordinary claim composition
 
 `SourceClassicalCoverage.w` joins ordinary claims with the existing homogeneous

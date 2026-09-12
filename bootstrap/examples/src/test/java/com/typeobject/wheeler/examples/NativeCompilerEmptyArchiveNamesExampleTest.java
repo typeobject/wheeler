@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 /** Callable-free archive products use the same bound class-name windows. */
 final class NativeCompilerEmptyArchiveNamesExampleTest {
+  private static final int MAX_GLOBALS = 8;
   private static final String MODULE = "example.empty";
   private static final String PREFIX = "classical class Outside {}\n";
 
@@ -36,6 +37,56 @@ final class NativeCompilerEmptyArchiveNamesExampleTest {
   }
 
   @Test
+  void retainsCallableFreeStateAndCanonicalSharedNames() throws Exception {
+    for (boolean imported : new boolean[] {false, true}) {
+      String terminal = java.util.stream.IntStream.range(0, MAX_GLOBALS)
+          .mapToObj(i -> "state long value" + i + " = " + i + ";")
+          .collect(java.util.stream.Collectors.joining("\n"));
+      for (String declarations : new String[] {
+          "state long Empty = 7;",
+          "state long Zulu = -9223372036854775808; state long Alpha = 9223372036854775807;",
+          "state long first = VALUE + 2; state long second = VALUE * 3;",
+          terminal
+      }) {
+        Fixture fixture = fixture("Empty", imported, null, declarations);
+        VirtualMachine machine = fixture.machine();
+        CompilerMachineRunner.runWithoutRewindHistory(machine);
+        Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("Empty.w", fixture.source()), MODULE);
+        assertEquals(1, machine.global("published"));
+        assertArrayEquals(new BytecodeWriter().write(expected), machine.hostOutput());
+        VirtualMachine execution = new VirtualMachine(
+            new com.typeobject.wheeler.core.bytecode.BytecodeReader().read(machine.hostOutput()));
+        CompilerMachineRunner.runWithoutRewindHistory(execution);
+        for (var global : expected.globals()) {
+          assertEquals(global.initialValue(), execution.global(global.name()));
+        }
+      }
+    }
+  }
+
+  @Test
+  void rejectsLaterStateErrorsAndUnboundClaimsBeforeCallableFreePublication() throws Exception {
+    String excess = java.util.stream.IntStream.rangeClosed(0, MAX_GLOBALS)
+        .mapToObj(i -> "state long value" + i + " = " + i + ";")
+        .collect(java.util.stream.Collectors.joining("\n"));
+    for (boolean imported : new boolean[] {false, true}) {
+      for (String declarations : new String[] {
+          "state long first = 1; state long first = 2;",
+          "state long first = 1; state long second = true;",
+          "state long first = 1; state long second = missing;",
+          excess
+      }) {
+        assertUnpublished(fixture("Empty", imported, null, declarations),
+            "::materializeSourceModuleNames");
+      }
+      assertUnpublished(fixture("Empty", imported, null,
+          "state long first = 1; theorem Bound proves steps(missing, 8);"),
+          "::compileCallableFreeArchiveModule");
+    }
+  }
+
+  @Test
   void rejectsClassNamesOutsideTheirSourceAndTheFirstExcessLength() throws Exception {
     for (boolean imported : new boolean[] {false, true}) {
       Fixture valid = fixture("Empty", imported, null);
@@ -49,10 +100,14 @@ final class NativeCompilerEmptyArchiveNamesExampleTest {
   }
 
   private static void assertUnpublished(Fixture fixture) {
+    assertUnpublished(fixture, "::requireArchiveSourceNames");
+  }
+
+  private static void assertUnpublished(Fixture fixture, String owner) {
     VirtualMachine machine = fixture.machine();
     VmTrap trap = assertThrows(VmTrap.class,
         () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
-    assertTrue(trap.getMessage().contains("::requireArchiveSourceNames"));
+    assertTrue(trap.getMessage().contains(owner), trap.getMessage());
     assertEquals(0, machine.global("published"));
     var snapshot = machine.snapshot();
     int region = snapshot.regions().stream()
@@ -76,8 +131,13 @@ final class NativeCompilerEmptyArchiveNamesExampleTest {
   }
 
   private static Fixture fixture(String name, boolean imported, long[] range) throws Exception {
+    return fixture(name, imported, range, "");
+  }
+
+  private static Fixture fixture(String name, boolean imported, long[] range, String declarations)
+      throws Exception {
     String source = "/* classical class Ghost {} */\nmodule " + MODULE + ";\n"
-        + "classical\nclass " + name + " { public const long VALUE = 1; }\n"
+        + "classical\nclass " + name + " { public const long VALUE = 1; " + declarations + " }\n"
         + "// classical class Last {}\n";
     String input = PREFIX + source + "outside tail\n";
     long classStart = range == null ? input.indexOf(name + " {") : range[0];
@@ -86,7 +146,7 @@ final class NativeCompilerEmptyArchiveNamesExampleTest {
         + "CLASS_START, CLASS_LENGTH, 0, 0, ";
     String targetView = "0, targets, targetParameters, archive, archive, archive, "
         + "qualifierStarts, qualifierLengths, qualifierRanks, ";
-    String parameters = "bodyStarts, bodyLengths, 0, importedRows, archive, importedStarts, "
+    String parameters = "bodyStarts, bodyLengths, 1, importedRows, archive, importedStarts, "
         + "firstParameters, parameterCounts, resultTypes, effects, parameterTypes, parameterModes, "
         + "archive, nameStarts, nameLengths, ";
     String call = imported
@@ -101,6 +161,7 @@ final class NativeCompilerEmptyArchiveNamesExampleTest {
         module example.empty_archive;
         import wheeler.compiler.closure.archive_structured_source_module_compiler;
         import wheeler.compiler.closure.source_product_artifact;
+        import wheeler.compiler.constant_product_schema;
         classical class EmptyArchive {
           state long published = 0;
           entry void main(borrow byteview archive, borrow mut bytes output) {
@@ -109,6 +170,14 @@ final class NativeCompilerEmptyArchiveNamesExampleTest {
             words bodyLengths = allocate(metadata, 4096);
             words importedRows = allocate(metadata, 114689);
             words importedStarts = allocate(metadata, 16384);
+            set(importedRows, 0, 1);
+            long constantRow = CONSTANT_PRODUCT_HEADER_ROWS;
+            set(importedRows, constantRow + CONSTANT_NAME_START, VALUE_START);
+            set(importedRows, constantRow + CONSTANT_NAME_LENGTH, VALUE_LENGTH);
+            set(importedRows, constantRow + CONSTANT_TYPE, CONSTANT_SIGNED);
+            set(importedRows, constantRow + CONSTANT_VALUE, 1);
+            set(importedRows, constantRow + CONSTANT_RESOLVED, 1);
+            set(importedStarts, 0, VALUE_START);
             words firstParameters = allocate(metadata, 4096);
             words parameterCounts = allocate(metadata, 4096);
             words resultTypes = allocate(metadata, 4096);
@@ -146,6 +215,8 @@ final class NativeCompilerEmptyArchiveNamesExampleTest {
           }
         }
         """.replace("CALL", call)
+        .replace("VALUE_START", Integer.toString(input.indexOf("VALUE =")))
+        .replace("VALUE_LENGTH", Integer.toString("VALUE".length()))
         .replace("SOURCE_START", Integer.toString(PREFIX.length()))
         .replace("SOURCE_LENGTH", Integer.toString(source.length()))
         .replace("MODULE_START", Integer.toString(input.indexOf(MODULE)))

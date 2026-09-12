@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /** Checks proposal navigation, lifecycle metadata, and reviewable progress records. */
 final class ProposalIndexTest {
@@ -48,7 +49,7 @@ final class ProposalIndexTest {
 
   @Test
   void catalogsNameEveryProposalOnceWithExactTitleAndStatus() throws Exception {
-    Map<String, Proposal> proposals = loadProposals();
+    Map<String, Proposal> proposals = loadProposals(ROOT);
     List<Path> catalogs = catalogs();
     Map<String, IndexEntry> indexed = new LinkedHashMap<>();
     for (Path catalog : catalogs) {
@@ -72,7 +73,7 @@ final class ProposalIndexTest {
 
   @Test
   void roadmapNamesEveryOpenContractWithoutRepeatingStatuses() throws Exception {
-    Map<String, Proposal> proposals = loadProposals();
+    Map<String, Proposal> proposals = loadProposals(ROOT);
     Map<String, IndexEntry> roadmap = indexRows(Files.readString(ROOT.resolve("roadmap.md")));
     Set<String> open = new HashSet<>();
     for (Proposal proposal : proposals.values()) {
@@ -89,7 +90,7 @@ final class ProposalIndexTest {
 
   @Test
   void dependenciesAndWholeContractReplacementsRemainClosedAndAcyclic() throws Exception {
-    Map<String, Proposal> proposals = loadProposals();
+    Map<String, Proposal> proposals = loadProposals(ROOT);
     for (Proposal proposal : proposals.values()) {
       for (String id : references(proposal.source())) {
         assertTrue(proposals.containsKey(id), proposal.id() + " references missing WIP-" + id);
@@ -143,6 +144,23 @@ final class ProposalIndexTest {
   }
 
   @Test
+  void nestedProposalsRetainPathsAndCannotHideDuplicateIds(@TempDir Path root) throws Exception {
+    String source = "# WIP-0001: Nested fixture\n\n"
+        + "| Status | Draft |\n| Owners | Maintainers |\n"
+        + "| Created | 2026-08-01 |\n| Updated | 2026-08-01 |\n"
+        + "| Area | Tests |\n| Depends on | None |\n"
+        + "| Supersedes | None |\n| Superseded by | None |\n";
+    Path nested = root.resolve("source/globals/WIP-0001-fixture.md");
+    Files.createDirectories(nested.getParent());
+    Files.writeString(nested, source);
+    var proposals = loadProposals(root);
+    assertEquals(Set.of("0001"), proposals.keySet());
+    assertEquals("source/globals/WIP-0001-fixture.md", proposals.get("0001").filename());
+    Files.writeString(root.resolve("WIP-0001-duplicate.md"), source);
+    assertThrows(AssertionError.class, () -> loadProposals(root));
+  }
+
+  @Test
   void indexRejectsDuplicateIdsEvenWhenTheTargetsDiffer() {
     assertThrows(AssertionError.class, () -> indexRows(
         "| [WIP-0001](WIP-0001-first.md) | Draft | First |\n"
@@ -174,16 +192,16 @@ final class ProposalIndexTest {
     assertEquals(List.of(), oversizedParagraphs("| " + line + line + " |\n"));
   }
 
-  private static Map<String, Proposal> loadProposals() throws IOException {
+  private static Map<String, Proposal> loadProposals(Path root) throws IOException {
     List<Path> files;
-    try (var paths = Files.list(ROOT)) {
+    try (var paths = Files.walk(root)) {
       files = paths.filter(Files::isRegularFile)
           .filter(path -> path.getFileName().toString().startsWith("WIP-"))
           .sorted().toList();
     }
     Map<String, Proposal> result = new LinkedHashMap<>();
     for (Path path : files) {
-      Proposal proposal = proposal(path.getFileName().toString(), Files.readString(path));
+      Proposal proposal = proposal(root.relativize(path).toString(), Files.readString(path));
       assertFalse(result.containsKey(proposal.id()), "duplicate WIP-" + proposal.id());
       result.put(proposal.id(), proposal);
     }
@@ -192,7 +210,7 @@ final class ProposalIndexTest {
   }
 
   private static Proposal proposal(String filename, String source) {
-    Matcher file = FILE.matcher(filename);
+    Matcher file = FILE.matcher(Path.of(filename).getFileName().toString());
     assertTrue(file.matches(), filename + " filename");
     Matcher heading = HEADING.matcher(source.lines().findFirst().orElseThrow());
     assertTrue(heading.matches(), filename + " heading");

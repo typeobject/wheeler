@@ -43,6 +43,10 @@ classical class StructuredSourceModuleCompiler {
   /// Retains complete scoped constants beside the reduced body columns for claim binding.
   /// Rejects any body result that conflicts with its declared signed, Boolean, or void type.
   public SourceProductArtifactPlan compileStructuredSourceModuleWithTargets(
+    long classNameId,
+    long globalCount,
+    long globalProductStart,
+    borrow mut words globals,
     borrow utf8 source,
     borrow byteview symbolNames,
     borrow byteview constantNames,
@@ -827,6 +831,10 @@ classical class StructuredSourceModuleCompiler {
     );
     assert(composition.valid);
     SourceProductArtifactPlan result = publishStructuredArtifactDirections(
+      classNameId,
+      globalCount,
+      globalProductStart,
+      globals,
       callableCount,
       reversibleCallableCount,
       referencedTargetPlan.importedCount,

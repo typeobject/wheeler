@@ -140,6 +140,15 @@ without allocating new owned buffers. Generated-inverse coverage remains a
 separate homogeneous-callable policy. The intact mixed-member runner join remains
 open.
 
+Source-local artifacts now retain up to eight declared signed globals, including
+unused state and full signed initial values. Initializers consume the complete
+scoped scalar packet, not dependency bodies. Callable and callable-free archive
+paths share canonical name ordering and write global descriptors before final
+verification. Shared spellings reuse string IDs. Adding a global also remaps
+class and callable name IDs where necessary. Invalid later declarations cannot
+publish earlier globals. Global read/write lowering, entry composition, and the
+intact mixed-member runner remain open.
+
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and
 entry binding validate complete owner windows before rebasing. This closes one
