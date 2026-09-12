@@ -31,7 +31,7 @@ classical class DirectReturnInstructions {
     }
 
     if (
-      directReturnTypesValid(
+      directScalarTypesValid(
         reversibleCallableCount,
         relation.kind,
         relation.operation,

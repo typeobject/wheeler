@@ -127,7 +127,8 @@ classical class ResolvedLoopBodyProducts {
         tokenCount,
         tokenKinds,
         tokenStarts,
-        tokenLengths
+        tokenLengths,
+        PUNCTUATION_SEMICOLON
       );
       supportedReturn = relation.valid;
     }

@@ -158,9 +158,18 @@ copying caller-visible rows or bytes.
 
 [WIP-0509](../docs/internal/proposals/source/WIP-0509-root-scalar-global-locations.md)
 records that root boundary. Access-time shadow rejection is not full scope
-admission. Global conditions/assertions, helper-result stores, nested accesses,
-entry/nominal composition, and source-independent instruction relocation remain
-open in [WIP-0507](../docs/internal/proposals/source/WIP-0507-native-source-global-access-products.md).
+admission. Root assertions now use the same scalar locations and value emission.
+Their fronts reserve one scalar local or two operands plus a comparison result
+without early local-only binding. The instruction owner checks Boolean types
+and complete byte/type windows before writing. Literal-left comparisons preserve
+load order, and false predicates remain executable `EXPECT_TRUE` instructions.
+
+[WIP-0510](../docs/internal/proposals/source/WIP-0510-root-scalar-assertion-products.md)
+records this assertion join. It removes the root loop-opcode adapter and reduces
+the direct arena by 163,840 bytes and one buffer. Global conditions, helper-result
+stores, nested accesses, entry/nominal composition, and source-independent
+instruction relocation remain open in
+[WIP-0507](../docs/internal/proposals/source/WIP-0507-native-source-global-access-products.md).
 
 The scanner owns source whitespace rather than requiring each frontend to filter
 trivia. Tabs, carriage returns, and admitted Unicode separators split tokens.

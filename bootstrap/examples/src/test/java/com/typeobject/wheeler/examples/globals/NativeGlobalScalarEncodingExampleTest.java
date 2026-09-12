@@ -27,12 +27,20 @@ final class NativeGlobalScalarEncodingExampleTest {
   private static final int GLOBALS = 8;
   private static final int SOURCE = 1;
   private static final int BINARY_SOURCES = 3;
+  private static final int CONSTANT = 4;
   private static final int LITERAL = 5;
+  private static final int LEFT_LITERAL = 6;
   private static final int SENTINEL = 211;
   private static final int MOVE = Opcode.LOCAL_MOVE.code();
   private static final int LOAD = Opcode.LOCAL_LOAD_GLOBAL.code();
   private static final int STORE = Opcode.LOCAL_STORE_GLOBAL.code();
   private static final int RETURN = Opcode.RETURN_VALUE.code();
+  private static final int ASSERT = Opcode.EXPECT_TRUE.code();
+  private static final int ASSERT_BYTES = Instruction.of(Opcode.LOCAL_MOVE, 0, 0).encodedLength()
+      + Instruction.of(Opcode.EXPECT_TRUE, 0).encodedLength();
+  private static final int BINARY_ASSERT_BYTES = Instruction.of(Opcode.LOCAL_MOVE, 0, 0).encodedLength() * 2
+      + Instruction.of(Opcode.LOCAL_EQ, 0, 0, 0).encodedLength()
+      + Instruction.of(Opcode.EXPECT_TRUE, 0).encodedLength();
   private static final int SOURCE_BYTES = Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 0, 0).encodedLength()
       + Instruction.of(Opcode.RETURN_VALUE, 0).encodedLength();
   private static final int STORE_BYTES = Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 0, 0).encodedLength()
@@ -79,7 +87,35 @@ final class NativeGlobalScalarEncodingExampleTest {
     }
   }
 
+  @Test
+  void preservesAssertionOrderAndExactTerminalCodeAndFrameWindows() throws Exception {
+    for (Case row : List.of(
+        new Case(SOURCE, CODE_BYTES - ASSERT_BYTES, FRAME_LOCALS - 1, MOVE, 0, MOVE, 0, ASSERT, 0, true),
+        new Case(BINARY_SOURCES, CODE_BYTES - BINARY_ASSERT_BYTES, FRAME_LOCALS - 3, LOAD, GLOBALS - 1, MOVE, 0, ASSERT, 0, true),
+        new Case(LEFT_LITERAL, 3, FRAME_LOCALS - 3, MOVE, 0, LOAD, GLOBALS - 1, ASSERT, 0, true),
+        new Case(SOURCE, CODE_BYTES - ASSERT_BYTES + 1, 0, MOVE, 0, MOVE, 0, ASSERT, 0, false),
+        new Case(BINARY_SOURCES, CODE_BYTES - BINARY_ASSERT_BYTES + 1, 0, LOAD, 0, MOVE, 0, ASSERT, 0, false),
+        new Case(LEFT_LITERAL, 3, FRAME_LOCALS - 2, MOVE, 0, LOAD, 0, ASSERT, 0, false),
+        new Case(LEFT_LITERAL, 3, 0, LOAD, 0, LOAD, 0, ASSERT, 0, false),
+        new Case(LEFT_LITERAL, 3, 0, MOVE, 1, LOAD, 0, ASSERT, 0, false),
+        new Case(LEFT_LITERAL, 3, 0, MOVE, 0, LOAD, GLOBALS, ASSERT, 0, false),
+        new Case(SOURCE, 3, 0, MOVE, 0, MOVE, 0, ASSERT, 1, false))) {
+      check(row);
+    }
+  }
+
+  @Test
+  void declarationEncodingRejectsNonDeclarationRelationsBeforeWriting() throws Exception {
+    for (int kind : new int[] {0, SOURCE, CONSTANT, LITERAL, LEFT_LITERAL}) {
+      check(new Case(kind, 3, 0, MOVE, 0, MOVE, 0, STORE, 0, false), true);
+    }
+  }
+
   private static void check(Case row) throws Exception {
+    check(row, false);
+  }
+
+  private static void check(Case row, boolean declaration) throws Exception {
     byte[] expected = new byte[CODE_BYTES];
     expected[0] = (byte) SENTINEL;
     expected[CODE_BYTES - 1] = (byte) SENTINEL;
@@ -97,9 +133,19 @@ final class NativeGlobalScalarEncodingExampleTest {
     assertEquals(Short.BYTES * 2 + Integer.BYTES, BytecodeFormat.INSTRUCTION_HEADER_SIZE);
     var sources = new LinkedHashMap<>(CompilerSources.moduleClosure("wheeler.compiler.closure.direct_scalar_encoding"));
     sources.put("Sha256.w", Files.readString(Path.of("../wheeler-core/src/main/wheeler/crypto/Sha256.w")));
+    String expression = declaration
+        ? "writeDirectScalarDeclaration(code, %s, %d, %d, %d, %s, %s, TOKEN_LONG, %d, %s, TOKEN_LONG, TYPE_SIGNED, 0)"
+            .formatted(literal(row.cursor()), row.kind(), row.leftOpcode(), row.rightOpcode(), literal(row.base()),
+                literal(row.left()), Opcode.LOCAL_ADD.code(), literal(row.right()))
+        : "writeDirectScalarDestination(code, %s, %d, %s, %d, %d, %d, %s, %s, %d, %s, %s)"
+            .formatted(literal(row.cursor()), row.destinationOpcode(), literal(row.destination()), row.kind(),
+                row.leftOpcode(), row.rightOpcode(), literal(row.base()), literal(row.left()),
+                binary(row) ? operation(row).code() : 0, literal(row.right()), row.kind() == LEFT_LITERAL ? "MINIMUM" : "0");
     sources.put("Driver.w", """
         module example.scalar_locations;
         import wheeler.compiler.closure.direct_scalar_encoding;
+        import wheeler.compiler.keyword_tokens;
+        import wheeler.compiler.type_codes;
         classical class Driver {
           const long CODE_BYTES = %d;
           const long MINIMUM = -9223372036854775807 - 1;
@@ -114,17 +160,14 @@ final class NativeGlobalScalarEncodingExampleTest {
             bytes code = allocateBytes(arena, CODE_BYTES);
             setByte(code, 0, %d); setByte(code, CODE_BYTES - 1, %d);
             prepared = 1;
-            DirectScalarExtent result = writeDirectScalarDestination(code, %s, %d, %s, %d,
-              %d, %d, %s, %s, %d, %s, 0);
+            DirectScalarExtent result = %s;
             if (result.valid) { valid = 1; }
             next = result.next; width = result.localCount; instructions = result.instructionCount;
             completed = 1;
             drop(code); drop(arena);
           }
         }
-        """.formatted(CODE_BYTES, SENTINEL, SENTINEL, literal(row.cursor()), row.destinationOpcode(),
-            literal(row.destination()), row.kind(), row.leftOpcode(), row.rightOpcode(), literal(row.base()),
-            literal(row.left()), row.kind() == BINARY_SOURCES ? Opcode.LOCAL_ADD.code() : 0, literal(row.right())));
+        """.formatted(CODE_BYTES, SENTINEL, SENTINEL, expression));
     var program = new WheelerCompiler().compileModuleFiles(sources, "example.scalar_locations");
     var machine = new VirtualMachine(program);
     while (machine.global("prepared") == 0) machine.stepWithoutRewindHistory();
@@ -133,7 +176,7 @@ final class NativeGlobalScalarEncodingExampleTest {
     var after = machine.snapshot();
     assertEquals(row.valid() ? 1 : 0, machine.global("valid"), row.toString());
     assertEquals(row.valid() ? row.cursor() + length : 0, machine.global("next"));
-    assertEquals(row.valid() ? (row.kind() == BINARY_SOURCES ? 3 : 1) : 0, machine.global("width"));
+    assertEquals(row.valid() ? (binary(row) ? 3 : 1) : 0, machine.global("width"));
     assertEquals(instructions.size(), machine.global("instructions"));
     byte[] actual = new byte[CODE_BYTES];
     var buffer = after.buffers().getFirst();
@@ -154,19 +197,29 @@ final class NativeGlobalScalarEncodingExampleTest {
 
   private static List<Instruction> reference(Case row) {
     var result = new ArrayList<Instruction>();
-    Opcode first = row.kind() == LITERAL ? Opcode.LOCAL_CONST : row.leftOpcode() == LOAD ? Opcode.LOCAL_LOAD_GLOBAL : Opcode.LOCAL_MOVE;
-    result.add(Instruction.of(first, row.base(), row.left()));
+    Opcode first = row.kind() == LITERAL || row.kind() == LEFT_LITERAL ? Opcode.LOCAL_CONST
+        : row.leftOpcode() == LOAD ? Opcode.LOCAL_LOAD_GLOBAL : Opcode.LOCAL_MOVE;
+    result.add(Instruction.of(first, row.base(), row.kind() == LEFT_LITERAL ? Long.MIN_VALUE : row.left()));
     long value = row.base();
-    if (row.kind() == BINARY_SOURCES) {
+    if (binary(row)) {
       Opcode second = row.rightOpcode() == LOAD ? Opcode.LOCAL_LOAD_GLOBAL : Opcode.LOCAL_MOVE;
       result.add(Instruction.of(second, row.base() + 1, row.right()));
       value = row.base() + 2;
-      result.add(Instruction.of(Opcode.LOCAL_ADD, value, row.base(), row.base() + 1));
+      result.add(Instruction.of(operation(row), value, row.base(), row.base() + 1));
     }
     result.add(row.destinationOpcode() == STORE
         ? Instruction.of(Opcode.LOCAL_STORE_GLOBAL, row.destination(), value)
-        : Instruction.of(Opcode.RETURN_VALUE, value));
+        : Instruction.of(row.destinationOpcode() == ASSERT ? Opcode.EXPECT_TRUE : Opcode.RETURN_VALUE, value));
     return result;
+  }
+
+  private static boolean binary(Case row) {
+    return row.kind() == BINARY_SOURCES || row.kind() == LEFT_LITERAL;
+  }
+
+  private static Opcode operation(Case row) {
+    if (row.kind() == LEFT_LITERAL) return Opcode.LOCAL_LT;
+    return row.destinationOpcode() == ASSERT ? Opcode.LOCAL_EQ : Opcode.LOCAL_ADD;
   }
 
   private static String literal(long value) {

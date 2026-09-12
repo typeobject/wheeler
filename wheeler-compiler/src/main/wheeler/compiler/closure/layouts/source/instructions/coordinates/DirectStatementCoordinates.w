@@ -1,12 +1,10 @@
-//! Resolves buffer types and assertion opcodes onto exact physical locals.
+//! Resolves retained buffer types onto exact physical locals.
 
 module wheeler.compiler.closure.direct_statement_coordinates;
 
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
-import wheeler.compiler.closure.structured_source_coordinates;
 import wheeler.compiler.keyword_tokens;
-import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.type_codes;
 
 classical class DirectStatementCoordinates {
@@ -70,50 +68,5 @@ classical class DirectStatementCoordinates {
     }
 
     return -1;
-  }
-
-  /// Maps one assertion's packed local component onto its physical local.
-  public long physicalDirectAssertionOpcode(
-    long opcode,
-    long owner,
-    long statementCount,
-    borrow mut words statementRows,
-    borrow mut words statementLocalRows,
-    long valueCount,
-    borrow mut words valueRows,
-    borrow mut words statementPhysicalStarts
-  ) {
-    long base = -1;
-    if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < opcode) {
-      if (opcode < BODY_BOOLEAN_LITERAL) {
-        base = opcode / 256 * 256;
-      }
-    }
-
-    if (BODY_ASSERT_LITERAL_LT_BASE - 1 < opcode) {
-      if (opcode < BODY_ASSERT_LOCAL_LT_BASE + 256) {
-        base = opcode / 256 * 256;
-      }
-    }
-
-    if (base < 0) {
-      return opcode;
-    }
-
-    long physical = physicalValueLocal(
-      owner,
-      opcode - base,
-      statementCount,
-      statementRows,
-      statementLocalRows,
-      valueCount,
-      valueRows,
-      statementPhysicalStarts
-    );
-    if (physical < 0) {
-      return -1;
-    }
-
-    return base + physical;
   }
 }

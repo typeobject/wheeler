@@ -105,6 +105,30 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
 
   @ParameterizedTest
   @ValueSource(strings = {
+      "Alpha = mod; assert(Alpha == mod); return Alpha;",
+      "Alpha = mod; assert(Alpha == Alpha); return Alpha;",
+      "assert(Alpha == 8); return mod;",
+      "Alpha = mod; assert(mod == Alpha); return Alpha;",
+      "Alpha = mod; assert(0 < Alpha); return Alpha;",
+      "assert(Zulu == -9223372036854775808); return mod;",
+      "assert(-9223372036854775808 < Alpha); return mod;",
+      "assert(Zulu < Alpha); return mod;",
+      "assert(Zulu < LIMIT); return mod;",
+      "assert(Alpha < 9); return mod;",
+      "assert(0 < mod); return mod;",
+      "boolean ready = true; assert(ready); return mod;",
+      "boolean first = false; boolean second = false; assert(first == second); return mod;",
+      "assert(true); return mod;"
+  })
+  void assertsRuntimeGlobalValuesThroughSharedScalarProducts(String body) throws Exception {
+    assertArtifact(fixture(body, "LIMIT", 1, 1, 1, null, """
+        state long Zulu = -9223372036854775808;
+        state long Alpha = example.values::LIMIT + 5;
+        """));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {
       "alpha = true; return mod;",
       "missing = mod; return alpha;",
       "alpha = mod; missing = mod; return alpha;",
@@ -116,6 +140,43 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
         state long zulu = -9223372036854775808;
         state long alpha = example.values::LIMIT + 5;
         """));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "Alpha = mod; assert(Alpha); return Alpha;",
+      "Alpha = mod; assert(Alpha == true); return Alpha;",
+      "boolean ready = true; assert(Alpha == ready); return mod;",
+      "long Alpha = mod; assert(Alpha == mod); return mod;",
+      "Alpha = mod; assert(missing == Alpha); return Alpha;",
+      "Alpha = mod; assert(Alpha + mod); return Alpha;",
+      "Alpha = mod; assert(Alpha = = mod); return Alpha;",
+      "Alpha = mod; assert(Alpha == mod, Alpha); return Alpha;"
+  })
+  void rejectsInvalidAssertionsWithoutPublishingAnEarlierStore(String body) throws Exception {
+    assertUnpublished(fixture(body, "LIMIT", 1, 1, 1, null, "state long Alpha = 8;"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "Alpha = mod; assert(Alpha < 0); return Alpha;",
+      "assert(Alpha == 9); return mod;",
+      "assert(false); return mod;",
+      "Alpha = mod; assert(0 < Zulu); return Alpha;"
+  })
+  void publishesFalseAssertionsAndReplaysTheirRuntimeFailure(String body) throws Exception {
+    Fixture source = fixture(body, "LIMIT", 1, 1, 1, null,
+        "state long Zulu = -9223372036854775808; state long Alpha = 8;");
+    assertArtifact(new Fixture(source.program(), source.input(), source.source(), source.name(), true));
+  }
+
+  @Test
+  void rejectsUnjoinedLiteralLeftDeclarationsRatherThanMisencodingThem() throws Exception {
+    Fixture source = fixture("Alpha = mod; boolean ready = 0 < mod; assert(ready); return Alpha;",
+        "LIMIT", 1, 1, 1, null, "state long Alpha = 8;");
+    new WheelerCompiler().compileLibraryModuleFiles(Map.of("Source.w", source.source(), "Values.w",
+        "module example.values; classical class Values { public const long LIMIT = 3; }"), MODULE);
+    assertUnpublished(source);
   }
 
   @Test
@@ -283,7 +344,7 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
     assertArrayEquals(expectedBytes, machine.hostOutput());
     if (!expected.globals().isEmpty()) {
       NativeGlobalRetentionAssertions.assertRetained(machine.hostOutput(), expected);
-      NativeGlobalExecutionAssertions.assertExecution(machine.hostOutput(), expected);
+      NativeGlobalExecutionAssertions.assertExecution(machine.hostOutput(), expected, fixture.assertionFails());
     }
   }
 
@@ -305,7 +366,7 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
     assertArrayEquals(new byte[ARTIFACT_BYTES], machine.hostOutput());
   }
 
-  private record Fixture(Program program, String input, String source, String name) {
+  private record Fixture(Program program, String input, String source, String name, boolean assertionFails) {
     VirtualMachine machine() {
       return VirtualMachine.withBinaryInput(
           program, input.getBytes(StandardCharsets.UTF_8), ARTIFACT_BYTES);
@@ -466,6 +527,6 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
             input.indexOf(MODULE), MODULE.length(), input.indexOf("ConstantNames {"), count)
         .replace("PRODUCT_MUTATION", productMutation));
     return new Fixture(new WheelerCompiler().compileModuleFiles(
-        sources, "example.archive_constant_names"), input, source, name);
+        sources, "example.archive_constant_names"), input, source, name, false);
   }
 }

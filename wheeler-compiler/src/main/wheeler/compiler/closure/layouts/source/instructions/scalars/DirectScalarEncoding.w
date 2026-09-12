@@ -203,8 +203,8 @@ classical class DirectScalarEncoding {
     return directReturnType(leftType);
   }
 
-  /// Checks source types before one ordinary or reversible return emits.
-  public boolean directReturnTypesValid(
+  /// Checks operand types before an ordinary scalar destination or reversible result emits.
+  public boolean directScalarTypesValid(
     long reversibleCallableCount,
     long kind,
     long operation,
@@ -223,6 +223,22 @@ classical class DirectScalarEncoding {
 
     if (materializedReturn(kind)) {
       return reversibleCallableCount == 0;
+    }
+
+    if (kind == RESULT_RELATION_LEFT_LITERAL) {
+      if (reversibleCallableCount != 0) {
+        return false;
+      }
+
+      if (leftType != TOKEN_LONG) {
+        return false;
+      }
+
+      if (rightType != TOKEN_LONG) {
+        return false;
+      }
+
+      return comparisonOperation(operation);
     }
 
     if (returnOperation(operation) == false) {
@@ -321,8 +337,10 @@ classical class DirectScalarEncoding {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    if (kind == RESULT_RELATION_SOURCE) {
-      return new DirectScalarExtent(0, 0, 0, false);
+    if (kind != RESULT_RELATION_BINARY) {
+      if (kind != RESULT_RELATION_BINARY_SOURCES) {
+        return new DirectScalarExtent(0, 0, 0, false);
+      }
     }
 
     if (returnOperation(operation) == false) {
@@ -426,9 +444,8 @@ classical class DirectScalarEncoding {
     return writeUnsignedLittleEndian(output, next, value, U64);
   }
 
-  /// Writes one scalar value and its checked return or global-store destination.
-  public DirectScalarExtent writeDirectScalarDestination(
-    borrow mut bytes output,
+  /// Preflights the complete scalar operand and destination window without publishing bytes.
+  public DirectScalarExtent measureDirectScalarDestination(
     long cursor,
     long destinationOpcode,
     long destinationOperand,
@@ -438,10 +455,22 @@ classical class DirectScalarEncoding {
     long destination,
     long left,
     long operation,
-    long right,
-    long immediate
+    long right
   ) {
-    assert(bufferLength(output) == MAX_CODE_BYTES);
+    boolean leftMaterialized = materializedReturn(kind);
+    if (kind == RESULT_RELATION_LEFT_LITERAL) {
+      if (left != 0) {
+        return new DirectScalarExtent(0, 0, 0, false);
+      }
+
+      leftMaterialized = true;
+    }
+
+    boolean rightSource = kind == RESULT_RELATION_BINARY_SOURCES;
+    if (kind == RESULT_RELATION_LEFT_LITERAL) {
+      rightSource = true;
+    }
+
     if (scalarLoadOpcodeValid(leftLoadOpcode) == false) {
       return new DirectScalarExtent(0, 0, 0, false);
     }
@@ -450,13 +479,13 @@ classical class DirectScalarEncoding {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    if (materializedReturn(kind)) {
+    if (leftMaterialized) {
       if (leftLoadOpcode != OPCODE_LOCAL_MOVE) {
         return new DirectScalarExtent(0, 0, 0, false);
       }
     }
 
-    if (kind != RESULT_RELATION_BINARY_SOURCES) {
+    if (rightSource == false) {
       if (rightLoadOpcode != OPCODE_LOCAL_MOVE) {
         return new DirectScalarExtent(0, 0, 0, false);
       }
@@ -474,7 +503,7 @@ classical class DirectScalarEncoding {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    if (materializedReturn(kind) == false) {
+    if (leftMaterialized == false) {
       if (scalarLoadValid(leftLoadOpcode, left) == false) {
         return new DirectScalarExtent(0, 0, 0, false);
       }
@@ -493,7 +522,9 @@ classical class DirectScalarEncoding {
       destinationBytes = SOURCE_LOAD_BYTES;
     } else {
       if (destinationOpcode != OPCODE_RETURN_VALUE) {
-        return new DirectScalarExtent(0, 0, 0, false);
+        if (destinationOpcode != OPCODE_EXPECT_TRUE) {
+          return new DirectScalarExtent(0, 0, 0, false);
+        }
       }
 
       if (destinationOperand != 0) {
@@ -518,7 +549,7 @@ classical class DirectScalarEncoding {
         return new DirectScalarExtent(0, 0, 0, false);
       }
 
-      if (kind == RESULT_RELATION_BINARY_SOURCES) {
+      if (rightSource) {
         if (scalarLoadValid(rightLoadOpcode, right) == false) {
           return new DirectScalarExtent(0, 0, 0, false);
         }
@@ -537,21 +568,58 @@ classical class DirectScalarEncoding {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    DirectScalarExtent resultPlan = new DirectScalarExtent(
-      cursor + length,
-      instructionCount,
-      localCount,
-      true
+    return new DirectScalarExtent(cursor + length, instructionCount, localCount, true);
+  }
+
+  /// Writes a preflighted value in source order and its return, store, or assertion destination.
+  public DirectScalarExtent writeDirectScalarDestination(
+    borrow mut bytes output,
+    long cursor,
+    long destinationOpcode,
+    long destinationOperand,
+    long kind,
+    long leftLoadOpcode,
+    long rightLoadOpcode,
+    long destination,
+    long left,
+    long operation,
+    long right,
+    long immediate
+  ) {
+    assert(bufferLength(output) == MAX_CODE_BYTES);
+    DirectScalarExtent resultPlan = measureDirectScalarDestination(
+      cursor,
+      destinationOpcode,
+      destinationOperand,
+      kind,
+      leftLoadOpcode,
+      rightLoadOpcode,
+      destination,
+      left,
+      operation,
+      right
     );
+    if (resultPlan.valid == false) {
+      return resultPlan;
+    }
+
+    boolean binaryRelation = resultPlan.localCount != 1;
+    boolean leftMaterialized = materializedReturn(kind);
+    long literalValue = left;
+    if (kind == RESULT_RELATION_LEFT_LITERAL) {
+      leftMaterialized = true;
+      literalValue = immediate;
+    }
+
     long sourceOpcode = leftLoadOpcode;
-    if (materializedReturn(kind)) {
+    if (leftMaterialized) {
       sourceOpcode = OPCODE_LOCAL_CONST;
     }
 
     long next = writeInstructionHeader(output, cursor, sourceOpcode, INSTRUCTION_FORM_BINARY);
     next = writeUnsignedLittleEndian(output, next, destination, U64);
-    if (materializedReturn(kind)) {
-      next = writeSignedLittleEndian(output, next, left, U64);
+    if (leftMaterialized) {
+      next = writeSignedLittleEndian(output, next, literalValue, U64);
     } else {
       next = writeUnsignedLittleEndian(output, next, left, U64);
     }

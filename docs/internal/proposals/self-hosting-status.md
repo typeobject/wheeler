@@ -435,7 +435,7 @@ earlier stores. Raw terminal frame/code checks retain real emission replay.
 
 The access profile rejects ambiguous global/local references and overlapping
 scalar/global names. It does not implement complete scope admission. Nested
-global accesses, conditions/assertions, helper-result stores, source-independent
+global accesses, conditions, helper-result stores, source-independent
 instruction linking, and the original mixed-member runner remain open. Replacing
 the synthetic library entry in an execution fixture is not native entry lowering.
 
@@ -445,7 +445,25 @@ The root-location archive and selected physical checks pass with 476 modules,
 A locked consumer stores an imported-constant expression into a global, loads the
 changed value, and publishes a complete 752-byte stage-0-identical artifact.
 The 181-target workspace and 138 stage-0 tests pass. None of these checks closes
-the missing parent joins or establishes every physical compiler body.
+the missing parent joins or establishes every physical compiler body. Commit
+`c42ff6e36` also passed all 52 bootstrap jobs, including output comparison.
+
+[WIP-0510](source/WIP-0510-root-scalar-assertion-products.md) joins root assertions
+to the same scalar locations. Syntax-derived frame widths no longer reject globals
+through local-only loop binding. The assertion owner checks Boolean semantics and
+complete type/code windows, then shares value emission with returns and stores.
+Fourteen accepted bodies, eight malformed or mistyped predicates, and four runtime
+assertion failures retain complete artifact and execution checks. The 172-example
+adapter run passes. Terminal windows and rejected publication also retain replay.
+The removed root loop adapter saves one 163,840-byte scratch buffer.
+
+Assertion archive intake and selected physical checks pass with 477 modules,
+2,344 constants, and 1,885 callables. Independent packages, four locks, and the
+2,279-import graph agree. A locked consumer emits a complete 904-byte artifact
+with two executable predicates, three globals, one proof, nine locals, and twelve
+instructions. Native retained-global intake and callable replay match the source
+oracle. The 181-target workspace passes. These are source-product and selected-body
+checks, not every physical compiler body, native entry lowering, or a fixed point.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate

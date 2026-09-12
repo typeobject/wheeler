@@ -150,9 +150,13 @@ publish earlier globals. Root scalar reads and stores now use explicit frame or
 global locations. Loads observe current state, stores keep declaration ordinals,
 and binary values reserve two operand locals plus their result. Complete artifact
 and callable execution checks compare against independent stage 0. They do not
-establish general scope admission, nested global lowering, assertions, or
-helper-result stores. Those joins, entry composition, and the
-intact mixed-member runner remain open.
+establish general scope admission, nested global lowering, or helper-result
+stores. Root assertions now share those locations and scalar emission. A predicate
+must produce a Boolean, and literal-left comparisons preserve operand order.
+Complete type/code preflight precedes publication. False assertions compile and
+reject at runtime without changing the failing instruction's machine state.
+Global conditions, nested control, helper-result stores, entry composition, and
+the intact mixed-member runner remain open.
 
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and

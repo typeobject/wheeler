@@ -6,6 +6,7 @@ import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.opcodes;
+import wheeler.compiler.source_scalars;
 
 classical class ArithmeticLoopDeclarations {
   /// Carries one recognized arithmetic declaration and its logical operands.
@@ -36,7 +37,8 @@ classical class ArithmeticLoopDeclarations {
       semanticCount,
       tokenKinds,
       tokenStarts,
-      tokenLengths
+      tokenLengths,
+      PUNCTUATION_SEMICOLON
     );
     boolean multiplication = relation.operation == OPCODE_LOCAL_MUL;
     boolean addition = relation.operation == OPCODE_LOCAL_ADD;

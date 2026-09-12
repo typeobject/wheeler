@@ -428,7 +428,7 @@ classical class DirectConditionalReturnProducts {
     long childInstructionCount = 2;
     long childResultType = TYPE_BOOLEAN;
     if (literalChild == false) {
-      DirectScalarRelationProduct childRelation = resolveDirectReturnRelation(
+      DirectScalarRelationProduct childRelation = resolveDirectScalarValue(
         source,
         symbolNames,
         globalNames,
@@ -455,7 +455,8 @@ classical class DirectConditionalReturnProducts {
         symbolLengths,
         symbolTypes,
         symbolValues,
-        symbolResolved
+        symbolResolved,
+        PUNCTUATION_SEMICOLON
       );
       if (childRelation.valid == false) {
         return invalidConditionalReturn(21);
@@ -473,7 +474,7 @@ classical class DirectConditionalReturnProducts {
       }
 
       if (
-        directReturnTypesValid(
+        directScalarTypesValid(
           /* reversibleCallableCount= */ 0,
           childRelation.kind,
           childRelation.operation,

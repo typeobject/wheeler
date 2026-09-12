@@ -15,7 +15,7 @@
 
 This task implements the root scalar part of
 [WIP-0507](WIP-0507-native-source-global-access-products.md). It does not complete
-that parent. Nested control, global assertions, counted helper-result stores,
+that parent. Nested control, global assertions under WIP-0510, counted helper-result stores,
 entry selection, nominal composition, and source-independent global instruction
 relocation remain required joins.
 
@@ -56,11 +56,13 @@ appears before a malformed later row. Name lookup adds no owned buffer or region
 Copied names retain the eight-global, 256-byte-per-name source profile.
 
 `DirectStatementPublication.w` owns complete row publication. It constructs the
-result before copying caller-visible products, types, or code. Its arena derives
-from three scanner columns, seven statement columns, the existing loop-body
+result before copying caller-visible products, types, or code. At commit
+`c42ff6e36`, its arena derives from three scanner columns, seven statement columns, the existing loop-body
 window, three type columns, three 64-function columns, two 256-call columns, one
 statement-width column, and 262,144 code bytes. That is 890,368 bytes in 13 buffers.
-No arena or interpreter limit increases. The copy owner checks transport extents.
+[WIP-0510](WIP-0510-root-scalar-assertion-products.md) removes the root assertion
+scratch table and reduces this arena to 726,528 bytes in twelve buffers. Neither
+milestone increases an interpreter limit. The copy owner checks transport extents.
 The statement producer owns semantic validation before calling it.
 
 A copied scalar needs one result local. A binary value needs two operand locals
@@ -122,6 +124,11 @@ have no failures or skips. They overlap, so their counts do not describe distinc
 coverage. Archive intake took 239.174 seconds and selected physical compilation
 352.472 seconds. Ordinary example methods stayed below their two-minute deadline.
 
+Commit `c42ff6e366f489d0d2b3971b20cda264bf04cf06` passed all 52 jobs in
+bootstrap run `34687545590`, including `compare-bootstrap-outputs`. Its README,
+site, and Push workflows also passed. These results verify this committed root
+boundary, not the later assertion work or a self-hosting fixed point.
+
 ## Acceptance
 
 - [x] Root reads and stores use declared locations, including later changed values.
@@ -132,7 +139,7 @@ coverage. Archive intake took 239.174 seconds and selected physical compilation
 - [x] Complete statement/type publication bounds preserve every inactive caller cell.
 - [x] Affected ordinary, reversible, loop, call, and aggregate adapters remain verified.
 - [x] Physical source bounds, archive/graph identities, locks, and packaged execution agree.
-- [ ] Documentation and hosted checks agree with the exact committed tree.
+- [x] Documentation and hosted checks agree with the exact committed tree.
 
 No status promotion follows from these focused checks. WIP-0507 and the intact
 mixed-member runner remain open.

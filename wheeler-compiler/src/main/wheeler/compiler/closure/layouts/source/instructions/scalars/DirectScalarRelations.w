@@ -61,7 +61,8 @@ classical class DirectScalarRelations {
     borrow mut words symbolLengths,
     borrow mut words symbolTypes,
     borrow mut words symbolValues,
-    borrow mut words symbolResolved
+    borrow mut words symbolResolved,
+    long terminator
   ) {
     assert(-1 < leftToken);
     assert(-1 < tokenCount);
@@ -90,16 +91,26 @@ classical class DirectScalarRelations {
       tokenCount,
       tokenKinds,
       tokenStarts,
-      tokenLengths
+      tokenLengths,
+      terminator
     );
     if (relation.valid == false) {
       return invalidRelation();
     }
 
+    long boundToken = relation.leftToken;
+    if (relation.kind == RESULT_RELATION_LEFT_LITERAL) {
+      if (terminator != PUNCTUATION_CLOSE_PAREN) {
+        return invalidRelation();
+      }
+
+      boundToken = relation.rightToken;
+    }
+
     DirectScalarLocation left = resolveDirectScalarLocation(
       source,
-      tokenStarts[relation.leftToken],
-      tokenLengths[relation.leftToken],
+      tokenStarts[boundToken],
+      tokenLengths[boundToken],
       globalNames,
       globalCount,
       globalProductStart,
@@ -118,6 +129,21 @@ classical class DirectScalarRelations {
     );
     if (left.valid == false) {
       return invalidRelation();
+    }
+
+    if (relation.kind == RESULT_RELATION_LEFT_LITERAL) {
+      return new DirectScalarRelationProduct(
+        relation.kind,
+        relation.operation,
+        0,
+        left.operand,
+        relation.immediate,
+        TOKEN_LONG,
+        left.sourceType,
+        OPCODE_LOCAL_MOVE,
+        left.loadOpcode,
+        true
+      );
     }
 
     if (relation.kind == RESULT_RELATION_SOURCE) {
@@ -235,8 +261,8 @@ classical class DirectScalarRelations {
     );
   }
 
-  /// Resolves a complete return without allowing a constant to replace declared state.
-  public DirectScalarRelationProduct resolveDirectReturnRelation(
+  /// Resolves a complete scalar value without allowing a constant to replace declared state.
+  public DirectScalarRelationProduct resolveDirectScalarValue(
     borrow utf8 source,
     borrow byteview symbolNames,
     borrow byteview globalNames,
@@ -263,7 +289,8 @@ classical class DirectScalarRelations {
     borrow mut words symbolLengths,
     borrow mut words symbolTypes,
     borrow mut words symbolValues,
-    borrow mut words symbolResolved
+    borrow mut words symbolResolved,
+    long terminator
   ) {
     requireSourceGlobalNames(globalNames, globalCount, globalProductStart, globals);
     if (-1 < leftToken) {
@@ -276,13 +303,7 @@ classical class DirectScalarRelations {
 
         if (booleanLiteral) {
           if (
-            punctuationAt(
-              source,
-              tokenKinds,
-              tokenStarts,
-              leftToken + 1,
-              PUNCTUATION_SEMICOLON
-            ) == false
+            punctuationAt(source, tokenKinds, tokenStarts, leftToken + 1, terminator) == false
           ) {
             return invalidRelation();
           }
@@ -315,33 +336,29 @@ classical class DirectScalarRelations {
       }
 
       if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          leftToken + signedWidth,
-          PUNCTUATION_SEMICOLON
-        ) == false
+        punctuationAt(source, tokenKinds, tokenStarts, leftToken + signedWidth, terminator)
       ) {
-        return invalidRelation();
+        if (signedNumberValid(source, tokenStarts, tokenLengths, leftToken) == false) {
+          return invalidRelation();
+        }
+
+        return new DirectScalarRelationProduct(
+          RESULT_RELATION_LITERAL,
+          0,
+          parsedSignedNumber(source, tokenStarts, tokenLengths, leftToken),
+          0,
+          0,
+          TOKEN_LONG,
+          0,
+          OPCODE_LOCAL_MOVE,
+          OPCODE_LOCAL_MOVE,
+          true
+        );
       }
 
-      if (signedNumberValid(source, tokenStarts, tokenLengths, leftToken) == false) {
+      if (terminator != PUNCTUATION_CLOSE_PAREN) {
         return invalidRelation();
       }
-
-      return new DirectScalarRelationProduct(
-        RESULT_RELATION_LITERAL,
-        0,
-        parsedSignedNumber(source, tokenStarts, tokenLengths, leftToken),
-        0,
-        0,
-        TOKEN_LONG,
-        0,
-        OPCODE_LOCAL_MOVE,
-        OPCODE_LOCAL_MOVE,
-        true
-      );
     }
 
     SourceReversibleResultRelation relation = sourceScalarRelation(
@@ -350,7 +367,8 @@ classical class DirectScalarRelations {
       tokenCount,
       tokenKinds,
       tokenStarts,
-      tokenLengths
+      tokenLengths,
+      terminator
     );
     if (relation.valid == false) {
       return invalidRelation();
@@ -434,7 +452,8 @@ classical class DirectScalarRelations {
       symbolLengths,
       symbolTypes,
       symbolValues,
-      symbolResolved
+      symbolResolved,
+      terminator
     );
   }
 }

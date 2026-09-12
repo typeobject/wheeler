@@ -185,7 +185,8 @@ classical class DirectBooleanDeclarationProducts {
       symbolLengths,
       symbolTypes,
       symbolValues,
-      symbolResolved
+      symbolResolved,
+      PUNCTUATION_SEMICOLON
     );
     if (initializer.valid == false) {
       return invalidBooleanDeclaration();
@@ -239,7 +240,7 @@ classical class DirectBooleanDeclarationProducts {
     }
 
     if (
-      directReturnTypesValid(
+      directScalarTypesValid(
         /* reversibleCallableCount= */ 0,
         initializer.kind,
         initializer.operation,

@@ -91,7 +91,7 @@ classical class DirectGlobalStoreProducts {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    DirectScalarRelationProduct value = resolveDirectReturnRelation(
+    DirectScalarRelationProduct value = resolveDirectScalarValue(
       source,
       symbolNames,
       globalNames,
@@ -118,7 +118,8 @@ classical class DirectGlobalStoreProducts {
       symbolLengths,
       symbolTypes,
       symbolValues,
-      symbolResolved
+      symbolResolved,
+      PUNCTUATION_SEMICOLON
     );
     if (value.valid == false) {
       return new DirectScalarExtent(0, 0, 0, false);
@@ -129,7 +130,7 @@ classical class DirectGlobalStoreProducts {
     }
 
     if (
-      directReturnTypesValid(0, value.kind, value.operation, value.leftType, value.rightType)
+      directScalarTypesValid(0, value.kind, value.operation, value.leftType, value.rightType)
         == false
     ) {
       return new DirectScalarExtent(0, 0, 0, false);

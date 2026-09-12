@@ -27,11 +27,9 @@ classical class SourceValueProducts {
   private const long MAX_VALUES = 1024;
   private const long SOURCE_STATEMENT_ROWS = 24576;
   private const long VALUE_ROWS = 7168;
-  private const long SCALAR_RESULT_LOCALS = 1;
-  private const long BINARY_OPERANDS = 2;
-  private const long BINARY_VALUE_LOCALS = BINARY_OPERANDS + SCALAR_RESULT_LOCALS;
 
-  /// Reports named values or the first bounded failure coordinate.
+  /// Reports named values and reserved widths, not complete operand-name admission.
+  /// Instruction binding must still validate every assertion before statement publication.
   public record SourceValueProductPlan(
     long valueCount,
     long failureFunction,
@@ -559,13 +557,12 @@ classical class SourceValueProducts {
                       semanticCount,
                       tokenKinds,
                       tokenStarts,
-                      tokenLengths
+                      tokenLengths,
+                      PUNCTUATION_SEMICOLON
                     );
                     localWidth = SCALAR_RESULT_LOCALS;
                     if (assigned.valid) {
-                      if (assigned.kind != RESULT_RELATION_SOURCE) {
-                        localWidth = BINARY_VALUE_LOCALS;
-                      }
+                      localWidth = scalarRelationValueWidth(assigned.kind);
                     }
 
                     resultLocal = -1;
@@ -581,32 +578,28 @@ classical class SourceValueProducts {
                 semanticCount,
                 tokenKinds,
                 tokenStarts,
-                tokenLengths
+                tokenLengths,
+                PUNCTUATION_SEMICOLON
               );
               if (initializerRelation.valid) {
-                if (initializerRelation.kind != RESULT_RELATION_SOURCE) {
-                  localWidth = 4;
-                  resultLocal = localBase + 3;
-                }
+                long initializerWidth = scalarRelationValueWidth(initializerRelation.kind);
+                localWidth = initializerWidth + SCALAR_RESULT_LOCALS;
+                resultLocal = localBase + initializerWidth;
               }
 
             }
 
             if (valueWordCode == TOKEN_ASSERT) {
-              LoopAssertion assertion = resolveLoopAssertion(
+              SourceReversibleResultRelation assertion = sourceAssertionRelation(
                 source,
                 statementToken,
-                localFunction,
-                statementRows[8192 + statement],
-                valueCount,
-                stagedValues,
                 semanticCount,
                 tokenKinds,
                 tokenStarts,
                 tokenLengths
               );
               if (assertion.valid) {
-                localWidth = loopBodyLocalCount(assertion.opcode, assertion.operand);
+                localWidth = scalarRelationValueWidth(assertion.kind);
                 resultLocal = -1;
               } else {
                 valid = false;

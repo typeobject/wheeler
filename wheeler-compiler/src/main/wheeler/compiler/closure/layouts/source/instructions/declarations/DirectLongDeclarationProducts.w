@@ -352,7 +352,8 @@ classical class DirectLongDeclarationProducts {
       symbolLengths,
       symbolTypes,
       symbolValues,
-      symbolResolved
+      symbolResolved,
+      PUNCTUATION_SEMICOLON
     );
     if (initializer.valid) {
       boolean binaryInitializer = initializer.kind == RESULT_RELATION_BINARY;

@@ -15,9 +15,8 @@
 
 [WIP-0506](WIP-0506-native-source-global-products.md) retains signed global
 initializers and publishes their descriptors. That work does not bind a state
-read in a callable body or an assignment destination. An unused state can now
-survive source compilation while the same state still prevents compilation when
-a body uses it.
+read in a callable body or an assignment destination. The declaration milestone alone cannot compile accesses. The root joins below
+add reads, scalar stores, and assertions without closing this wider contract.
 
 The intact mixed-member test in
 [WIP-0498](../WIP-0498-native-test-member-front-admission.md) assigns a helper
@@ -81,7 +80,8 @@ but cannot reset or evade the function's 256-local bound. Reuse scanner and
 binding scratch at disjoint phases rather than consuming new lifetime buffer
 IDs for absent accesses.
 
-`StructuredSourceModuleCompiler.w` currently has 960 lines and 4,052 raw tokens.
+At the WIP-0509 milestone, `StructuredSourceModuleCompiler.w` has 965 lines and
+4,069 raw tokens.
 Its scanner admits 4,096 tokens including comments. Extract coherent binding or
 composition owners before extending that near-limit function. Do not widen the
 scanner or delete useful documentation to make it fit.
@@ -112,11 +112,27 @@ Stage 0 also mistook uppercase assignment destinations for nominal declarations.
 The assignment front now checks punctuation before selecting that branch. The
 original uppercase store passes alongside dedicated front regressions.
 
-This is not the complete access contract. Global conditions and assertions,
-helper-result stores, nested accesses, entry/nominal composition, source-independent
+This is not the complete access contract. Global conditions, helper-result stores,
+nested accesses, entry/nominal composition, source-independent
 instruction relocation, and physical-owner advancement still need their joins
 and acceptance evidence. WIP-0509 records the completed root boundary and local
-package checks separately from hosted verification. The bounded one-global helper assignment in
+package checks separately from hosted verification. Commit `c42ff6e36` passed
+all 52 bootstrap jobs, including `compare-bootstrap-outputs`. The bounded one-global helper assignment in
 [WIP-0499](../WIP-0499-native-global-call-assignments.md) does not discharge those
 requirements. Full physical compilation and compiler fixed-point acceptance
 remain open in the parent contracts.
+
+## Root assertion work
+
+[WIP-0510](WIP-0510-root-scalar-assertion-products.md) owns the root assertion
+join. Its first three intact archive cases originally failed before instruction
+emission. Value planning tried to bind globals through local-only loop assertion
+resolution. The replacement separates syntax-derived widths from operand binding
+and uses the same scalar locations as returns and stores.
+
+The three cases now match independent complete artifacts. The wider matrix keeps
+ordinary local and Boolean assertions, literal-left order, actual loads after
+stores, and atomic rejection of malformed later predicates. The old root loop
+opcode adapter and its scratch table are gone. WIP-0510 records the passing adapter, package, and selected physical checks
+separately from pending committed-tree verification. No synthetic local or projected
+source replaces a global assertion.

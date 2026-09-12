@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.examples.globals;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
@@ -13,6 +14,7 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import com.typeobject.wheeler.core.vm.VmTrap;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,14 +27,14 @@ public final class NativeGlobalExecutionAssertions {
   private NativeGlobalExecutionAssertions() {}
 
   /** Checks state reads and stores with arguments distinct from the declared initializer. */
-  public static void assertExecution(byte[] artifact, Program oracle) {
+  public static void assertExecution(byte[] artifact, Program oracle, boolean assertionFails) {
     Program nativeProgram = new BytecodeReader().read(artifact);
     for (long argument : new long[] {5, 8}) {
       VirtualMachine expected = new VirtualMachine(withEntry(oracle, argument));
-      run(expected, oracle.maxSteps());
+      run(expected, oracle.maxSteps(), assertionFails);
       VirtualMachine actual = new VirtualMachine(withEntry(nativeProgram, argument));
       var before = actual.snapshot();
-      run(actual, nativeProgram.maxSteps());
+      run(actual, nativeProgram.maxSteps(), assertionFails);
       var after = actual.snapshot();
       assertEquals(expected.snapshot(), after);
       for (Global global : oracle.globals()) {
@@ -41,19 +43,30 @@ public final class NativeGlobalExecutionAssertions {
       assertEquals(expected.global(RESULT), actual.global(RESULT));
       while (actual.historySize() > 0) actual.rewindOne();
       assertEquals(before, actual.snapshot());
-      run(actual, nativeProgram.maxSteps());
+      run(actual, nativeProgram.maxSteps(), assertionFails);
       assertEquals(after, actual.snapshot());
       while (actual.historySize() > 0) actual.rewindOne();
       assertEquals(before, actual.snapshot());
     }
   }
 
-  private static void run(VirtualMachine machine, long limit) {
+  private static void run(VirtualMachine machine, long limit, boolean assertionFails) {
     long steps = 0;
     while (machine.status() != MachineStatus.HALTED && steps < limit) {
-      machine.step();
-      steps++;
+      var before = machine.snapshot();
+      int history = machine.historySize();
+      try {
+        machine.step();
+        steps++;
+      } catch (VmTrap failure) {
+        assertTrue(assertionFails, failure::getMessage);
+        assertEquals(VmTrap.Code.ASSERTION, failure.code());
+        assertEquals(before, machine.snapshot(), "a rejected assertion cannot publish a transition");
+        assertEquals(history, machine.historySize());
+        return;
+      }
     }
+    assertFalse(assertionFails, "the expected assertion must execute and reject");
     assertEquals(MachineStatus.HALTED, machine.status());
   }
 

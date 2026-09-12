@@ -2,7 +2,6 @@
 
 module wheeler.compiler.closure.direct_statement_publication;
 
-import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.compiler_token_limits;
 
 classical class DirectStatementPublication {
@@ -26,13 +25,12 @@ classical class DirectStatementPublication {
   private const long FUNCTION_COLUMNS = 3;
   private const long CALL_COLUMNS = 2;
   private const long WORD_BYTES = 8;
-  private const long STAGING_WORDS = MAX_COMPILER_TOKENS * TOKEN_COLUMNS + DIRECT_ROWS + BODY_ROWS
-    + TYPE_ROWS + DIRECT_FUNCTIONS * FUNCTION_COLUMNS + DIRECT_CALLS * CALL_COLUMNS
-    + MAX_STATEMENTS;
+  private const long STAGING_WORDS = MAX_COMPILER_TOKENS * TOKEN_COLUMNS + DIRECT_ROWS + TYPE_ROWS
+    + DIRECT_FUNCTIONS * FUNCTION_COLUMNS + DIRECT_CALLS * CALL_COLUMNS + MAX_STATEMENTS;
   /// Includes every scanner, row, type, coordinate, and code allocation.
   public const long DIRECT_STAGING_BYTES = STAGING_WORDS * WORD_BYTES + MAX_CODE_BYTES;
-  /// Counts token columns, direct/body/type tables, function/call columns, widths, and code.
-  public const long DIRECT_STAGING_BUFFERS = TOKEN_COLUMNS + 3 + FUNCTION_COLUMNS + CALL_COLUMNS
+  /// Counts token columns, direct/type tables, function/call columns, widths, and code.
+  public const long DIRECT_STAGING_BUFFERS = TOKEN_COLUMNS + 2 + FUNCTION_COLUMNS + CALL_COLUMNS
     + 2;
 
   /// Reports the complete published prefix or one failing private statement coordinate.

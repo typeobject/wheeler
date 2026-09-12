@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.direct_statement_products;
 
+import wheeler.compiler.closure.direct_assertion_products;
 import wheeler.compiler.closure.direct_boolean_declaration_products;
 import wheeler.compiler.closure.direct_buffer_mutation_products;
 import wheeler.compiler.closure.direct_call_conditional_returns;
@@ -13,7 +14,6 @@ import wheeler.compiler.closure.direct_scalar_encoding;
 import wheeler.compiler.closure.direct_scalar_relations;
 import wheeler.compiler.closure.direct_statement_coordinates;
 import wheeler.compiler.closure.direct_statement_publication;
-import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.source_call_layout_products;
@@ -24,7 +24,6 @@ import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.keyword_tokens;
-import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.storage_opcodes;
@@ -125,7 +124,6 @@ classical class DirectStatementProducts {
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedRows = allocate(staging, DIRECT_ROWS);
-    words assertionBody = allocate(staging, BODY_ROWS);
     words stagedTypes = allocate(staging, TYPE_ROWS);
     words stagedResultTypes = allocate(staging, DIRECT_FUNCTIONS);
     words stagedCallKinds = allocate(staging, DIRECT_CALLS);
@@ -468,114 +466,50 @@ classical class DirectStatementProducts {
                     }
                   } else {
                     if (wordCode == TOKEN_ASSERT) {
-                      long ordinal = statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement];
-                      LoopAssertion assertion = resolveLoopAssertion(
+                      DirectAssertionProduct assertion = writeDirectAssertion(
                         source,
+                        symbolNames,
+                        globalNames,
+                        globalCount,
+                        globalProductStart,
+                        globals,
                         token,
-                        owner,
-                        ordinal,
-                        valueCount,
-                        valueRows,
                         semanticCount,
                         tokenKinds,
                         tokenStarts,
-                        tokenLengths
-                      );
-                      if (assertion.valid == false) {
-                        statementValid = false;
-                      }
-
-                      long assertionLocalBase = physicalStatementBase;
-                      long assertionOpcode = physicalDirectAssertionOpcode(
-                        assertion.opcode,
+                        tokenLengths,
+                        moduleOwner,
                         owner,
+                        statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
                         statementCount,
                         statementRows,
                         statementLocalRows,
+                        statementPhysicalStarts,
                         valueCount,
                         valueRows,
-                        statementPhysicalStarts
+                        symbolCount,
+                        symbolOwners,
+                        symbolStarts,
+                        symbolLengths,
+                        symbolTypes,
+                        symbolValues,
+                        symbolResolved,
+                        stagedTypes,
+                        typeCount,
+                        stagedCode,
+                        cursor,
+                        physicalStatementBase
                       );
-                      if (assertionOpcode < 0) {
+                      if (assertion.valid) {
+                        cursor = assertion.next;
+                        typeCount = assertion.typeCount;
+                        productInstructions = assertion.instructionCount;
+                      } else {
                         statementValid = false;
-                      }
-
-                      long assertionOperand = assertion.operand;
-                      if (assertion.operandKind == 1) {
-                        assertionOperand = physicalValueLocal(
-                          owner,
-                          assertion.operand,
-                          statementCount,
-                          statementRows,
-                          statementLocalRows,
-                          valueCount,
-                          valueRows,
-                          statementPhysicalStarts
-                        );
-                        if (assertionOperand < 0) {
-                          statementValid = false;
-                        }
-                      }
-
-                      if (statementValid) {
-                        set(assertionBody, BODY_LOCAL_BASE_ROW, assertionLocalBase);
-                        set(assertionBody, BODY_OPCODE_ROW, assertionOpcode);
-                        set(assertionBody, BODY_OPERAND_KIND_ROW, assertion.operandKind);
-                        set(assertionBody, BODY_OPERAND_ROW, assertionOperand);
-                        long next = writeLoopBodyInstructionProduct(
-                          stagedCode,
-                          cursor,
-                          /* body= */ 0,
-                          assertionBody
-                        );
-                        if (next < 0) {
-                          statementValid = false;
-                        } else {
-                          long localCount = loopBodyLocalCount(
-                            assertion.opcode,
-                            assertion.operand
-                          );
-                          if (localCount < 1) {
-                            statementValid = false;
-                          } else {
-                            long localOffset = 0;
-                            while (localOffset < localCount) limit 3 {
-                              long localType = TYPE_SIGNED;
-                              if (localOffset == localCount - 1) {
-                                localType = TYPE_BOOLEAN;
-                              }
-
-                              if (assertion.opcode == BODY_ASSERT_BOOLEAN) {
-                                localType = TYPE_BOOLEAN;
-                              }
-
-                              set(stagedTypes, typeCount, owner);
-                              set(
-                                stagedTypes,
-                                4096 + typeCount,
-                                assertionLocalBase + localOffset
-                              );
-                              set(stagedTypes, 8192 + typeCount, localType);
-                              typeCount += 1;
-                              localOffset += 1;
-                            }
-
-                            cursor = next;
-                            LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
-                              assertionOpcode,
-                              assertionOperand
-                            );
-                            if (extent.valid) {
-                              productInstructions = extent.instructionCount;
-                            } else {
-                              statementValid = false;
-                            }
-                          }
-                        }
                       }
                     } else {
                       if (wordCode == TOKEN_RETURN) {
-                        DirectScalarRelationProduct relation = resolveDirectReturnRelation(
+                        DirectScalarRelationProduct relation = resolveDirectScalarValue(
                           source,
                           symbolNames,
                           globalNames,
@@ -602,7 +536,8 @@ classical class DirectStatementProducts {
                           symbolLengths,
                           symbolTypes,
                           symbolValues,
-                          symbolResolved
+                          symbolResolved,
+                          PUNCTUATION_SEMICOLON
                         );
                         if (relation.valid == false) {
                           statementValid = false;
@@ -823,7 +758,6 @@ classical class DirectStatementProducts {
     drop(stagedCallKinds);
     drop(stagedResultTypes);
     drop(stagedTypes);
-    drop(assertionBody);
     drop(stagedRows);
     drop(tokenLengths);
     drop(tokenStarts);
