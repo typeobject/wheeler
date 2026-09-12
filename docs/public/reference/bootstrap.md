@@ -147,9 +147,11 @@ contains 72 spellings and does not limit identifier length. The scanner admits
 source whitespace, including tabs and Unicode separators but not nonbreaking
 spaces. The exact set is `U+0009..U+000D`, `U+001C..U+0020`, `U+1680`,
 `U+2000..U+200A` except `U+2007`, `U+2028..U+2029`, `U+205F`, and `U+3000`.
-Line comments end at carriage return or line feed. This corrects lexical
-admission, not complete class-member validation. Automatic test discovery can
-still ignore malformed member fronts, a separate open frontend boundary.
+Line comments end at carriage return or line feed. ASCII classification does not
+enter the Unicode whitespace helper. Test discovery indexes recognized names
+before selection instead of reclassifying earlier token prefixes for every name.
+These changes do not complete class-member validation. Automatic test discovery
+can still ignore malformed member fronts, a separate open frontend boundary.
 
 Source aggregate products now admit `enum Flag { case Ready; }` as a nonempty,
 payload-free variant. Enum tags follow lexical case order. Ordinary variants keep

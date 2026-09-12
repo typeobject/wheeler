@@ -16,6 +16,18 @@ import wheeler.runtime.testing.test_limits;
 classical class TestSourceTests {
   private const long MAX_CASES = MAX_TEST_CASES;
   private const long MAX_TAGS = 64;
+  private const long TOKEN_COLUMNS = 3;
+  private const long NAME_INDEX_COLUMNS = 1;
+  private const long TAG_COLUMNS = 4;
+  private const long ROW_VALUE_COLUMNS = 1;
+  private const long SOURCE_BUFFERS = 1;
+  private const long WORD_BYTES = 8;
+  private const long ARENA_BYTES = MAX_TEST_SOURCE_BYTES + (
+    MAX_COMPILER_TOKENS * (TOKEN_COLUMNS + NAME_INDEX_COLUMNS) + MAX_CASES * ROW_VALUE_COLUMNS
+      + MAX_TAGS * TAG_COLUMNS
+  ) * WORD_BYTES;
+  private const long ARENA_BUFFERS = SOURCE_BUFFERS + TOKEN_COLUMNS + NAME_INDEX_COLUMNS
+    + ROW_VALUE_COLUMNS + TAG_COLUMNS;
 
   /// Reports the discovered case count and complete descriptor match.
   public record SourceTestDiscovery(long count, boolean matched) {}
@@ -286,18 +298,14 @@ classical class TestSourceTests {
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
+    borrow mut words names,
+    long count,
     long nameToken
   ) {
     long prior = 0;
-    while (prior + 2 < nameToken) limit MAX_COMPILER_TOKENS {
-      if (sourceTokenCode(source, tokenStarts, tokenLengths, prior) == TOKEN_TEST) {
-        if (
-          sourceTokenCode(source, tokenStarts, tokenLengths, prior + 1) == TOKEN_VOID
-        ) {
-          if (sameTokenText(source, tokenStarts, tokenLengths, prior + 2, nameToken)) {
-            return false;
-          }
-        }
+    while (prior < count) limit MAX_COMPILER_TOKENS {
+      if (sameTokenText(source, tokenStarts, tokenLengths, names[prior], nameToken)) {
+        return false;
       }
 
       prior += 1;
@@ -334,13 +342,14 @@ classical class TestSourceTests {
     assert(bufferLength(caseValues) == MAX_CASES);
     assert(bufferLength(caseStepLimits) == MAX_CASES);
     long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
-    region arena = new region(/* bytes= */ 135160, /* allocations= */ 9);
+    region arena = new region(/* bytes= */ ARENA_BYTES, /* allocations= */ ARENA_BUFFERS);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
     copyValidatedSource(input, planStart, planLength, rootOrdinal, sourceBytes);
     utf8 source = freezeUtf8(sourceBytes);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
+    words testNames = allocate(arena, MAX_COMPILER_TOKENS);
     words rowValues = allocate(arena, MAX_CASES);
     words knownTags = allocate(arena, MAX_TAGS);
     words declarationMatches = allocate(arena, MAX_TAGS);
@@ -359,6 +368,7 @@ classical class TestSourceTests {
 
     long discovered = 0;
     long matchedDeclarations = 0;
+    long namedDeclarations = 0;
     boolean supported = true;
     long token = 0;
     while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
@@ -366,9 +376,23 @@ classical class TestSourceTests {
         if (
           sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
-          if (uniqueTestName(source, tokenStarts, tokenLengths, token + 2) == false) {
+          if (
+            uniqueTestName(
+              source,
+              tokenStarts,
+              tokenLengths,
+              testNames,
+              namedDeclarations,
+              token + 2
+            ) == false
+          ) {
             supported = false;
           }
+
+          // Index every recognized declaration before tag or shard selection.
+          // Token count bounds this private directory, including malformed fronts.
+          set(testNames, namedDeclarations, token + 2);
+          namedDeclarations += 1;
 
           boolean parameterless = punctuationAt(
             source,
@@ -572,6 +596,7 @@ classical class TestSourceTests {
     drop(declarationMatches);
     drop(knownTags);
     drop(rowValues);
+    drop(testNames);
     drop(tokenLengths);
     drop(tokenStarts);
     drop(tokenKinds);

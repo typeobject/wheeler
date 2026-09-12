@@ -139,7 +139,9 @@ open.
 The scanner owns source whitespace rather than requiring each frontend to filter
 trivia. Tabs, carriage returns, and admitted Unicode separators split tokens.
 Nonbreaking spaces do not. A carriage return terminates a line comment, so a
-following source claim remains visible to binding and absence checks.
+following source claim remains visible to binding and absence checks. ASCII
+classification does not enter the Unicode whitespace helper. Native tests compare
+the complete code-point domain with the host predicate and rewind the ASCII path.
 
 `ModuleManifestProduct` carries root name, entry, kind, and limit words without a
 borrowed artifact. Source-local emission and final linking share one checked

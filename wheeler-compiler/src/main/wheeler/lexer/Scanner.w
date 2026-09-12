@@ -10,6 +10,12 @@ classical class Scanner {
   private const long CARRIAGE_RETURN = 13;
   private const long INFORMATION_SEPARATOR_FIRST = 28;
   private const long SPACE = 32;
+  private const long ASCII_DIGIT_ZERO = 48;
+  private const long DECIMAL_RADIX = 10;
+  private const long ASCII_UPPER_A = 65;
+  private const long ASCII_LOWER_A = 97;
+  private const long ALPHABET_LETTERS = 26;
+  private const long ASCII_UNDERSCORE = 95;
   private const long OGHAM_SPACE_MARK = 5760;
   private const long EN_QUAD = 8192;
   private const long FIGURE_SPACE = 8199;
@@ -51,19 +57,7 @@ classical class Scanner {
     return new ScanResult.Error(diagnostic);
   }
 
-  private boolean sourceWhitespace(long scalar) {
-    if (HORIZONTAL_TAB - 1 < scalar) {
-      if (scalar < CARRIAGE_RETURN + 1) {
-        return true;
-      }
-    }
-
-    if (INFORMATION_SEPARATOR_FIRST - 1 < scalar) {
-      if (scalar < SPACE + 1) {
-        return true;
-      }
-    }
-
+  private boolean unicodeWhitespace(long scalar) {
     if (scalar == OGHAM_SPACE_MARK) {
       return true;
     }
@@ -92,36 +86,58 @@ classical class Scanner {
   /// Classifies one scalar using source whitespace, ASCII identifiers, and punctuation.
   /// Nonbreaking spaces are not source whitespace. Quoted and comment content is separate.
   public long tokenKind(long scalar) {
-    if (sourceWhitespace(scalar)) {
-      return 0;
-    }
+    // ASCII dominates compiler source, including blanks left by test-entry selection.
+    // No ASCII scalar needs the Unicode whitespace classifier.
+    if (scalar < SPACE + 1) {
+      if (INFORMATION_SEPARATOR_FIRST - 1 < scalar) {
+        return 0;
+      }
 
-    if (scalar < 48) {
+      if (scalar < HORIZONTAL_TAB) {
+        return 3;
+      }
+
+      if (scalar < CARRIAGE_RETURN + 1) {
+        return 0;
+      }
+
       return 3;
     }
 
-    if (scalar < 58) {
+    if (scalar < ASCII_DIGIT_ZERO) {
+      return 3;
+    }
+
+    if (scalar < ASCII_DIGIT_ZERO + DECIMAL_RADIX) {
       return 2;
     }
 
-    if (scalar < 65) {
+    if (scalar < ASCII_UPPER_A) {
       return 3;
     }
 
-    if (scalar < 91) {
+    if (scalar < ASCII_UPPER_A + ALPHABET_LETTERS) {
       return 1;
     }
 
-    if (scalar == 95) {
+    if (scalar == ASCII_UNDERSCORE) {
       return 1;
     }
 
-    if (scalar < 97) {
+    if (scalar < ASCII_LOWER_A) {
       return 3;
     }
 
-    if (scalar < 123) {
+    if (scalar < ASCII_LOWER_A + ALPHABET_LETTERS) {
       return 1;
+    }
+
+    if (scalar < OGHAM_SPACE_MARK) {
+      return 3;
+    }
+
+    if (unicodeWhitespace(scalar)) {
+      return 0;
     }
 
     return 3;

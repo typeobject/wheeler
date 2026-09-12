@@ -17,6 +17,8 @@ import com.typeobject.wheeler.examples.NativeTestReportOracle.ReportCase;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import com.typeobject.wheeler.runtime.SemanticCoverage;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,14 +26,19 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /** Complete terminal-case execution with bounded host batches, not reduced source inputs. */
 final class NativeTestCaseBoundaryExampleTest {
   private static final String RUNNER = "%064x".formatted(1);
+  private static final int TERMINAL_CASES = 255;
+  private static final int SHARDS = 8;
+  private static final int CASES_PER_INVOCATION = 48;
 
   private record Fixture(List<NativeTestSourcePlan.Source> sources, List<ReportCase> cases) {}
 
@@ -61,32 +68,59 @@ final class NativeTestCaseBoundaryExampleTest {
     assertArrayEquals(NativeTestReportOracle.summary(RUNNER, fixture.cases()), actual);
   }
 
-  @ParameterizedTest(name = "executes terminal case shard {0}/4")
-  @ValueSource(ints = {0, 1, 2, 3})
+  @ParameterizedTest(name = "executes terminal case shard {0}/" + SHARDS)
+  @MethodSource("shardIndices")
   @Timeout(value = 2, unit = TimeUnit.MINUTES)
   void executesEveryTerminalCaseThroughDisjointIdentityShards(int shardIndex) throws Exception {
-    Fixture fixture = fixture(255);
+    Fixture fixture = fixture(TERMINAL_CASES);
     List<List<ReportCase>> partitions = new ArrayList<>();
-    for (int index = 0; index < 4; index++) {
+    for (int index = 0; index < SHARDS; index++) {
       partitions.add(new ArrayList<>());
     }
     for (ReportCase testcase : fixture.cases()) {
       byte[] identity = HexFormat.of().parseHex(testcase.caseIdentity());
-      // The canonical hexadecimal identity modulo four is its final two bits.
-      partitions.get(Byte.toUnsignedInt(identity[31]) % 4).add(testcase);
+      // Eight divides the byte radix, so the final byte preserves identity modulo eight.
+      partitions.get(Byte.toUnsignedInt(identity[identity.length - 1]) % SHARDS).add(testcase);
     }
-    assertEquals(255, partitions.stream().mapToInt(List::size).sum());
+    assertEquals(TERMINAL_CASES, partitions.stream().mapToInt(List::size).sum());
     assertTrue(partitions.stream().noneMatch(List::isEmpty));
+    assertTrue(partitions.stream().allMatch(partition -> partition.size() <= CASES_PER_INVOCATION));
 
     byte[] input = discoveredDescriptors(MANIFEST, fixture.sources(), List.of());
-    input[0] = (byte) shardIndex;
-    input[2] = 4;
+    ByteBuffer.wrap(input).order(ByteOrder.LITTLE_ENDIAN)
+        .putShort((short) shardIndex).putShort((short) SHARDS);
     byte[] actual = execute(NativeCoverageRunExampleTest.nativeTestRunner(), input);
     List<ReportCase> selected = partitions.get(shardIndex);
     assertArrayEquals(NativeTestReportOracle.summary(RUNNER, selected), actual);
     assertEquals(selected.size(), Byte.toUnsignedInt(actual[32]));
     assertEquals(selected.size(), Byte.toUnsignedInt(actual[34]));
     assertEquals(0, actual[36]);
+  }
+
+  static IntStream shardIndices() {
+    return IntStream.range(0, SHARDS);
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  void rejectsDuplicateNamesBeforeTagSelection(boolean selectTag) throws Exception {
+    String source = """
+        module pkg.test;
+        classical class BoundedTests {
+          // test void same() {} is not a declaration.
+          test void same() tags(hidden) { assert(true); }
+          test void other() tags(fast) { assert(true); }
+          test void same() tags(hidden) { assert(true); }
+        }
+        """;
+    var admitted = new WheelerCompiler().compilePackageTests(
+        Map.of("Test.w", source), Map.of(), "pkg.test");
+    assertEquals(3, admitted.size());
+    assertEquals(2, admitted.stream().map(test -> test.name()).distinct().count());
+    byte[] input = discoveredDescriptors(MANIFEST,
+        List.of(new NativeTestSourcePlan.Source("src/Test.w", source)),
+        selectTag ? List.of("fast") : List.of());
+    assertRejected(NativeCoverageRunExampleTest.nativeTestRunner(), input);
   }
 
   private static Fixture fixture(int count) throws Exception {

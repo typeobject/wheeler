@@ -26,7 +26,7 @@ bound. A limit belongs to one boundary, not to Wheeler as a language.
 Native passing execution and report identities now bind actual classical
 transition counts rather than zero. [WIP-0500](WIP-0500-native-classical-step-identities.md)
 compares complete 255-case reports against independent stage-0 execution across
-four disjoint identity shards. This does not close the compiler or recovery gates.
+eight disjoint identity shards. This does not close the compiler or recovery gates.
 
 ## Pipeline ownership
 
@@ -400,9 +400,9 @@ cases compare complete artifacts, identities, and caller state. The largest
 capacity cases run without rewind history. This replaces the inverse-only
 publisher, not the remaining source-to-composition handoff.
 
-The current archive and both selected physical closure methods pass with 461
-modules, 2,238 constants, and 1,857 callables. Independent archives and graphs
-agree. The independently reconstructed 603,784-byte, 527-function selected
+The publication milestone at `7d5c4cf05` passed the archive and both selected
+physical closure methods with 461 modules, 2,238 constants, and 1,857 callables.
+Independent archives and graphs agreed. The independently reconstructed 603,784-byte, 527-function selected
 container is unchanged. A locked consumer publishes a step certificate and
 compares every artifact, identity, and unused output byte. These checks do not
 establish native compilation of the new publisher's physical body or complete
@@ -423,6 +423,15 @@ method deadline and another job could not resolve JUnit's BOM. The later bootstr
 run [34428229529](https://github.com/typeobject/wheeler/actions/runs/34428229529)
 on `505312113` passes. README, site, and CodeQL workflows also pass for that commit.
 The later pass does not explain or repair the earlier timing failure.
+
+Run [34463263370](https://github.com/typeobject/wheeler/actions/runs/34463263370)
+on `7d5c4cf05` hit the same terminal-case deadline. Profiling found repeated
+vocabulary classification in duplicate-name discovery and ASCII traffic through
+the Unicode whitespace helper. Discovery now indexes declaration names before
+selection. The scanner keeps ASCII off the Unicode path. Eight identity shards
+bound selected compilation work without changing the complete 255-case input.
+[WIP-0500](WIP-0500-native-classical-step-identities.md#bounded-host-work)
+records the work bounds and verification scope.
 
 Run [34432235479](https://github.com/typeobject/wheeler/actions/runs/34432235479)
 on `dc1c5ad57` exposed an unchanged SHA transition pin for the enlarged manifest.
