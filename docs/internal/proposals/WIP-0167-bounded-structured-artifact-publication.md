@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-18 |
-| Updated | 2026-09-10 |
+| Updated | 2026-09-12 |
 | Area | Self-hosting compiler, structured artifacts, direction selection, bounded publication |
 | Depends on | WIP-0064, WIP-0163, WIP-0165 |
 | Supersedes | Fixed-capacity ordinary structured-artifact copies |
@@ -15,13 +15,19 @@
 
 Publish an ordinary structured artifact through its canonical length. `StructuredArtifactDirections.w` formerly copied all 32,768 bytes from its verified forward staging buffer when no reversible direction was required.
 
-The ordinary branch now copies `forwardResult.length` bytes. The reversible branch remains owned by `ClassicalSourceProductArtifact.w`, which already publishes measured canonical sections.
+The claim-free ordinary branch now copies `forwardResult.length` bytes.
+`ClassicalSourceProductArtifact.w` publishes measured canonical sections when
+claims or generated inverses require composition.
 
 ## Direction boundary
 
-Structured source composition first closes callable code, local types, result products, strings, and optional inverse proof evidence.
+Structured source composition first closes callable code, local types, result
+products, strings, and optional classical claims.
 
-The forward artifact publisher returns exact length, code start, function count, maximum local count, and relocation count. For an ordinary module, those bytes and its 32-byte identity publish directly.
+The forward artifact publisher returns exact length, code start, function count,
+maximum local count, and relocation count. For a claim-free ordinary module,
+those bytes and its 32-byte identity publish directly. Ordinary claims instead
+pass through the shared classical publisher after scoped source binding.
 
 For a reversible module, generated inverse rows and code join the verified forward artifact, result-slot local types, and exact proof products. The reversible artifact publisher computes its own final length and identity.
 

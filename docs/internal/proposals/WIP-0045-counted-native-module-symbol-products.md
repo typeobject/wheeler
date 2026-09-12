@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, package, bootstrap, and conformance maintainers |
 | Created | 2026-08-08 |
-| Updated | 2026-09-05 |
+| Updated | 2026-09-12 |
 | Area | Self-hosting, symbols, module linking, compiler products |
 | Depends on | WIP-0007, WIP-0017, WIP-0028, WIP-0044 |
 | Supersedes | None |
@@ -139,6 +139,35 @@ Resolution diagnostics identify the dependent module, source range, requested na
 The first phase indexes signed and Boolean constant declarations before the first executable member. It records public and private visibility, owner, source range, and scalar type. A source is copied through one generation-checked active lease, indexed, destroyed, and never retained for a dependent.
 
 A dependent edge receives the completed dependency's public-symbol count only after leaf-first order proves that dependency complete. Values, references, qualification, duplicate candidates, and constant-expression evaluation remain later phases. A declaration index is not a resolved constant table.
+
+## Detached scalar products
+
+`ConstantProductSchema.w` owns the expression-input table. One count word
+precedes up to 16,384 seven-word rows: name start, name length, type, signed
+value, resolution flag, module start, and module length. The full table needs
+`1 + 16,384 * 7 = 114,689` words. A zero module length means unqualified.
+Identifiers and qualifiers each admit at most 256 bytes. The copied view has an
+independent 1 MiB budget. Qualifiers are copied per row, not deduplicated.
+
+`ScopedConstantProducts.w` validates the complete packet before copying either
+name space into one detached view. Both input views and every scalar fact remain
+unchanged. It rebases both starts, preserves caller prefixes and tails, and
+publishes the count last. Result-record allocation also precedes publication.
+The copier allocates no owned buffer or region. An empty packet changes only
+the output count.
+
+The archive compiler consumes the same preflight before reducing rows to the
+six body-lowering columns. Malformed unused rows reject too. The complete packet
+travels beside those columns so qualification is not lost before source proof
+binding. Neither boundary accepts dependency bodies.
+
+Transport preserves duplicate and unresolved rows. `ProductConstantLookup.w`
+remains the lookup authority and requires one resolved match. The bare-name-only
+copier and duplicate schema constants are removed, not kept as aliases.
+Forty-three copier cases cover qualified selection, ambiguity, signed endpoints,
+Boolean and unresolved facts, UTF-8 offsets, whole-buffer preservation, and
+capacity rejection. Representative executions rewind and replay. Terminal
+product and name-budget cases run explicitly without history.
 
 ## Callable phase
 

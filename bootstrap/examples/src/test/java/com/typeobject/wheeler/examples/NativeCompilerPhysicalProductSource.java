@@ -212,16 +212,26 @@ final class NativeCompilerPhysicalProductSource {
                 physicalImportedRows
               );
             }
-            long physicalImportedNameBytes = writeDirectImportedValueNames(
+            ScopedConstantProductPlan physicalConstants = copyScopedConstantProducts(
+              archive,
               archive,
               physicalImportedCount,
               physicalImportedRows,
               callableProductNameBytes,
-              physicalTargetRows,
-              callableProductNames
+              callableProductNames,
+              physicalScopedRows
             );
+            assert(physicalConstants.productCount == physicalImportedCount);
+            long physicalConstant = 0;
+            while (physicalConstant < physicalImportedCount) limit MAX_CONSTANT_PRODUCTS {
+              long physicalConstantRow = CONSTANT_PRODUCT_HEADER_ROWS
+                + physicalConstant * CONSTANT_PRODUCT_COLUMNS;
+              set(physicalTargetRows, physicalConstant,
+                physicalScopedRows[physicalConstantRow + CONSTANT_NAME_START]);
+              physicalConstant += 1;
+            }
             if (0 < physicalImportedCount) {
-              assert(0 < physicalImportedNameBytes);
+              assert(0 < physicalConstants.nameBytes);
             }
             long physicalSourceLength = 0;
             if (!directSourceModule) {
@@ -304,7 +314,7 @@ final class NativeCompilerPhysicalProductSource {
                   callableBodyStarts,
                   callableBodyLengths,
                   physicalImportedCount,
-                  physicalImportedRows,
+                  physicalScopedRows,
                   callableProductNames,
                   physicalTargetRows,
                   physicalDependencyCount,
@@ -350,7 +360,7 @@ final class NativeCompilerPhysicalProductSource {
                   callableBodyStarts,
                   callableBodyLengths,
                   physicalImportedCount,
-                  physicalImportedRows,
+                  physicalScopedRows,
                   callableProductNames,
                   physicalTargetRows,
                   callableFirstParameters,

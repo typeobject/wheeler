@@ -10,6 +10,8 @@ classical class LocalStructuredSourceModuleCompiler {
   public SourceProductArtifactPlan compileStructuredSourceModule(
     borrow utf8 source,
     borrow byteview symbolNames,
+    borrow byteview constantNames,
+    borrow mut words constants,
     long archiveSourceStart,
     long moduleOwner,
     long firstCallable,
@@ -52,6 +54,8 @@ classical class LocalStructuredSourceModuleCompiler {
     SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
       source,
       symbolNames,
+      constantNames,
+      constants,
       archiveSourceStart,
       moduleOwner,
       firstCallable,

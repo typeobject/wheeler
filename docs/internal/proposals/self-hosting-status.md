@@ -390,15 +390,30 @@ now binds ordinary and reversible source claims from shared member fronts,
 counted callable names and effects, and scoped scalar products. It preserves full
 signed bounds, copied names, and caller tails. The inverse coverage owner shares
 that binding rather than searching for theorem words inside unrelated members.
-A nonempty ordinary module no longer silently loses an unretained claim. Source
-step-claim composition and the intact runner join are still open.
+A nonempty ordinary module no longer silently loses an unretained claim.
+`SourceClassicalCoverage.w` now connects ordinary source binding to publication.
+Complete detached scalar packets retain both names and module qualifiers beside
+the reduced body columns. The archive boundary rejects malformed unused rows too.
+Literal, local-constant, and qualified imported step bounds produce complete
+stage-0-identical artifacts. Full-width excessive bounds reject without publishing.
+The intact mixed-member runner join remains open.
+
+The scoped-product join passes 274 focused examples, 25 source checks, the archive,
+and both selected physical closure methods. The archive binds 464 modules,
+2,256 constants, and 1,860 callables. Independent packages and the 2,210-import
+graph agree. The selected 603,784-byte container keeps its independently
+reconstructed identity. A locked external consumer compiles the qualified claim
+and matches a complete 568-byte reference artifact. Claim-absence snapshots show
+no additional owned buffer or region. These checks do not establish every
+physical body or a compiler fixed point.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate
 string IDs, and verifies private final code before publication. Thirty-three
 cases compare complete artifacts, identities, and caller state. The largest
 capacity cases run without rewind history. This replaces the inverse-only
-publisher, not the remaining source-to-composition handoff.
+publisher. The later coverage join removes the ordinary source-to-composition
+gap without changing the generated-inverse policy.
 
 The publication milestone at `7d5c4cf05` passed the archive and both selected
 physical closure methods with 461 modules, 2,238 constants, and 1,857 callables.

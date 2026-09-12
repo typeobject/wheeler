@@ -1,12 +1,16 @@
 //! Prepares archive-owned metadata for direct structured source-module compilation.
 
+//! Scalar names and qualifiers share one detached view, before body-column reduction.
+
 module wheeler.compiler.closure.archive_structured_source_module_compiler;
 
 import wheeler.compiler.closure.imported_source_call_targets;
+import wheeler.compiler.closure.scoped_constant_products;
 import wheeler.compiler.closure.source_call_target_table;
 import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.closure.structured_source_module_compiler;
+import wheeler.compiler.constant_product_schema;
 import wheeler.core.encoding.binary;
 
 classical class ArchiveStructuredSourceModuleCompiler {
@@ -359,8 +363,18 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(bufferLength(callableBodyStarts) == 4096);
     assert(bufferLength(callableBodyLengths) == 4096);
     assert(-1 < importedCount);
-    assert(importedCount < 16385);
-    assert(bufferLength(importedRows) == 114689);
+    assert(importedCount < MAX_CONSTANT_PRODUCTS + 1);
+    assert(bufferLength(importedRows) == CONSTANT_PRODUCT_ROWS);
+    assert(importedRows[0] == importedCount);
+    assert(
+      measureScopedConstantProducts(
+        importedNames,
+        importedNames,
+        importedCount,
+        importedRows,
+        CONSTANT_PRODUCT_NAME_BYTES
+      ) < CONSTANT_PRODUCT_NAME_BYTES + 1
+    );
     assert(16384 < bufferLength(importedNameStarts) + 1);
     assert(bufferLength(callableFirstParameters) == 4096);
     assert(bufferLength(callableParameterCounts) == 4096);
@@ -413,14 +427,15 @@ classical class ArchiveStructuredSourceModuleCompiler {
     words selectedCallableNames = allocate(metadata, /* length= */ 64);
 
     long imported = 0;
-    while (imported < importedCount) limit 16384 {
-      long importedBase = 1 + imported * 7;
+    while (imported < importedCount) limit MAX_CONSTANT_PRODUCTS {
+      long importedBase = CONSTANT_PRODUCT_HEADER_ROWS + imported * CONSTANT_PRODUCT_COLUMNS;
+      assert(importedNameStarts[imported] == importedRows[importedBase + CONSTANT_NAME_START]);
       set(symbolOwners, imported, moduleOwner);
-      set(symbolStarts, imported, importedNameStarts[imported]);
-      set(symbolLengths, imported, importedRows[importedBase + 1]);
-      set(symbolTypes, imported, importedRows[importedBase + 2]);
-      set(symbolValues, imported, importedRows[importedBase + 3]);
-      set(symbolResolved, imported, importedRows[importedBase + 4]);
+      set(symbolStarts, imported, importedRows[importedBase + CONSTANT_NAME_START]);
+      set(symbolLengths, imported, importedRows[importedBase + CONSTANT_NAME_LENGTH]);
+      set(symbolTypes, imported, importedRows[importedBase + CONSTANT_TYPE]);
+      set(symbolValues, imported, importedRows[importedBase + CONSTANT_VALUE]);
+      set(symbolResolved, imported, importedRows[importedBase + CONSTANT_RESOLVED]);
       imported += 1;
     }
 
@@ -530,6 +545,8 @@ classical class ArchiveStructuredSourceModuleCompiler {
     SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
       source,
       importedNames,
+      /* constantNames= */ importedNames,
+      /* constants= */ importedRows,
       /* archiveSourceStart= */ 0,
       moduleOwner,
       /* firstCallable= */ 0,

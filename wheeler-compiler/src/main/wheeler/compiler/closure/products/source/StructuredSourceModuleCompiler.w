@@ -21,8 +21,8 @@ import wheeler.compiler.closure.source_call_instruction_products;
 import wheeler.compiler.closure.source_call_layout_products;
 import wheeler.compiler.closure.source_call_target_table;
 import wheeler.compiler.closure.source_callable_coordinate_products;
+import wheeler.compiler.closure.source_classical_coverage;
 import wheeler.compiler.closure.source_classical_proofs;
-import wheeler.compiler.closure.source_generated_inverse_proofs;
 import wheeler.compiler.closure.source_loop_products;
 import wheeler.compiler.closure.source_module_call_products;
 import wheeler.compiler.closure.source_module_product_artifact;
@@ -40,10 +40,13 @@ classical class StructuredSourceModuleCompiler {
   private const long PRODUCT_ARENA_BYTES = 4967424 + SOURCE_CALL_ARGUMENT_ROWS * 16;
 
   /// Publishes one verified artifact against closed imports and local-order result types.
+  /// Retains complete scoped constants beside the reduced body columns for claim binding.
   /// Rejects any body result that conflicts with its declared signed, Boolean, or void type.
   public SourceProductArtifactPlan compileStructuredSourceModuleWithTargets(
     borrow utf8 source,
     borrow byteview symbolNames,
+    borrow byteview constantNames,
+    borrow mut words constants,
     long archiveSourceStart,
     long moduleOwner,
     long firstCallable,
@@ -121,7 +124,6 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(signatureTypes) == 12288);
     assert(bufferLength(parameterCounts) == 64);
     requireStructuredResultTypes(callableCount, declaredResultTypes);
-    long resultCallable = 0;
 
     assert(bufferLength(stringStarts) == 256);
     assert(bufferLength(stringLengths) == 256);
@@ -133,29 +135,11 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(identity) == 32);
 
     region sourceProofs = new region(
-      /* bytes= */ SOURCE_INVERSE_ARENA_BYTES,
-      /* allocations= */ SOURCE_INVERSE_ALLOCATIONS
+      /* bytes= */ SOURCE_CLASSICAL_ARENA_BYTES,
+      /* allocations= */ SOURCE_CLASSICAL_ALLOCATIONS
     );
     bytes proofNames = allocateBytes(sourceProofs, SOURCE_PROOF_NAMES);
     words proofs = allocate(sourceProofs, SOURCE_PROOF_ROWS);
-    SourceReversibleCoveragePlan reversibleEvidence = materializeSourceReversibleCoverage(
-      source,
-      firstCallable,
-      callableCount,
-      callableEffects,
-      strings,
-      stringBytes,
-      stringCount,
-      stringStarts,
-      stringLengths,
-      functionNameIds,
-      proofNames,
-      proofs
-    );
-    assert(reversibleEvidence.valid);
-    long reversibleCallableCount = reversibleEvidence.reversibleCallableCount;
-    long proofCount = reversibleEvidence.proofCount;
-
     region targetEffectProducts = new region(/* bytes= */ 98304, /* allocations= */ 3);
     words localTargetEffects = allocate(targetEffectProducts, 4096);
     words targetEffects = allocate(targetEffectProducts, 4096);
@@ -228,18 +212,29 @@ classical class StructuredSourceModuleCompiler {
     words callTypes = allocate(products, /* length= */ 12288);
     bytes callCode = allocateBytes(products, /* length= */ 262144);
 
-    if (reversibleCallableCount == 0) {
-      // These private columns are still empty. The front scan clears them before product use.
-      assert(
-        sourceClassicalClaimsAbsent(
-          source,
-          statementPhysicalWidths,
-          statementPhysicalStarts,
-          callableNameStarts,
-          functionLocalCounts
-        )
-      );
-    }
+    SourceClassicalCoveragePlan coverage = materializeSourceClassicalCoverage(
+      source,
+      firstCallable,
+      callableCount,
+      callableEffects,
+      strings,
+      stringBytes,
+      stringCount,
+      stringStarts,
+      stringLengths,
+      functionNameIds,
+      constantNames,
+      constants,
+      statementPhysicalWidths,
+      statementPhysicalStarts,
+      callableNameStarts,
+      functionLocalCounts,
+      proofNames,
+      proofs
+    );
+    assert(coverage.valid);
+    long reversibleCallableCount = coverage.reversibleCallableCount;
+    long proofCount = coverage.proofCount;
 
     LocalStructuredTargetPlan localTargets = materializeLocalStructuredTargets(
       firstCallable,
@@ -641,7 +636,7 @@ classical class StructuredSourceModuleCompiler {
     assert(directPlan.failureStatement == -1);
     assert(directPlan.valid);
     // Direct products may infer an unseeded result, but cannot change a closed signature.
-    resultCallable = 0;
+    long resultCallable = 0;
     while (resultCallable < callableCount) limit MAX_CALLABLES {
       assert(functionResultTypes[resultCallable] == declaredResultTypes[resultCallable]);
       resultCallable += 1;

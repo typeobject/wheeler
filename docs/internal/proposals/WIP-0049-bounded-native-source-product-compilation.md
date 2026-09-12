@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, module-product, aggregate, ownership, and bootstrap maintainers |
 | Created | 2026-08-09 |
-| Updated | 2026-09-10 |
+| Updated | 2026-09-12 |
 | Area | Self-hosting, source lowering, module products, aggregate products, bootstrap |
 | Depends on | WIP-0013, WIP-0028, WIP-0044, WIP-0045, WIP-0046, WIP-0047, WIP-0048 |
 | Supersedes | None |
@@ -265,14 +265,12 @@ callable windows, and invalid counted windows. Ordinary
 cases cover accepted and rejected rewind and replay. The combined capacity case
 uses explicitly history-free execution.
 
-The generated-inverse adapter applies a coverage policy rather than parsing
-theorem syntax. Ordinary structured compilation rejects claims that its emitter
-cannot retain. The previous path silently dropped a valid step claim. This is a
-fail-closed boundary, not complete source step-artifact compilation. The artifact
-publisher now consumes the shared rule and argument columns. Ordinary source
-compilation still needs to bind its scoped constants and pass those claims into
-direction composition. The intact mixed-member runner join remains open under
-WIP-0498.
+The generated-inverse adapter applies coverage policy rather than parsing
+theorem syntax. Its one-inverse-per-callable rule remains separate from general
+claim binding. Ordinary structured compilation previously rejected all claims
+after an earlier path silently dropped a valid step claim. The shared coverage
+owner now connects ordinary binding to artifact publication as described below.
+The intact mixed-member runner join remains open under WIP-0498.
 
 The ordinary path proves claim absence through the same member fronts. It reuses
 three empty 4,096-cell product columns and the module-name pair in an existing
@@ -284,9 +282,9 @@ fresh proof-binding workspace for every ordinary module and exhausted the
 65,535-buffer lifetime bound. That limit has not been raised.
 
 The next archive pass caught 4,173 raw tokens in the structured compiler owner.
-Result validation now lives with target validation, and inverse coverage and its
-storage calculations live with the inverse adapter. The structured owner fits
-in 4,038 raw tokens without changing the 4,096-token scanner window. Physical
+Result validation moved to the target owner, and coverage storage was separated
+from the structured compiler. That repair admitted the structured owner in
+4,038 raw tokens without changing the 4,096-token scanner window. Physical
 front checks cover that owner, both proof owners, and CoreParsing with comment
 and header-whitespace variations. They do not establish native compilation of
 those owners' bodies.
@@ -319,12 +317,63 @@ Small cases rewind and replay. Maximum-width claims and terminal string capacity
 run history-free. Keeping the terminal string case's complete history exhausted
 the hosted test heap. The VM's limits were not raised.
 
-The refreshed archive and both selected physical closure methods pass. The
-archive binds 461 modules, 2,238 constants, and 1,857 callables. Independently
-built packages and graphs agree, and the selected 527-function container retains
-its independently reconstructed bytes and identity. A locked package consumer
-publishes and checks a complete 544-byte step artifact. This is product
-publication evidence, not compilation of every physical body.
+The publication milestone at `7d5c4cf05` passed the archive and both selected
+physical closure methods with 461 modules, 2,238 constants, and 1,857 callables.
+Independent packages and graphs agreed, and the selected 527-function container
+retained its independently reconstructed bytes and identity. A locked package
+consumer published and checked a complete 544-byte step artifact. This was
+product publication evidence, not compilation of every physical body.
+
+### Scoped constants and ordinary claim composition
+
+`SourceClassicalCoverage.w` joins ordinary claims with the existing homogeneous
+reversible policy. It rejects mixed or unsupported effects before composition.
+Claim-free ordinary modules reuse the empty scanner and module-range scratch.
+Claim-bearing modules stage a local effect column and call the shared binder.
+The old inverse-named coverage plan and duplicate policy path are removed.
+
+`ArchiveStructuredSourceModuleCompiler.w` validates the complete detached scalar
+packet before copying body columns. The table count and redundant body-name
+coordinates must agree. `StructuredSourceModuleCompiler.w` receives the full
+seven-column packet beside the reduced columns, binds claims, and passes them to
+`StructuredArtifactDirections.w`. The classical publisher verifies the final
+private artifact before any caller artifact or identity byte changes.
+
+The join uses no dependency source and no new constant resolver. The copied name
+view retains both identifiers and module qualifiers. Local declarations and
+imported products reach `evaluateScalarExpressionWithProducts` through the
+existing binder. Bounds keep all 64 bits until final verification.
+
+Complete source-to-artifact comparisons cover literal bounds, a local constant
+expression, and `example.values::LIMIT + 5` with detached `LIMIT = 3`. A bound of
+`LIMIT + 4294967301` rejects despite its low word being eight. Ordinary inverse
+claims reject against ordinary code. Corrupt counts, body-name coordinates,
+qualifier windows, type and resolution flags, and name bytes reject even when
+the constant is unused. Publication storage survives each rejection.
+
+The archive fixture rewinds and replays the complete coverage phase for accepted
+claims, rejected subjects, and claim absence. It checks phase snapshots rather
+than claiming a full compiler-run rewind. Absence adds no owned buffer or region.
+The claim-bearing effect arena is `64 * 8` bytes with one allocation. The shared
+proof arena has `64 * 5` words and `64 * 256` copied-name bytes, for
+`64 * 5 * 8 + 64 * 256` bytes and two allocations. These bounds do not widen the
+scanner, lifetime-buffer, or final-proof limits.
+
+The archive and both selected physical closure methods pass with 464 modules,
+2,256 constants, and 1,860 callables. Independent source intake, two package
+encodings, and the canonical 2,210-import graph agree. The selected 603,784-byte,
+527-function container retains its independently reconstructed identity. The
+structured owner uses 4,030 raw tokens, including comments, within the unchanged
+4,096-token scanner window.
+
+A locked external consumer compiles a source-local callable and its qualified
+imported step claim. Only the selected source range and detached products enter
+the compiler. Its complete 568-byte artifact matches an independently compiled
+reference. The consumer halts after 1,117,859 transitions. This is source-product
+compilation through packaged owners, not a native-built compiler executable.
+
+This closes ordinary primitive source claim composition. It does not compile the
+intact state/nominal/test fixture, every physical compiler body, or a fixed point.
 
 ### Source whitespace and comment termination
 

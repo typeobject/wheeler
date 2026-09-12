@@ -10,6 +10,7 @@ import wheeler.compiler.closure.symbol_identities;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.constant_expressions;
+import wheeler.compiler.constant_product_schema;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
@@ -470,7 +471,7 @@ classical class CountedModuleSymbols {
     words scratchTypes = allocate(symbolArena, MAX_CLOSURE_SYMBOLS);
     words scratchValues = allocate(symbolArena, MAX_CLOSURE_SYMBOLS);
     words scratchResolved = allocate(symbolArena, MAX_CLOSURE_SYMBOLS);
-    words scratchImportedRows = allocate(symbolArena, IMPORTED_CONSTANT_ROWS);
+    words scratchImportedRows = allocate(symbolArena, CONSTANT_PRODUCT_ROWS);
     words processed = allocate(symbolArena, MAX_LOCAL_MODULES);
 
     long symbolCount = 0;

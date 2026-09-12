@@ -3,13 +3,12 @@
 module wheeler.compiler.closure.imported_constant_values;
 
 import wheeler.compiler.constant_declarations;
+import wheeler.compiler.constant_product_schema;
 
 classical class ImportedConstantValues {
-  /// Names the complete packed direct-import lookup table size.
-  public const long IMPORTED_CONSTANT_ROWS = 114689;
-  private const long IMPORTED_CONSTANT_LIMIT = 16384;
-  private const long IMPORTED_CONSTANT_NAME_BYTES = 1048576;
-  private const long IMPORTED_CONSTANT_ROW_WIDTH = 7;
+  private const long MAX_LOCAL_MODULES = 512;
+  private const long MAX_DIRECT_IMPORTS = 64;
+  private const long ASCII_LIMIT = 128;
 
   /// Matches one ASCII source token against an independently owned constant name.
   public boolean matchesConstantName(
@@ -28,7 +27,7 @@ classical class ImportedConstantValues {
       return false;
     }
 
-    if (256 < length) {
+    if (MAX_CONSTANT_NAME_BYTES < length) {
       return false;
     }
 
@@ -49,9 +48,9 @@ classical class ImportedConstantValues {
     }
 
     long offset = 0;
-    while (offset < length) limit 256 {
+    while (offset < length) limit MAX_CONSTANT_NAME_BYTES {
       long value = names[nameStart + offset];
-      if (127 < value) {
+      if (ASCII_LIMIT < value + 1) {
         return false;
       }
 
@@ -63,46 +62,6 @@ classical class ImportedConstantValues {
     }
 
     return true;
-  }
-
-  /// Copies packed imported names so consumers do not reopen dependency source.
-  public long writeDirectImportedValueNames(
-    borrow byteview archive,
-    long importedCount,
-    borrow mut words importedRows,
-    long outputStart,
-    borrow mut words importedNameStarts,
-    borrow mut bytes importedNames
-  ) {
-    assert(-1 < importedCount);
-    assert(importedCount < IMPORTED_CONSTANT_LIMIT + 1);
-    assert(bufferLength(importedRows) == IMPORTED_CONSTANT_ROWS);
-    assert(-1 < outputStart);
-    assert(outputStart < IMPORTED_CONSTANT_NAME_BYTES + 1);
-    assert(IMPORTED_CONSTANT_LIMIT < bufferLength(importedNameStarts) + 1);
-    assert(bufferLength(importedNames) == IMPORTED_CONSTANT_NAME_BYTES);
-    long written = outputStart;
-    long imported = 0;
-    while (imported < importedCount) limit IMPORTED_CONSTANT_LIMIT {
-      long base = 1 + imported * IMPORTED_CONSTANT_ROW_WIDTH;
-      long sourceStart = importedRows[base];
-      long length = importedRows[base + 1];
-      assert(-1 < sourceStart);
-      assert(0 < length);
-      assert(length < bufferLength(archive) - sourceStart + 1);
-      assert(length < IMPORTED_CONSTANT_NAME_BYTES - written + 1);
-      set(importedNameStarts, imported, written);
-      long offset = 0;
-      while (offset < length) limit 256 {
-        setByte(importedNames, written + offset, archive[sourceStart + offset]);
-        offset += 1;
-      }
-
-      written += length;
-      imported += 1;
-    }
-
-    return written - outputStart;
   }
 
   /// Appends one selected module's own scalar products in declaration order.
@@ -121,10 +80,10 @@ classical class ImportedConstantValues {
     borrow mut words importedRows
   ) {
     assert(-1 < moduleOwner);
-    assert(moduleOwner < 512);
+    assert(moduleOwner < MAX_LOCAL_MODULES);
     assert(-1 < importedCount);
-    assert(importedCount < IMPORTED_CONSTANT_LIMIT + 1);
-    assert(bufferLength(importedRows) == IMPORTED_CONSTANT_ROWS);
+    assert(importedCount < MAX_CONSTANT_PRODUCTS + 1);
+    assert(bufferLength(importedRows) == CONSTANT_PRODUCT_ROWS);
     long first = moduleFirstSymbols[moduleOwner];
     long count = moduleSymbolCounts[moduleOwner];
     assert(-1 < first);
@@ -132,16 +91,16 @@ classical class ImportedConstantValues {
     assert(count < MAX_CLASS_CONSTANTS + 1);
     long offset = 0;
     while (offset < count) limit MAX_CLASS_CONSTANTS {
-      assert(importedCount < IMPORTED_CONSTANT_LIMIT);
+      assert(importedCount < MAX_CONSTANT_PRODUCTS);
       long symbol = first + offset;
-      long base = 1 + importedCount * IMPORTED_CONSTANT_ROW_WIDTH;
-      set(importedRows, base, symbolStarts[symbol]);
-      set(importedRows, base + 1, symbolLengths[symbol]);
-      set(importedRows, base + 2, symbolTypes[symbol]);
-      set(importedRows, base + 3, symbolValues[symbol]);
-      set(importedRows, base + 4, symbolResolved[symbol]);
-      set(importedRows, base + 5, moduleNameStarts[moduleOwner]);
-      set(importedRows, base + 6, moduleNameLengths[moduleOwner]);
+      long base = CONSTANT_PRODUCT_HEADER_ROWS + importedCount * CONSTANT_PRODUCT_COLUMNS;
+      set(importedRows, base + CONSTANT_NAME_START, symbolStarts[symbol]);
+      set(importedRows, base + CONSTANT_NAME_LENGTH, symbolLengths[symbol]);
+      set(importedRows, base + CONSTANT_TYPE, symbolTypes[symbol]);
+      set(importedRows, base + CONSTANT_VALUE, symbolValues[symbol]);
+      set(importedRows, base + CONSTANT_RESOLVED, symbolResolved[symbol]);
+      set(importedRows, base + CONSTANT_MODULE_START, moduleNameStarts[moduleOwner]);
+      set(importedRows, base + CONSTANT_MODULE_LENGTH, moduleNameLengths[moduleOwner]);
       importedCount += 1;
       offset += 1;
     }
@@ -167,10 +126,10 @@ classical class ImportedConstantValues {
     borrow mut words symbolResolved,
     borrow mut words importedRows
   ) {
-    assert(bufferLength(importedRows) == IMPORTED_CONSTANT_ROWS);
+    assert(bufferLength(importedRows) == CONSTANT_PRODUCT_ROWS);
     long importedCount = 0;
     long rank = 0;
-    while (rank < directImportCount) limit 64 {
+    while (rank < directImportCount) limit MAX_DIRECT_IMPORTS {
       long dependency = edgeTargets[firstImport + rank];
       if (-1 < dependency) {
         long first = moduleFirstSymbols[dependency];
@@ -179,15 +138,15 @@ classical class ImportedConstantValues {
         while (offset < count) limit MAX_CLASS_CONSTANTS {
           long symbol = first + offset;
           if (symbolVisibilities[symbol] == 1) {
-            assert(importedCount < IMPORTED_CONSTANT_LIMIT);
-            long base = 1 + importedCount * IMPORTED_CONSTANT_ROW_WIDTH;
-            set(importedRows, base, symbolStarts[symbol]);
-            set(importedRows, base + 1, symbolLengths[symbol]);
-            set(importedRows, base + 2, symbolTypes[symbol]);
-            set(importedRows, base + 3, symbolValues[symbol]);
-            set(importedRows, base + 4, symbolResolved[symbol]);
-            set(importedRows, base + 5, moduleNameStarts[dependency]);
-            set(importedRows, base + 6, moduleNameLengths[dependency]);
+            assert(importedCount < MAX_CONSTANT_PRODUCTS);
+            long base = CONSTANT_PRODUCT_HEADER_ROWS + importedCount * CONSTANT_PRODUCT_COLUMNS;
+            set(importedRows, base + CONSTANT_NAME_START, symbolStarts[symbol]);
+            set(importedRows, base + CONSTANT_NAME_LENGTH, symbolLengths[symbol]);
+            set(importedRows, base + CONSTANT_TYPE, symbolTypes[symbol]);
+            set(importedRows, base + CONSTANT_VALUE, symbolValues[symbol]);
+            set(importedRows, base + CONSTANT_RESOLVED, symbolResolved[symbol]);
+            set(importedRows, base + CONSTANT_MODULE_START, moduleNameStarts[dependency]);
+            set(importedRows, base + CONSTANT_MODULE_LENGTH, moduleNameLengths[dependency]);
             importedCount += 1;
           }
 

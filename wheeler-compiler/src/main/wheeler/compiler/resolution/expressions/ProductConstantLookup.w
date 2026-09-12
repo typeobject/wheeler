@@ -2,18 +2,9 @@
 
 module wheeler.compiler.product_constant_lookup;
 
-classical class ProductConstantLookup {
-  private const long IMPORTED_CONSTANT_LIMIT = 16384;
-  private const long IMPORTED_CONSTANT_ROW_WIDTH = 7;
-  private const long IMPORTED_NAME_START = 0;
-  private const long IMPORTED_NAME_LENGTH = 1;
-  private const long IMPORTED_TYPE = 2;
-  private const long IMPORTED_VALUE = 3;
-  private const long IMPORTED_RESOLVED = 4;
-  private const long IMPORTED_MODULE_START = 5;
-  private const long IMPORTED_MODULE_LENGTH = 6;
-  private const long MODULE_SYMBOL_SIGNED = 1;
+import wheeler.compiler.constant_product_schema;
 
+classical class ProductConstantLookup {
   /// Carries one imported product lookup without a value sentinel.
   public record ProductConstantResolution(
     long value,
@@ -45,7 +36,7 @@ classical class ProductConstantLookup {
     }
 
     long cursor = 0;
-    while (cursor < importedLength) limit 256 {
+    while (cursor < importedLength) limit MAX_CONSTANT_NAME_BYTES {
       if (
         utf8Scalar(source, tokenStarts[token] + cursor) == importedNames[importedStart + cursor]
       ) {} else {
@@ -65,7 +56,7 @@ classical class ProductConstantLookup {
     long token
   ) {
     long cursor = 0;
-    while (cursor < tokenLengths[token]) limit 256 {
+    while (cursor < tokenLengths[token]) limit MAX_CONSTANT_NAME_BYTES {
       long scalar = utf8Scalar(source, tokenStarts[token] + cursor);
       boolean valid = scalar == 95;
       if (64 < scalar) {
@@ -194,15 +185,15 @@ classical class ProductConstantLookup {
     long selectedValue = 0;
     long selectedResolved = 0;
     long row = 0;
-    while (row < count) limit IMPORTED_CONSTANT_LIMIT {
-      long base = 1 + row * IMPORTED_CONSTANT_ROW_WIDTH;
+    while (row < count) limit MAX_CONSTANT_PRODUCTS {
+      long base = CONSTANT_PRODUCT_HEADER_ROWS + row * CONSTANT_PRODUCT_COLUMNS;
       boolean moduleMatches = sameImportedRange(
         source,
         tokenStarts[start],
         moduleEnd - tokenStarts[start],
         importedNames,
-        importedRows[base + IMPORTED_MODULE_START],
-        importedRows[base + IMPORTED_MODULE_LENGTH]
+        importedRows[base + CONSTANT_MODULE_START],
+        importedRows[base + CONSTANT_MODULE_LENGTH]
       );
       if (moduleMatches) {
         if (
@@ -212,14 +203,14 @@ classical class ProductConstantLookup {
             tokenLengths,
             symbolToken,
             importedNames,
-            importedRows[base + IMPORTED_NAME_START],
-            importedRows[base + IMPORTED_NAME_LENGTH]
+            importedRows[base + CONSTANT_NAME_START],
+            importedRows[base + CONSTANT_NAME_LENGTH]
           )
         ) {
           candidates += 1;
-          selectedType = importedRows[base + IMPORTED_TYPE];
-          selectedValue = importedRows[base + IMPORTED_VALUE];
-          selectedResolved = importedRows[base + IMPORTED_RESOLVED];
+          selectedType = importedRows[base + CONSTANT_TYPE];
+          selectedValue = importedRows[base + CONSTANT_VALUE];
+          selectedResolved = importedRows[base + CONSTANT_RESOLVED];
         }
       }
 
@@ -232,7 +223,7 @@ classical class ProductConstantLookup {
           selectedValue,
           symbolToken + 1,
           true,
-          selectedType == MODULE_SYMBOL_SIGNED,
+          selectedType == CONSTANT_SIGNED,
           true
         );
       }
@@ -255,7 +246,7 @@ classical class ProductConstantLookup {
       return new ProductConstantResolution(0, false, false, false);
     }
 
-    if (count < IMPORTED_CONSTANT_LIMIT + 1) {} else {
+    if (count < MAX_CONSTANT_PRODUCTS + 1) {} else {
       return new ProductConstantResolution(0, false, false, false);
     }
 
@@ -264,8 +255,8 @@ classical class ProductConstantLookup {
     long selectedValue = 0;
     long selectedResolved = 0;
     long row = 0;
-    while (row < count) limit IMPORTED_CONSTANT_LIMIT {
-      long base = 1 + row * IMPORTED_CONSTANT_ROW_WIDTH;
+    while (row < count) limit MAX_CONSTANT_PRODUCTS {
+      long base = CONSTANT_PRODUCT_HEADER_ROWS + row * CONSTANT_PRODUCT_COLUMNS;
       if (
         sameName(
           source,
@@ -273,14 +264,14 @@ classical class ProductConstantLookup {
           tokenLengths,
           assertedName,
           importedNames,
-          importedRows[base + IMPORTED_NAME_START],
-          importedRows[base + IMPORTED_NAME_LENGTH]
+          importedRows[base + CONSTANT_NAME_START],
+          importedRows[base + CONSTANT_NAME_LENGTH]
         )
       ) {
         candidates += 1;
-        selectedType = importedRows[base + IMPORTED_TYPE];
-        selectedValue = importedRows[base + IMPORTED_VALUE];
-        selectedResolved = importedRows[base + IMPORTED_RESOLVED];
+        selectedType = importedRows[base + CONSTANT_TYPE];
+        selectedValue = importedRows[base + CONSTANT_VALUE];
+        selectedResolved = importedRows[base + CONSTANT_RESOLVED];
       }
 
       row += 1;
@@ -291,7 +282,7 @@ classical class ProductConstantLookup {
         return new ProductConstantResolution(
           selectedValue,
           true,
-          selectedType == MODULE_SYMBOL_SIGNED,
+          selectedType == CONSTANT_SIGNED,
           true
         );
       }

@@ -8,105 +8,14 @@ import wheeler.compiler.source_member_modifiers;
 
 classical class SourceGeneratedInverseProofs {
   private const long MAX_CALLABLES = 64;
-  private const long MAX_CLOSURE_CALLABLES = 4096;
   private const long NATIVE_WORD_BYTES = 8;
   private const long EMPTY_CONSTANT_ROWS = 1;
   private const long STAGED_WORDS = MAX_CALLABLES + EMPTY_CONSTANT_ROWS + SOURCE_PROOF_ROWS;
   private const long STAGED_BYTES = STAGED_WORDS * NATIVE_WORD_BYTES + SOURCE_PROOF_NAMES;
   private const long STAGED_ALLOCATIONS = 4;
-  /// Sizes copied names and the shared five-column claim table.
-  public const long SOURCE_INVERSE_ARENA_BYTES = SOURCE_PROOF_NAMES + SOURCE_PROOF_ROWS
-    * NATIVE_WORD_BYTES;
-  /// Counts one copied-name buffer and one claim table.
-  public const long SOURCE_INVERSE_ALLOCATIONS = 2;
 
   /// Reports one complete generated-inverse coverage table.
   public record SourceGeneratedInverseProofPlan(long proofCount, boolean valid) {}
-
-  /// Reports inverse coverage only. Ordinary callers must separately prove source claim absence.
-  public record SourceReversibleCoveragePlan(
-    long reversibleCallableCount,
-    long proofCount,
-    boolean valid
-  ) {}
-
-  private long structuredReversibleCallableCount(
-    long firstCallable,
-    long callableCount,
-    borrow mut words callableEffects
-  ) {
-    assert(-1 < firstCallable);
-    assert(0 < callableCount);
-    assert(callableCount < MAX_CALLABLES + 1);
-    assert(bufferLength(callableEffects) == MAX_CLOSURE_CALLABLES);
-    assert(callableCount < MAX_CLOSURE_CALLABLES - firstCallable + 1);
-    long reversibleCallableCount = 0;
-    long callable = 0;
-    while (callable < callableCount) limit MAX_CALLABLES {
-      long effect = callableEffects[firstCallable + callable];
-      if (effect == MEMBER_REV) {
-        reversibleCallableCount += 1;
-      } else {
-        if (effect != 0) {
-          return -1;
-        }
-      }
-
-      callable += 1;
-    }
-
-    if (0 < reversibleCallableCount) {
-      if (reversibleCallableCount != callableCount) {
-        return -1;
-      }
-    }
-
-    return reversibleCallableCount;
-  }
-
-  /// Checks homogeneous effects and materializes only reversible coverage.
-  /// An ordinary window has no coverage products and still requires member-front claim exclusion.
-  public SourceReversibleCoveragePlan materializeSourceReversibleCoverage(
-    borrow utf8 source,
-    long firstCallable,
-    long callableCount,
-    borrow mut words callableEffects,
-    borrow byteview strings,
-    long stringBytes,
-    long stringCount,
-    borrow mut words stringStarts,
-    borrow mut words stringLengths,
-    borrow mut words functionNameIds,
-    borrow mut bytes proofNames,
-    borrow mut words proofs
-  ) {
-    long reversibleCount = structuredReversibleCallableCount(
-      firstCallable,
-      callableCount,
-      callableEffects
-    );
-    if (reversibleCount < 0) {
-      return new SourceReversibleCoveragePlan(0, 0, false);
-    }
-
-    if (reversibleCount == 0) {
-      return new SourceReversibleCoveragePlan(0, 0, true);
-    }
-
-    SourceGeneratedInverseProofPlan coverage = materializeSourceGeneratedInverseProofs(
-      source,
-      callableCount,
-      strings,
-      stringBytes,
-      stringCount,
-      stringStarts,
-      stringLengths,
-      functionNameIds,
-      proofNames,
-      proofs
-    );
-    return new SourceReversibleCoveragePlan(reversibleCount, coverage.proofCount, coverage.valid);
-  }
 
   /// Requires exactly one inverse claim per callable for the homogeneous reversible emitter.
   /// The general source product owner also admits repeated subjects and static step claims.

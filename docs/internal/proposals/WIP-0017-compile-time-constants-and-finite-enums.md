@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, quantum, proof, and tooling maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-09-09 |
+| Updated | 2026-09-12 |
 | Area | Named values, finite types, constant evaluation, reversible and coherent semantics |
 | Depends on | WIP-0001, WIP-0005, WIP-0006 |
 | Supersedes | None |
@@ -501,9 +501,12 @@ Accepted, rejected, and trapped executions rewind and replay. Invalid coordinate
 windows reject before evaluation storage is allocated. The existing 4,096-step
 and 64-dependency-depth limits are unchanged.
 
-This API supplies the expression authority needed by source theorem bounds.
-It does not yet bind a `steps` theorem, emit its certificate from source, or join
-the intact mixed-member runner. Those remain integration work under WIP-0498.
+WIP-0045 now detaches both scalar names and module qualifiers into one counted
+view. WIP-0049 carries that complete packet through source proof binding and
+artifact publication. Literal, local-constant, and qualified imported step bounds
+use this evaluator without another resolver or dependency source. Final code and
+manifest verification can still reject a well-typed bound. The intact
+mixed-member runner remains integration work under WIP-0498.
 
 ## Testing and acceptance
 

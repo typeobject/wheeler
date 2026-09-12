@@ -77,6 +77,7 @@ final class NativeCompilerArchiveClosureProgram {
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.product_root_source"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.plan"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.schedule"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.scoped_constant_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.scalar_module_identities"));
     sources.putAll(CompilerSources.moduleClosure(
@@ -106,9 +107,11 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.product_root_source;
         import wheeler.compiler.closure.scalar_module_identities;
         import wheeler.compiler.closure.schedule;
+        import wheeler.compiler.closure.scoped_constant_products;
         import wheeler.compiler.closure.source_call_products;
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.symbol_identities;
+        import wheeler.compiler.constant_product_schema;
 
         classical class ArchiveClosureExample {
           private const long MAX_ARCHIVE_BYTES = 16777216;
@@ -117,7 +120,10 @@ final class NativeCompilerArchiveClosureProgram {
           private const long MAX_IMPORTS = 3072;
           private const long MAX_MANIFEST_BYTES = 262144;
           private const long MAX_MODULES = 512;
-          private const long MAX_SYMBOLS = 16384;
+          private const long MAX_SYMBOLS = MAX_CONSTANT_PRODUCTS;
+          private const long NATIVE_WORD_BYTES = 8;
+          private const long SCOPED_CONSTANT_BUFFERS = 1;
+          private const long SCOPED_CONSTANT_BYTES = CONSTANT_PRODUCT_ROWS * NATIVE_WORD_BYTES;
 
           state long moduleCount = 0;
           state long importCount = 0;
@@ -274,7 +280,11 @@ final class NativeCompilerArchiveClosureProgram {
             words physicalCalls = allocate(columns, /* length= */ 1024);
             words physicalResultTypes = allocate(columns, /* length= */ 4096);
             words physicalOwners = allocate(columns, /* length= */ 256);
-            words physicalImportedRows = allocate(columns, /* length= */ 114689);
+            words physicalImportedRows = allocate(columns, CONSTANT_PRODUCT_ROWS);
+            region constantArena = new region(
+              SCOPED_CONSTANT_BYTES, SCOPED_CONSTANT_BUFFERS
+            );
+            words physicalScopedRows = allocate(constantArena, CONSTANT_PRODUCT_ROWS);
             bytes physicalProductSource = allocateBytes(columns, /* length= */ 32768);
             words callableProductNameStarts = allocate(columns, /* length= */ 4096);
             bytes callableProductNames = allocateBytes(columns, /* length= */ 1048576);
@@ -858,6 +868,8 @@ final class NativeCompilerArchiveClosureProgram {
             drop(callableProductNames);
             drop(callableProductNameStarts);
             drop(physicalProductSource);
+            drop(physicalScopedRows);
+            drop(constantArena);
             drop(physicalImportedRows);
             drop(physicalOwners);
             drop(physicalResultTypes);

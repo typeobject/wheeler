@@ -3,6 +3,7 @@ package com.typeobject.wheeler.examples;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
@@ -56,6 +57,41 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
   }
 
   @Test
+  void retainsQualifiedStepClaimsWithoutDependencySource() throws Exception {
+    Fixture accepted = fixture("return mod;", "LIMIT", 1, 1, 1, null,
+        "theorem Bound proves steps(compute, example.values::LIMIT + 5);");
+    assertCoverageReplay(accepted, false);
+    assertArtifact(accepted);
+    assertUnpublished(fixture("return mod;", "LIMIT", 1, 1, 1, null,
+        "theorem Bound proves steps(compute, example.values::LIMIT + 4294967301);"));
+  }
+
+  @Test
+  void replaysClaimRejectionAndTheAbsencePathWithoutNewBuffers() throws Exception {
+    Fixture absent = fixture("return mod;", "LIMIT", 1, 1, 1, null);
+    assertCoverageReplay(absent, true);
+    assertArtifact(absent);
+    Fixture rejected = fixture("return mod;", "LIMIT", 1, 1, 1, null,
+        "theorem Bound proves steps(unknown, example.values::LIMIT + 5);");
+    assertCoverageReplay(rejected, false);
+    assertUnpublished(rejected);
+  }
+
+  @Test
+  void rejectsMalformedDetachedProductsEvenWhenTheConstantIsUnused() throws Exception {
+    for (String mutation : new String[] {
+        "set(scopedRows, 0, 0);",
+        "set(importedStarts, 0, PREFIX_BYTES + 1);",
+        "set(scopedRows, CONSTANT_PRODUCT_HEADER_ROWS + CONSTANT_MODULE_START, NAME_BYTES);",
+        "set(scopedRows, CONSTANT_PRODUCT_HEADER_ROWS + CONSTANT_TYPE, 3);",
+        "set(scopedRows, CONSTANT_PRODUCT_HEADER_ROWS + CONSTANT_RESOLVED, 2);",
+        "setByte(scopedNames, PREFIX_BYTES, 0);"
+    }) {
+      assertUnpublished(fixture("return mod;", "LIMIT", 1, 1, 1, null, "", mutation));
+    }
+  }
+
+  @Test
   void rejectsMalformedUnresolvedAndAmbiguousProductsBeforePublication() throws Exception {
     for (String body : new String[] {"return LIMIT;", """
         long index = 0;
@@ -71,6 +107,42 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
       assertUnpublished(fixture(body, "LIMIT", 1, 1, 1, Long.MAX_VALUE));
       assertUnpublished(fixture(body, "LIMIT", 1, 1, 1, 4092L));
     }
+  }
+
+  private static void assertCoverageReplay(Fixture fixture, boolean absent) {
+    int function = fixture.program().functions().stream().filter(row -> row.name().equals(
+        "wheeler.compiler.closure.source_classical_coverage::materializeSourceClassicalCoverage"))
+        .findFirst().orElseThrow().id();
+    VirtualMachine machine = fixture.machine();
+    long budget = fixture.program().maxSteps();
+    boolean entered = false;
+    for (long step = 0; step < budget; step++) {
+      var frame = machine.snapshot().selectedFrames().getLast();
+      if (frame.functionId() == function && frame.programCounter() == 0) {
+        entered = true;
+        break;
+      }
+      machine.stepWithoutRewindHistory();
+    }
+    assertTrue(entered, "coverage entry must be reached within the fixture manifest");
+    var before = machine.snapshot();
+    int depth = before.selectedFrames().size();
+    while (machine.snapshot().selectedFrames().size() >= depth) {
+      assertTrue(machine.historySize() < budget, "coverage must return within its work budget");
+      machine.step();
+    }
+    var after = machine.snapshot();
+    int transitions = machine.historySize();
+    if (absent) {
+      assertEquals(before.buffers().size(), after.buffers().size());
+      assertEquals(before.regions().size(), after.regions().size());
+    }
+    while (machine.historySize() > 0) machine.rewindOne();
+    assertEquals(before, machine.snapshot());
+    for (int replay = 0; replay < transitions; replay++) machine.step();
+    assertEquals(after, machine.snapshot());
+    while (machine.historySize() > 0) machine.rewindOne();
+    assertEquals(before, machine.snapshot());
   }
 
   private static void assertArtifact(Fixture fixture) throws Exception {
@@ -111,37 +183,76 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
 
   private static Fixture fixture(
       String body, String name, int type, int resolved, int count, Long nameStart) throws Exception {
+    return fixture(body, name, type, resolved, count, nameStart, "");
+  }
+
+  private static Fixture fixture(String body, String name, int type, int resolved, int count,
+      Long nameStart, String claims) throws Exception {
+    return fixture(body, name, type, resolved, count, nameStart, claims, "");
+  }
+
+  private static Fixture fixture(String body, String name, int type, int resolved, int count,
+      Long nameStart, String claims, String productMutation) throws Exception {
     String source = "module " + MODULE + ";\nimport example.values;\n"
         + "classical class ConstantNames { public long compute(long mod) {\n"
-        + body + "\n} }\n";
+        + body + "\n}\n" + claims + "\n}\n";
     String input = PREFIX + source + "outside tail\n";
     int bodyStart = input.indexOf('{', input.indexOf("compute("));
     int bodyEnd = SourceRanges.matchingClose(input, bodyStart) + 1;
     var sources = new LinkedHashMap<>(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.archive_structured_source_module_compiler"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.scoped_constant_products"));
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.put("ArchiveConstantNames.w", """
         module example.archive_constant_names;
         import wheeler.compiler.closure.archive_structured_source_module_compiler;
+        import wheeler.compiler.closure.scoped_constant_products;
         import wheeler.compiler.closure.source_product_artifact;
+        import wheeler.compiler.constant_product_schema;
         classical class ArchiveConstantNames {
+          private const long NAME_BYTES = 4096;
+          private const long QUALIFIER_START = MAX_CONSTANT_NAME_BYTES / 2;
+          private const long QUALIFIER_LENGTH = 14;
+          private const long PREFIX_BYTES = 7;
+          private const long WORD_BYTES = 8;
+          private const long MAX_CALLABLES = 4096;
+          private const long MAX_PARAMETERS = 16384;
+          private const long BODY_COLUMNS = 2;
+          private const long SIGNATURE_COLUMNS = 4;
+          private const long CALLABLE_NAME_COLUMNS = 2;
+          private const long CALLABLE_COLUMNS = BODY_COLUMNS + SIGNATURE_COLUMNS
+            + CALLABLE_NAME_COLUMNS;
+          private const long PARAMETER_COLUMNS = 2;
+          private const long ROW_BUFFERS = 1;
+          private const long START_BUFFERS = 1;
+          private const long NAME_BUFFERS = 1;
+          private const long QUALIFIER_BUFFERS = 1;
+          private const long METADATA_WORDS = MAX_CALLABLES * CALLABLE_COLUMNS
+            + MAX_PARAMETERS * PARAMETER_COLUMNS + MAX_CONSTANT_PRODUCTS + CONSTANT_PRODUCT_ROWS;
+          private const long METADATA_BYTES = METADATA_WORDS * WORD_BYTES + NAME_BYTES;
+          private const long METADATA_BUFFERS = CALLABLE_COLUMNS + PARAMETER_COLUMNS
+            + ROW_BUFFERS + START_BUFFERS + NAME_BUFFERS;
+          private const long SCOPED_BUFFERS = ROW_BUFFERS + NAME_BUFFERS + QUALIFIER_BUFFERS;
+          private const long SCOPED_BYTES = CONSTANT_PRODUCT_ROWS * WORD_BYTES + NAME_BYTES
+            + MAX_CONSTANT_NAME_BYTES;
           state long published = 0;
           entry void main(borrow byteview archive, borrow mut bytes output) {
-            region metadata = new region(1600000, 13);
-            words bodyStarts = allocate(metadata, 4096);
-            words bodyLengths = allocate(metadata, 4096);
-            words importedRows = allocate(metadata, 114689);
-            words importedStarts = allocate(metadata, 16384);
-            words firstParameters = allocate(metadata, 4096);
-            words parameterCounts = allocate(metadata, 4096);
-            words resultTypes = allocate(metadata, 4096);
-            words effects = allocate(metadata, 4096);
-            words parameterTypes = allocate(metadata, 16384);
-            words parameterModes = allocate(metadata, 16384);
-            words nameStarts = allocate(metadata, 4096);
-            words nameLengths = allocate(metadata, 4096);
-            bytes names = allocateBytes(metadata, 4096);
+            region metadata = new region(METADATA_BYTES, METADATA_BUFFERS);
+            words bodyStarts = allocate(metadata, MAX_CALLABLES);
+            words bodyLengths = allocate(metadata, MAX_CALLABLES);
+            words importedRows = allocate(metadata, CONSTANT_PRODUCT_ROWS);
+            words importedStarts = allocate(metadata, MAX_CONSTANT_PRODUCTS);
+            words firstParameters = allocate(metadata, MAX_CALLABLES);
+            words parameterCounts = allocate(metadata, MAX_CALLABLES);
+            words resultTypes = allocate(metadata, MAX_CALLABLES);
+            words effects = allocate(metadata, MAX_CALLABLES);
+            words parameterTypes = allocate(metadata, MAX_PARAMETERS);
+            words parameterModes = allocate(metadata, MAX_PARAMETERS);
+            words nameStarts = allocate(metadata, MAX_CALLABLES);
+            words nameLengths = allocate(metadata, MAX_CALLABLES);
+            bytes names = allocateBytes(metadata, NAME_BYTES);
             writeAscii(names, 2048, "%s");
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
@@ -152,14 +263,24 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
             set(parameterTypes, 0, 1);
             long imported = 0;
             while (imported < %d) limit 2 {
-              long base = 1 + imported * 7;
+              long base = CONSTANT_PRODUCT_HEADER_ROWS + imported * CONSTANT_PRODUCT_COLUMNS;
               set(importedStarts, imported, %d);
-              set(importedRows, base + 1, %d);
-              set(importedRows, base + 2, %d);
-              set(importedRows, base + 3, 3);
-              set(importedRows, base + 4, %d);
+              set(importedRows, base + CONSTANT_NAME_START, importedStarts[imported]);
+              set(importedRows, base + CONSTANT_MODULE_START, QUALIFIER_START);
+              set(importedRows, base + CONSTANT_MODULE_LENGTH, QUALIFIER_LENGTH);
+              set(importedRows, base + CONSTANT_NAME_LENGTH, %d);
+              set(importedRows, base + CONSTANT_TYPE, %d);
+              set(importedRows, base + CONSTANT_VALUE, 3);
+              set(importedRows, base + CONSTANT_RESOLVED, %d);
               imported += 1;
             }
+            set(importedRows, 0, imported);
+            region scoped = new region(SCOPED_BYTES, SCOPED_BUFFERS);
+            words scopedRows = allocate(scoped, CONSTANT_PRODUCT_ROWS);
+            bytes scopedNames = allocateBytes(scoped, NAME_BYTES);
+            bytes qualifiers = allocateBytes(scoped, MAX_CONSTANT_NAME_BYTES);
+            writeAscii(qualifiers, QUALIFIER_START, "example.values");
+            writeAscii(scopedNames, 0, "prefix.");
             region publication = new region(32800, 2);
             bytes artifact = allocateBytes(publication, 32768);
             bytes identity = allocateBytes(publication, 32);
@@ -173,9 +294,19 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
               setByte(identity, cell, 211);
               cell += 1;
             }
+            ScopedConstantProductPlan copied = copyScopedConstantProducts(
+              names, qualifiers, imported, importedRows, PREFIX_BYTES, scopedNames, scopedRows);
+            assert(copied.productCount == imported);
+            long detached = 0;
+            while (detached < imported) limit 2 {
+              long row = CONSTANT_PRODUCT_HEADER_ROWS + detached * CONSTANT_PRODUCT_COLUMNS;
+              set(importedStarts, detached, scopedRows[row + CONSTANT_NAME_START]);
+              detached += 1;
+            }
+            PRODUCT_MUTATION
             SourceProductArtifactPlan plan = compileStructuredArchiveModule(
               archive, %d, %d, 0, archive, %d, %d, %d, 13, 0, 1,
-              bodyStarts, bodyLengths, %d, importedRows, names, importedStarts,
+              bodyStarts, bodyLengths, %d, scopedRows, scopedNames, importedStarts,
               firstParameters, parameterCounts, resultTypes, effects, parameterTypes,
               parameterModes, archive, nameStarts, nameLengths, artifact, identity
             );
@@ -187,6 +318,7 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
             setOutputLength(output, cursor);
             published = 1;
             drop(identity); drop(artifact); drop(publication);
+            drop(qualifiers); drop(scopedNames); drop(scopedRows); drop(scoped);
             drop(names); drop(nameLengths); drop(nameStarts);
             drop(parameterModes); drop(parameterTypes); drop(effects); drop(resultTypes);
             drop(parameterCounts); drop(firstParameters); drop(importedStarts); drop(importedRows);
@@ -200,7 +332,8 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
             SourceRanges.utf8Offset(input, input.indexOf("compute(")),
             count, nameStart == null ? 2048 : nameStart, name.length(), type, resolved,
             PREFIX.length(), source.getBytes(StandardCharsets.UTF_8).length,
-            input.indexOf(MODULE), MODULE.length(), input.indexOf("ConstantNames {"), count));
+            input.indexOf(MODULE), MODULE.length(), input.indexOf("ConstantNames {"), count)
+        .replace("PRODUCT_MUTATION", productMutation));
     return new Fixture(new WheelerCompiler().compileModuleFiles(
         sources, "example.archive_constant_names"), input, source, name);
   }

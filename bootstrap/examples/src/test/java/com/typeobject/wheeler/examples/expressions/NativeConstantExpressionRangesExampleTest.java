@@ -196,7 +196,6 @@ final class NativeConstantExpressionRangesExampleTest {
   private static Program program(String change) throws Exception {
     var sources = new LinkedHashMap<>(CompilerSources.moduleClosure("wheeler.compiler.constant_expressions"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.module_linker"));
-    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.imported_constant_values"));
     String names = "BASEFLAGfixture.bounds";
     var nameWrites = new StringBuilder();
     for (int index = 0; index < names.length(); index++) {
@@ -205,16 +204,16 @@ final class NativeConstantExpressionRangesExampleTest {
     }
     sources.put("ExpressionRanges.w", """
         module example.expression_ranges;
-        import wheeler.compiler.closure.imported_constant_values;
         import wheeler.compiler.compiler_token_limits;
         import wheeler.compiler.constant_expressions;
+        import wheeler.compiler.constant_product_schema;
         import wheeler.compiler.module_linker;
         classical class ExpressionRanges {
           private const long NAME_BYTES = %d;
           private const long TOKEN_COLUMNS = 3;
           private const long WORD_BYTES = 8;
           private const long ARENA_BYTES = NAME_BYTES
-            + (TOKEN_COLUMNS * MAX_COMPILER_TOKENS + IMPORTED_CONSTANT_ROWS) * WORD_BYTES;
+            + (TOKEN_COLUMNS * MAX_COMPILER_TOKENS + CONSTANT_PRODUCT_ROWS) * WORD_BYTES;
           private const long ARENA_ALLOCATIONS = TOKEN_COLUMNS + 2;
           private const long BASE_NAME_BYTES = 4;
           private const long FLAG_NAME_BYTES = 4;
@@ -243,7 +242,7 @@ final class NativeConstantExpressionRangesExampleTest {
             words kinds = allocate(arena, MAX_COMPILER_TOKENS);
             words starts = allocate(arena, MAX_COMPILER_TOKENS);
             words lengths = allocate(arena, MAX_COMPILER_TOKENS);
-            words rows = allocate(arena, IMPORTED_CONSTANT_ROWS);
+            words rows = allocate(arena, CONSTANT_PRODUCT_ROWS);
             bytes names = allocateBytes(arena, NAME_BYTES);
             %s
             set(rows, 0, 2);
@@ -260,7 +259,7 @@ final class NativeConstantExpressionRangesExampleTest {
             set(rows, SECOND_CONSTANT + RESOLVED_FIELD, 1);
             set(rows, SECOND_CONSTANT + MODULE_START_FIELD, MODULE_NAME_START);
             set(rows, SECOND_CONSTANT + MODULE_LENGTH_FIELD, MODULE_NAME_BYTES);
-            set(rows, IMPORTED_CONSTANT_ROWS - 1, 223);
+            set(rows, CONSTANT_PRODUCT_ROWS - 1, 223);
             long count = scanSemanticTokens(source, kinds, starts, lengths);
             assert(1 < count);
             long firstDeclaration = 0;

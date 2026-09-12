@@ -2,6 +2,7 @@ package com.typeobject.wheeler.examples;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.examples.constants.ConstantProductSource;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -60,7 +61,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
     CoreSources.addBinaryClosure(sources);
     sources.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
-    sources.put("CoreParsingSourceProductsExample.w", """
+    sources.put("CoreParsingSourceProductsExample.w", ConstantProductSource.expand("""
         module example.core_parsing_source_products;
 
         import wheeler.compiler.closure.archive_structured_source_module_compiler;
@@ -79,9 +80,11 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.source_statement_products;
         import wheeler.compiler.closure.source_value_products;
+        import wheeler.compiler.constant_product_schema;
         import wheeler.core.encoding.binary;
 
         classical class CoreParsingSourceProductsExample {
+          CONSTANT_PRODUCT_LIMITS
           state long valid = 0;
           state long blockValid = 0;
           state long loopValid = 0;
@@ -534,9 +537,12 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             if (0 < artifactPlan.length) {
               artifactValid = 1;
             }
+            CONSTANT_PRODUCT_SETUP
             SourceProductArtifactPlan structuredPlan = compileStructuredSourceModule(
               input,
               binarySource,
+              /* constantNames= */ binarySource,
+              proofConstants,
               /* archiveSourceStart= */ 0,
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,
@@ -780,6 +786,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             drop(globalParameterCounts);
             drop(globalFirstParameters);
             drop(importedNameStarts);
+            CONSTANT_PRODUCT_CLEANUP
             drop(importedRows);
             drop(input);
             drop(binarySource);
@@ -839,7 +846,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
         .replace("MODULE_NAME_START", word(moduleStart))
         .replace("MODULE_NAME_LENGTH", word(moduleLength))
         .replace("CLASS_NAME_START", word(classStart))
-        .replace("CLASS_NAME_LENGTH", word(classLength)));
+        .replace("CLASS_NAME_LENGTH", word(classLength)), 1));
     return new WheelerCompiler().compileModuleFiles(sources, "example.core_parsing_source_products");
   }
 

@@ -132,9 +132,13 @@ The inverse adapter applies coverage policy to those shared products.
 `ClassicalSourceProductArtifact.w` consumes the same table, emits either classical
 rule, preserves both argument words, and deduplicates proof names against existing
 canonical strings. Final private-container verification precedes publication.
-Nonempty ordinary source compilation still rejects claims until its scoped
-binding is connected to that artifact path. The mixed-member runner join remains
-open.
+`SourceClassicalCoverage.w` now connects ordinary binding to that artifact path.
+The archive boundary validates every detached scalar row before reducing body
+columns. `ConstantProductSchema.w` defines the seven-column packet, and
+`ScopedConstantProducts.w` detaches both names and module qualifiers without
+changing scalar facts. The complete packet remains available to proof binding.
+Claim-free ordinary modules reuse private scratch without new owned buffers.
+The intact mixed-member runner join remains open.
 
 The scanner owns source whitespace rather than requiring each frontend to filter
 trivia. Tabs, carriage returns, and admitted Unicode separators split tokens.

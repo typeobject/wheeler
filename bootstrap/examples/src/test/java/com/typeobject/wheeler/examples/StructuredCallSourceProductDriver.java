@@ -2,6 +2,7 @@ package com.typeobject.wheeler.examples;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.examples.constants.ConstantProductSource;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -157,7 +158,7 @@ final class StructuredCallSourceProductDriver {
     CoreSources.addBinaryClosure(sources);
     sources.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
-    sources.put("StructuredCallSourceProductExample.w", """
+    sources.put("StructuredCallSourceProductExample.w", ConstantProductSource.expand("""
         module example.structured_call_source_product;
 
         import wheeler.compiler.closure.callable_function_rows;
@@ -165,9 +166,11 @@ final class StructuredCallSourceProductDriver {
         import wheeler.compiler.closure.imported_callable_stubs;
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.structured_source_module_compiler;
+        import wheeler.compiler.constant_product_schema;
         import wheeler.core.encoding.binary;
 
         classical class StructuredCallSourceProductExample {
+          CONSTANT_PRODUCT_LIMITS
           state long valid = 0;
           state long artifactLength = 0;
           state long functionCount = 0;
@@ -234,9 +237,12 @@ final class StructuredCallSourceProductDriver {
             set(stringStarts, 2, 22);
             set(stringLengths, 2, 32);
             set(functionNameIds, 0, 2);
+            CONSTANT_PRODUCT_SETUP
             SourceProductArtifactPlan plan = compileStructuredSourceModuleWithTargets(
               input,
               /* symbolNames= */ strings,
+              /* constantNames= */ strings,
+              proofConstants,
               /* archiveSourceStart= */ 0,
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,
@@ -393,6 +399,7 @@ final class StructuredCallSourceProductDriver {
             drop(declaredResultTypes);
             drop(parameterCounts);
             drop(signatureTypes);
+            CONSTANT_PRODUCT_CLEANUP
             drop(symbolResolved);
             drop(symbolValues);
             drop(symbolTypes);
@@ -447,7 +454,7 @@ final class StructuredCallSourceProductDriver {
                     + "set(symbolTypes, 0, " + symbol.type() + ");\n"
                     + "set(symbolValues, 0, " + symbol.value() + ");\n"
                     + "set(symbolResolved, 0, " + symbol.resolved() + ");"
-                : ""));
+                : ""), symbol.present() ? 1 : 0));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.structured_call_source_product");
   }

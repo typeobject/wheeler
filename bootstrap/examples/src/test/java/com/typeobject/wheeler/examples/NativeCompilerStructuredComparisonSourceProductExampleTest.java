@@ -10,6 +10,7 @@ import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import com.typeobject.wheeler.examples.constants.ConstantProductSource;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -671,7 +672,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
-  void rejectsClaimsThatTheOrdinaryEmitterCannotRetain() throws Exception {
+  void retainsOrdinaryStepClaimsAndRejectsInverseClaims() throws Exception {
     int body = SOURCE.indexOf("{", SOURCE.indexOf("copyOffset("));
     String source = SOURCE.substring(0, body) + """
         { return length; }
@@ -680,7 +681,9 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
       """;
     assertEquals(1, new WheelerCompiler().compileLibraryModuleFiles(
         Map.of("Source.w", source), MODULE).proofCertificates().size());
-    assertNoArtifact(source);
+    assertArtifact(source);
+    assertArtifact(source.replace("steps(copyOffset, 8)",
+        "steps(copyOffset, MAX_SOURCE_BYTES / 4096)"));
     assertNoArtifact(source.replace("steps(copyOffset, 8)", "inverse(copyOffset)"));
   }
 
@@ -801,14 +804,16 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
     CoreSources.addBinaryClosure(sources);
     sources.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
-    sources.put("StructuredComparisonSourceProductExample.w", """
+    sources.put("StructuredComparisonSourceProductExample.w", ConstantProductSource.expand("""
         module example.structured_comparison_source_product;
 
         import wheeler.compiler.closure.local_structured_source_module_compiler;
         import wheeler.compiler.closure.source_product_artifact;
+        import wheeler.compiler.constant_product_schema;
         import wheeler.core.encoding.binary;
 
         classical class StructuredComparisonSourceProductExample {
+          CONSTANT_PRODUCT_LIMITS
           state long valid = 0;
           state long artifactLength = 0;
 
@@ -870,9 +875,12 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             set(stringStarts, 2, 28);
             set(stringLengths, 2, 41);
             set(functionNameIds, 0, 2);
+            CONSTANT_PRODUCT_SETUP
             SourceProductArtifactPlan plan = compileStructuredSourceModule(
               input,
               /* symbolNames= */ strings,
+              /* constantNames= */ strings,
+              proofConstants,
               /* archiveSourceStart= */ 0,
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,
@@ -908,6 +916,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             setOutputLength(output, plan.length);
             artifactLength = plan.length;
             valid = 1;
+            CONSTANT_PRODUCT_CLEANUP
             drop(identity);
             drop(artifact);
             drop(functionNameIds);
@@ -933,7 +942,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             bodyLength,
             sourceType,
             parameterCount,
-            parameterCount).replace("DECLARED_RESULT", Integer.toString(resultType)));
+            parameterCount).replace("DECLARED_RESULT", Integer.toString(resultType)), 1));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.structured_comparison_source_product");
   }

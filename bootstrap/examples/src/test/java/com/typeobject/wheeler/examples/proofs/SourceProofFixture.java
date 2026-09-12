@@ -144,32 +144,40 @@ final class SourceProofFixture {
     String callableNames = firstName + secondName;
     var sources = new LinkedHashMap<>(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_classical_proofs"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.scoped_constant_products"));
     StringBuilder writes = new StringBuilder();
     for (int index = 0; index < callableNames.length(); index++) {
       writes.append("setByte(names, ").append(index).append(", ")
           .append((int) callableNames.charAt(index)).append(");\n");
     }
     for (int index = 0; index < CONSTANT_NAMES.length(); index++) {
-      writes.append("setByte(constantNames, ").append(index).append(", ")
+      writes.append("setByte(rawNames, ").append(index).append(", ")
           .append((int) CONSTANT_NAMES.charAt(index)).append(");\n");
     }
     sources.put("SourceProofBinding.w", """
         module example.source_proof_binding;
+        import wheeler.compiler.closure.scoped_constant_products;
         import wheeler.compiler.closure.source_classical_proofs;
+        import wheeler.compiler.constant_product_schema;
         classical class SourceProofBinding {
           private const long CALLABLES = 64;
           private const long STRINGS = 256;
           private const long WORD_BYTES = 8;
-          private const long CONSTANT_COLUMNS = 7;
+          private const long CONSTANT_COLUMNS = CONSTANT_PRODUCT_COLUMNS;
           private const long CONSTANT_COUNT = 2;
-          private const long CONSTANT_ROWS = 1 + CONSTANT_COLUMNS * CONSTANT_COUNT;
+          private const long CONSTANT_ROWS = CONSTANT_PRODUCT_HEADER_ROWS + CONSTANT_COLUMNS * CONSTANT_COUNT;
           private const long NAME_BYTES = %d;
           private const long CONSTANT_NAME_BYTES = %d;
           private const long FIRST_NAME_BYTES = %d;
           private const long SECOND_NAME_BYTES = NAME_BYTES - FIRST_NAME_BYTES;
-          private const long ARENA_BYTES = (CALLABLES * 2 + STRINGS * 2 + CONSTANT_ROWS
-            + SOURCE_PROOF_ROWS) * WORD_BYTES + NAME_BYTES + CONSTANT_NAME_BYTES + SOURCE_PROOF_NAMES;
-          private const long ARENA_ALLOCATIONS = 9;
+          private const long CALLABLE_BUFFERS = 5;
+          private const long CONSTANT_BUFFERS = 4;
+          private const long PROOF_BUFFERS = 2;
+          private const long COPIED_CONSTANT_BYTES = BASE_BYTES + FLAG_BYTES + CONSTANT_COUNT * MODULE_BYTES;
+          private const long ARENA_BYTES = (CALLABLES * 2 + STRINGS * 2 + CONSTANT_ROWS * 2
+            + SOURCE_PROOF_ROWS) * WORD_BYTES + NAME_BYTES + CONSTANT_NAME_BYTES
+            + COPIED_CONSTANT_BYTES + SOURCE_PROOF_NAMES;
+          private const long ARENA_ALLOCATIONS = CALLABLE_BUFFERS + CONSTANT_BUFFERS + PROOF_BUFFERS;
           private const long BASE_BYTES = 4;
           private const long FLAG_BYTES = 4;
           private const long MODULE_START = BASE_BYTES + FLAG_BYTES;
@@ -193,7 +201,9 @@ final class SourceProofFixture {
             words starts = allocate(arena, STRINGS);
             words lengths = allocate(arena, STRINGS);
             words ids = allocate(arena, CALLABLES);
-            bytes constantNames = allocateBytes(arena, CONSTANT_NAME_BYTES);
+            bytes rawNames = allocateBytes(arena, CONSTANT_NAME_BYTES);
+            words rawConstants = allocate(arena, CONSTANT_ROWS);
+            bytes constantNames = allocateBytes(arena, COPIED_CONSTANT_BYTES);
             words constants = allocate(arena, CONSTANT_ROWS);
             words rows = allocate(arena, SOURCE_PROOF_ROWS);
             bytes proofNames = allocateBytes(arena, SOURCE_PROOF_NAMES);
@@ -203,22 +213,27 @@ final class SourceProofFixture {
             set(lengths, 0, FIRST_NAME_BYTES);
             set(lengths, 1, SECOND_NAME_BYTES);
             set(ids, 1, 1);
-            set(constants, 0, CONSTANT_COUNT);
-            long first = 1;
+            set(rawConstants, 0, CONSTANT_COUNT);
+            long first = CONSTANT_PRODUCT_HEADER_ROWS;
             long second = first + CONSTANT_COLUMNS;
-            set(constants, first + NAME_LENGTH_COLUMN, BASE_BYTES);
-            set(constants, first + TYPE_COLUMN, /* long= */ 1);
-            set(constants, first + VALUE_COLUMN, /* BASE= */ 7);
-            set(constants, first + RESOLVED_COLUMN, 1);
-            set(constants, first + MODULE_START_COLUMN, MODULE_START);
-            set(constants, first + MODULE_LENGTH_COLUMN, MODULE_BYTES);
-            set(constants, second + NAME_START_COLUMN, BASE_BYTES);
-            set(constants, second + NAME_LENGTH_COLUMN, FLAG_BYTES);
-            set(constants, second + TYPE_COLUMN, /* boolean= */ 2);
-            set(constants, second + VALUE_COLUMN, /* FLAG= */ 1);
-            set(constants, second + RESOLVED_COLUMN, 1);
-            set(constants, second + MODULE_START_COLUMN, MODULE_START);
-            set(constants, second + MODULE_LENGTH_COLUMN, MODULE_BYTES);
+            set(rawConstants, first + NAME_LENGTH_COLUMN, BASE_BYTES);
+            set(rawConstants, first + TYPE_COLUMN, CONSTANT_SIGNED);
+            set(rawConstants, first + VALUE_COLUMN, /* BASE= */ 7);
+            set(rawConstants, first + RESOLVED_COLUMN, 1);
+            set(rawConstants, first + MODULE_START_COLUMN, MODULE_START);
+            set(rawConstants, first + MODULE_LENGTH_COLUMN, MODULE_BYTES);
+            set(rawConstants, second + NAME_START_COLUMN, BASE_BYTES);
+            set(rawConstants, second + NAME_LENGTH_COLUMN, FLAG_BYTES);
+            set(rawConstants, second + TYPE_COLUMN, CONSTANT_BOOLEAN);
+            set(rawConstants, second + VALUE_COLUMN, /* FLAG= */ 1);
+            set(rawConstants, second + RESOLVED_COLUMN, 1);
+            set(rawConstants, second + MODULE_START_COLUMN, MODULE_START);
+            set(rawConstants, second + MODULE_LENGTH_COLUMN, MODULE_BYTES);
+            ScopedConstantProductPlan copiedConstants = copyScopedConstantProducts(
+              rawNames, rawNames, CONSTANT_COUNT, rawConstants, 0, constantNames, constants
+            );
+            assert(copiedConstants.productCount == CONSTANT_COUNT);
+            assert(copiedConstants.nameBytes == COPIED_CONSTANT_BYTES);
             long cell = 0;
             while (cell < SOURCE_PROOF_ROWS) limit SOURCE_PROOF_ROWS {
               set(rows, cell, %d);
@@ -245,6 +260,8 @@ final class SourceProofFixture {
             drop(rows);
             drop(constants);
             drop(constantNames);
+            drop(rawConstants);
+            drop(rawNames);
             drop(ids);
             drop(lengths);
             drop(starts);

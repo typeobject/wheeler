@@ -127,14 +127,18 @@ Source classical claims now bind through shared member fronts and counted local
 callables. Qualified callable names must name the source module. The source table
 retains up to 64 inverse or positive signed step claims and copies each name into
 at most 256 bytes. Malformed batches change no caller row or name byte. These are
-bound claims, not accepted proofs of final code. The nonempty ordinary source
-publisher rejects claims it cannot retain rather than silently discarding them.
+bound claims, not accepted proofs of final code. Ordinary structured compilation
+binds them from the complete detached scalar packet before artifact composition.
+The archive boundary validates every packet row, including unused constants.
+Identifiers and module qualifiers share a copied view with both starts rebased.
+The reduced body columns do not replace that seven-column expression packet.
 The classical artifact publisher consumes the same five-column claims, preserves
 both argument words, and merges proof names into the existing canonical string
 table without duplicating IDs. It verifies the final private container before
-publishing bytes or identity. Ordinary source compilation still needs to pass
-its bound claims into this composition path. The mixed-member runner join also
-remains open.
+publishing bytes or identity. Claim-free ordinary modules reuse private scratch
+without allocating new owned buffers. Generated-inverse coverage remains a
+separate homogeneous-callable policy. The intact mixed-member runner join remains
+open.
 
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and

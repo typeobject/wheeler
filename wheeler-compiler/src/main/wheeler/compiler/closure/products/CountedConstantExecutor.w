@@ -5,9 +5,11 @@ module wheeler.compiler.closure.counted_constant_executor;
 import wheeler.compiler.closure.imported_constant_values;
 import wheeler.compiler.closure.product_root_source;
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.constant_product_schema;
 
 classical class CountedConstantExecutors {
-  private const long IMPORTED_CONSTANT_ARENA_BYTES = 917512;
+  private const long WORD_BYTES = 8;
+  private const long IMPORTED_CONSTANT_ARENA_BYTES = CONSTANT_PRODUCT_ROWS * WORD_BYTES;
   private const long MAX_IMPORTS = 3072;
   private const long MAX_LINKED_SOURCE_BYTES = 32768;
 
@@ -67,7 +69,7 @@ classical class CountedConstantExecutors {
       /* bytes= */ IMPORTED_CONSTANT_ARENA_BYTES,
       /* allocations= */ 1
     );
-    words importedRows = allocate(importedArena, IMPORTED_CONSTANT_ROWS);
+    words importedRows = allocate(importedArena, CONSTANT_PRODUCT_ROWS);
     long importedCount = writeDirectImportedValues(
       firstImport,
       importCount,

@@ -8,6 +8,7 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import com.typeobject.wheeler.examples.constants.ConstantProductSource;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -92,14 +93,16 @@ final class NativeCompilerStructuredByteProductsExampleTest {
     CoreSources.addBinaryClosure(sources);
     sources.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
-    sources.put("StructuredByteProductsExample.w", """
+    sources.put("StructuredByteProductsExample.w", ConstantProductSource.expand("""
         module example.structured_byte_products;
 
         import wheeler.compiler.closure.local_structured_source_module_compiler;
         import wheeler.compiler.closure.source_product_artifact;
+        import wheeler.compiler.constant_product_schema;
         import wheeler.core.encoding.binary;
 
         classical class StructuredByteProductsExample {
+          CONSTANT_PRODUCT_LIMITS
           state long valid = 0;
           state long artifactLength = 0;
 
@@ -148,9 +151,12 @@ final class NativeCompilerStructuredByteProductsExampleTest {
             set(stringStarts, 2, 16);
             set(stringLengths, 2, 30);
             set(functionNameIds, 0, 2);
+            CONSTANT_PRODUCT_SETUP
             SourceProductArtifactPlan plan = compileStructuredSourceModule(
               source,
               /* symbolNames= */ strings,
+              /* constantNames= */ strings,
+              proofConstants,
               /* archiveSourceStart= */ 0,
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,
@@ -188,6 +194,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
             if (0 < plan.length) {
               valid = 1;
             }
+            CONSTANT_PRODUCT_CLEANUP
             drop(identity);
             drop(artifact);
             drop(functionNameIds);
@@ -208,7 +215,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
             drop(products);
           }
         }
-        """.formatted(bodyStart, bodyLength));
+        """.formatted(bodyStart, bodyLength), 0));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.structured_byte_products");
   }
