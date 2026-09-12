@@ -6,6 +6,7 @@ import wheeler.compiler.closure.archive_sources;
 import wheeler.compiler.closure.module_manifest;
 import wheeler.compiler.packages.canonical;
 import wheeler.compiler.packages.manifest;
+import wheeler.compiler.packages.manifest_kinds;
 import wheeler.lexer.scanner;
 
 classical class CompilerPackageTarget {
@@ -195,7 +196,7 @@ classical class CompilerPackageTarget {
       long rootLength = targetRows[base + TARGET_ROOT_LENGTH];
       long moduleStart = targetRows[base + TARGET_MODULE_START];
       long moduleLength = targetRows[base + TARGET_MODULE_LENGTH];
-      boolean matching = targetRows[base + TARGET_KIND] == 3;
+      boolean matching = targetRows[base + TARGET_KIND] == PACKAGE_TARGET_TOOL;
       if (matching) {
         matching = compilerName(manifest, nameStart, nameLength);
       }

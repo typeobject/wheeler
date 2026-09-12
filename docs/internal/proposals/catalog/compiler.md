@@ -183,3 +183,5 @@ Each record appears in one catalog. Cross-cutting work links its other owners fr
 | [WIP-0511](../source/WIP-0511-counted-call-global-destinations.md) | Draft | Counted call global destinations |
 | [WIP-0512](../source/WIP-0512-root-global-literal-assertions.md) | Draft | Root global literal assertions |
 | [WIP-0513](../source/WIP-0513-immutable-source-lease-ranges.md) | Draft | Immutable source lease ranges |
+| [WIP-0514](../source/WIP-0514-counted-executable-entry-products.md) | Draft | Counted executable entry products |
+| [WIP-0515](../source/WIP-0515-manifest-selected-entry-verification.md) | Draft | Manifest-selected entry verification |

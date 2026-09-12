@@ -185,9 +185,24 @@ removes temporary archive buffers from source-lease publication. The scheduler
 uses seven buffers for two or 512 owners. Symbol and callable intake retain only
 the active-source copy needed for scanning. This addresses lifetime-buffer
 exhaustion in the selected physical check without increasing VM limits. The
-original physical selection now passes. Final feature and hosted gates remain open.
+original physical selection and all 52 hosted bootstrap jobs pass at `3b32e73f2`.
+No checked source set or VM limit changed.
 
-Global conditions, nested accesses, entry/nominal composition, and source-independent
+Counted archive compilation now takes an explicit package target kind.
+[WIP-0514](../docs/internal/proposals/source/WIP-0514-counted-executable-entry-products.md)
+binds one ordinary executable `main` from the complete callable/signature window.
+The selected body emits `HALT`, and its manifest uses the actual callable ordinal.
+Executables omit the synthetic library name and descriptor. Libraries retain both.
+Entry and helper claims verify against composed code before artifact publication.
+Imported targets still cross the boundary as signatures and identity relocations,
+not dependency bodies. Native retained instruction linking remains separate.
+
+[WIP-0515](../docs/internal/proposals/source/WIP-0515-manifest-selected-entry-verification.md)
+removes last-function assumptions from native entry, call, and proof verification.
+One IR owner defines the six canonical host-loan shapes used by source binding
+and bytecode verification. Entry position does not weaken call or proof checks.
+
+Global conditions, nested accesses, nominal/entry composition, and source-independent
 instruction relocation remain open in
 [WIP-0507](../docs/internal/proposals/source/WIP-0507-native-source-global-access-products.md).
 

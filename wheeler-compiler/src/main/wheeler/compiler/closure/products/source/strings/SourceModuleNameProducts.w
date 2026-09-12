@@ -15,8 +15,6 @@ classical class SourceModuleNameProducts {
     + SOURCE_GLOBAL_PUBLICATION_ROWS;
   private const long MAX_CALLABLES = 64;
   private const long LIBRARY_NAME_ID = 0;
-  private const long CLASS_NAME_ID = LIBRARY_NAME_ID + 1;
-  private const long FIRST_CALLABLE_NAME = CLASS_NAME_ID + 1;
   private const long LIBRARY_NAME_BYTES = 8;
   private const long QUALIFIER_BYTES = 2;
 
@@ -54,6 +52,7 @@ classical class SourceModuleNameProducts {
   /// Every output is compiler scratch. A rejected call must not publish any of these products.
   /// The caller lends three scanner columns and a callable-ID column for transient front indexing.
   public SourceModuleNamePlan materializeSourceModuleNames(
+    long entryCallable,
     borrow utf8 source,
     borrow byteview archive,
     long classNameStart,
@@ -80,6 +79,8 @@ classical class SourceModuleNameProducts {
     assert(-1 < firstCallable);
     assert(-1 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
+    assert(-2 < entryCallable);
+    assert(entryCallable < callableCount);
     assert(bufferLength(functionNameIds) == MAX_CALLABLES);
     assert(SOURCE_MODULE_NAME_ROWS < bufferLength(products) + 1);
     SourceGlobalPlan globals = materializeSourceGlobalProducts(
@@ -97,17 +98,23 @@ classical class SourceModuleNameProducts {
     );
     assert(globals.valid);
     long cursor = globals.nameBytes;
-    writeAscii(strings, cursor, "$library");
-    set(stringStarts, LIBRARY_NAME_ID, cursor);
-    set(stringLengths, LIBRARY_NAME_ID, LIBRARY_NAME_BYTES);
-    cursor += LIBRARY_NAME_BYTES;
-    set(stringStarts, CLASS_NAME_ID, cursor);
-    set(stringLengths, CLASS_NAME_ID, classNameLength);
+    long classNameId = 0;
+    if (entryCallable < 0) {
+      writeAscii(strings, cursor, "$library");
+      set(stringStarts, LIBRARY_NAME_ID, cursor);
+      set(stringLengths, LIBRARY_NAME_ID, LIBRARY_NAME_BYTES);
+      cursor += LIBRARY_NAME_BYTES;
+      classNameId = LIBRARY_NAME_ID + 1;
+    }
+
+    long firstCallableName = classNameId + 1;
+    set(stringStarts, classNameId, cursor);
+    set(stringLengths, classNameId, classNameLength);
     cursor = copyName(archive, classNameStart, classNameLength, strings, cursor);
     long callable = 0;
     while (callable < callableCount) limit MAX_CALLABLES {
       long original = firstCallable + callable;
-      long id = FIRST_CALLABLE_NAME + callable;
+      long id = firstCallableName + callable;
       set(stringStarts, id, cursor);
       cursor = copyName(moduleNames, moduleNameStart, moduleNameLength, strings, cursor);
       writeAscii(strings, cursor, "::");
@@ -123,7 +130,7 @@ classical class SourceModuleNameProducts {
       callable += 1;
     }
 
-    long firstGlobalName = FIRST_CALLABLE_NAME + callableCount;
+    long firstGlobalName = firstCallableName + callableCount;
     long global = 0;
     while (global < globals.globalCount) limit MAX_SOURCE_GLOBALS {
       set(stringStarts, firstGlobalName + global, products[SOURCE_MODULE_GLOBAL_START + global]);
@@ -145,7 +152,7 @@ classical class SourceModuleNameProducts {
     );
     long mappedCallable = 0;
     while (mappedCallable < callableCount) limit MAX_CALLABLES {
-      set(functionNameIds, mappedCallable, products[FIRST_CALLABLE_NAME + mappedCallable]);
+      set(functionNameIds, mappedCallable, products[firstCallableName + mappedCallable]);
       mappedCallable += 1;
     }
 
@@ -162,7 +169,7 @@ classical class SourceModuleNameProducts {
     return new SourceModuleNamePlan(
       cursor,
       stringCount,
-      products[CLASS_NAME_ID],
+      products[classNameId],
       globals.globalCount
     );
   }

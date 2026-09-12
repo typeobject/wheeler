@@ -255,7 +255,7 @@ classical class InstructionVerifier {
     }
 
     if (opcode == OPCODE_CALL) {
-      if (first < functionCount - 1) {
+      if (first < functionCount) {
         if (functionParameterCount(artifact, functionsOffset, first) == 0) {
           if (functionHasFlag(artifact, functionsOffset, first, 4)) {} else {
             return 1;
@@ -267,7 +267,7 @@ classical class InstructionVerifier {
     }
 
     if (opcode == OPCODE_UNCALL) {
-      if (first < functionCount - 1) {
+      if (first < functionCount) {
         if (functionParameterCount(artifact, functionsOffset, first) == 0) {
           if (functionHasFlag(artifact, functionsOffset, first, 1)) {
             if (functionHasFlag(artifact, functionsOffset, first, 4)) {} else {
@@ -284,7 +284,7 @@ classical class InstructionVerifier {
       long valueArgumentBase = readUnsigned(artifact, cursor + 16, 8);
       long valueArgumentCount = readUnsigned(artifact, cursor + 24, 8);
       long valueDestination = readUnsigned(artifact, cursor + 32, 8);
-      if (first < functionCount - 1) {
+      if (first < functionCount) {
         if (valueDestination < localCount) {
           if (functionHasFlag(artifact, functionsOffset, first, 4)) {
             if (
@@ -316,7 +316,7 @@ classical class InstructionVerifier {
     if (opcode == OPCODE_CALL_VOID) {
       long voidArgumentBase = readUnsigned(artifact, cursor + 16, 8);
       long voidArgumentCount = readUnsigned(artifact, cursor + 24, 8);
-      if (first < functionCount - 1) {
+      if (first < functionCount) {
         if (functionHasFlag(artifact, functionsOffset, first, 4)) {} else {
           return callArgumentsValid(
             artifact,
@@ -343,7 +343,7 @@ classical class InstructionVerifier {
       long slotArgumentBase = readUnsigned(artifact, cursor + 16, 8);
       long slotArgumentCount = readUnsigned(artifact, cursor + 24, 8);
       long resultSlot = readUnsigned(artifact, cursor + 32, 8);
-      if (first < functionCount - 1) {
+      if (first < functionCount) {
         if (resultSlot + 1 < localCount) {
           if (resultSlotDisjoint(slotArgumentBase, slotArgumentCount, resultSlot)) {} else {
             return 0;

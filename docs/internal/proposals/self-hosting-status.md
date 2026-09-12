@@ -481,7 +481,7 @@ still a separate requirement.
 root global/literal assertion mismatch. A preceding state selects `EXPECT_EQ`
 without frame locals. A later state retains scalar code. Counted declaration-name
 coordinates preserve that distinction without changing stage 0 or reparsing state
-fronts. Final package, physical, and exact-commit verification remain open.
+fronts. Package, physical, and exact-commit checks pass at `3b32e73f2`.
 
 The subsequent physical selection exhausts 65,535 lifetime-buffer identities in
 source scheduling, after product compilation. Archive intake passes separately.
@@ -490,8 +490,34 @@ archive copies from the shared lease publisher and both declaration intake paths
 Direct range and schedule checks pass, including 512 owners with seven buffers.
 The original three-method physical selection now passes in ten minutes and
 31 seconds. Independent archive and graph measurements agree, and four refreshed
-locks support a 952-byte locked call/store/assertion consumer. Final feature and
-hosted gates remain open. No VM limit or checked source set changed.
+locks support a 952-byte locked call/store/assertion consumer. Commit `3b32e73f2`
+passes all 52 hosted bootstrap jobs, including output comparison. A Java setup
+connection reset required one job retry. No tests ran in that failed setup.
+No VM limit or checked source set changed.
+
+[WIP-0514](source/WIP-0514-counted-executable-entry-products.md) carries explicit
+target intent through counted entry binding, names, code, claims, and publication.
+Declared entries now emit `HALT` without a synthetic library descriptor or name.
+Complete local artifacts and all host-loan signatures match independent stage 0.
+Imported-entry artifacts retain detached signatures and relocations without
+receiving dependency bodies. Oracle-side binding tests actual execution, not
+native retained linking.
+
+[WIP-0515](source/WIP-0515-manifest-selected-entry-verification.md) replaces final
+function fences with manifest-selected entry verification. One IR owner defines
+entry ABI shapes for source binding and bytecode verification. First, middle, and
+last entry fixtures retain call and proof checks. The affected 182-example and
+twelve-documentation selection passes. A later 56-example adapter and identity
+selection, source gates, and Tree-sitter pass. Archive intake and the selected
+physical checks pass with 482 modules, 2,386 constants, and 1,900 callables.
+Independent archives, the 224,981-byte graph, four refreshed locks, and the
+181-target workspace agree. The selected linked reference remains 603,784 bytes.
+
+A locked public-API consumer emits an 872-byte executable with entry zero, a later
+helper, three globals, and a checked step claim. Complete publication, retention,
+unchanged entry execution, rewind, and replay agree below the command step bound.
+Exact-tree hosted gates remain open. The intact mixed-member runner still needs
+nominal instruction composition and replacement of its minimal dispatcher.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate

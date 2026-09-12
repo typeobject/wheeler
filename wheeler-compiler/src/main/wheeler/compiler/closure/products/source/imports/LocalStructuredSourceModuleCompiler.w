@@ -8,6 +8,7 @@ import wheeler.compiler.closure.structured_source_module_compiler;
 classical class LocalStructuredSourceModuleCompiler {
   /// Publishes one verified local-only artifact without scalar-helper reparsing.
   public SourceProductArtifactPlan compileStructuredSourceModule(
+    long entryCallable,
     long classNameId,
     long globalCount,
     long globalProductStart,
@@ -56,6 +57,7 @@ classical class LocalStructuredSourceModuleCompiler {
     words qualifierRanks = allocate(emptyTargets, /* length= */ 1);
     words callableEffects = allocate(emptyTargets, /* length= */ 4096);
     SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
+      entryCallable,
       classNameId,
       globalCount,
       globalProductStart,

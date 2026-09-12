@@ -160,8 +160,8 @@ Argument preparation and one result local precede the store, without a synthetic
 global local. Nested call assignments reject until their owning lowering path
 can bind the destination. Imported signatures produce verifier stubs and identity
 relocations without dependency body source. Native retained global-instruction
-linking, global conditions, nested control, entry composition, and the intact
-mixed-member runner remain open.
+linking, global conditions, nested control, nominal/entry composition, and the
+intact mixed-member runner remain open.
 
 An exact `assert(global == literal)` uses zero-local `EXPECT_EQ` when the state
 declaration precedes the assertion. Source-global products retain the original
@@ -174,6 +174,20 @@ slots. Symbol and callable intake no longer create an intermediate archive copy.
 Scheduling uses two regions and seven buffers for any admitted module count,
 including 512. This preserves the 32,768-byte source limit and removes per-owner
 lifetime-buffer consumption from scheduling.
+
+Counted archive compilation takes an explicit deployable, tool, or library target
+kind. Executables bind exactly one ordinary `entry void main` and retain its
+source-local ordinal. Their artifacts omit the synthetic library name and
+function and terminate the selected body with `HALT`. Libraries retain their
+canonical synthetic entry. The admitted source body profile does not expand
+merely because entry binding succeeds.
+
+Source binding and bytecode verification share the six canonical host-loan shapes.
+Native verification selects the manifest entry rather than requiring the final
+function. Calls and proofs may name later helpers, subject to their existing
+signature, inverse, and actual-code checks. Entry and helper claims verify before
+complete artifact hashing and publication. Relocation reports use the same
+prepublication result record rather than allocating a replacement afterward.
 
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and

@@ -104,8 +104,10 @@ those temporary lease buffers. Fresh archive and graph measurements now agree,
 and the original physical selection passes. A locked consumer publishes the
 recursive call/store and canonical assertion in a complete 952-byte artifact.
 The final affected-adapter selections pass, including the shared retained-call
-driver and state-free aggregate path. Exact-tree and hosted verification remain open. This is not native retained instruction
-linking, native entry composition, or compiler fixed-point evidence.
+driver and state-free aggregate path. The
+[committed evidence](WIP-0513-immutable-source-lease-ranges.md#committed-evidence)
+identifies the exact tree and completed hosted checks. This is not native retained
+instruction linking, native entry composition, or compiler fixed-point evidence.
 
 ## Acceptance
 
@@ -113,4 +115,4 @@ linking, native entry composition, or compiler fixed-point evidence.
 - [x] Complete artifacts match stage 0, including the original imported case.
 - [x] Signed endpoints, runtime failures, scope rejection, bounds, and replay pass.
 - [x] Source budgets, affected adapters, identities, locks, and documentation agree.
-- [ ] The feature and its verification identify an exact committed and pushed tree.
+- [x] The feature and its verification identify an exact committed and pushed tree.

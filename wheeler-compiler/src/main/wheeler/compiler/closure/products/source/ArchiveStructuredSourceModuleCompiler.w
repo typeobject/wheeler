@@ -8,12 +8,14 @@ import wheeler.compiler.closure.imported_source_call_targets;
 import wheeler.compiler.closure.scoped_constant_products;
 import wheeler.compiler.closure.source_call_target_table;
 import wheeler.compiler.closure.source_classical_proofs;
+import wheeler.compiler.closure.source_entry_products;
 import wheeler.compiler.closure.source_module_name_products;
 import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_module_strings;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.closure.structured_source_module_compiler;
 import wheeler.compiler.constant_product_schema;
+import wheeler.compiler.packages.manifest_kinds;
 import wheeler.core.encoding.binary;
 
 classical class ArchiveStructuredSourceModuleCompiler {
@@ -149,6 +151,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
 
   /// Publishes one local-call archive module from closed name, value, and callable products.
   public SourceProductArtifactPlan compileStructuredArchiveModule(
+    long targetKind,
     borrow byteview archive,
     long sourceStart,
     long sourceLength,
@@ -189,6 +192,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
       classNameLength
     );
     if (callableCount == 0) {
+      assert(targetKind == PACKAGE_TARGET_LIBRARY);
       return compileCallableFreeArchiveModule(
         archive,
         sourceStart,
@@ -217,6 +221,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     words qualifierNameLengths = allocate(emptyTargets, /* length= */ 1);
     words qualifierRanks = allocate(emptyTargets, /* length= */ 1);
     SourceProductArtifactPlan result = compileStructuredArchiveModuleWithTargetView(
+      targetKind,
       archive,
       sourceStart,
       sourceLength,
@@ -305,6 +310,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     utf8 source = freezeUtf8(sourceBytes);
     words nameProducts = allocate(empty, SOURCE_MODULE_NAME_ROWS);
     SourceModuleNamePlan names = materializeSourceModuleNames(
+      /* entryCallable= */ -1,
       source,
       archive,
       classNameStart,
@@ -330,6 +336,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     );
     assert(sourceClassicalClaimsAbsent(source, kinds, starts, lengths, functionNameIds));
     SourceProductArtifactPlan result = publishClassicalSourceModuleArtifact(
+      /* entryCallable= */ -1,
       names.classNameId,
       names.globalCount,
       SOURCE_MODULE_GLOBAL_START,
@@ -371,6 +378,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
 
   /// Publishes an archive module from bound declaration names and a closed imported target view.
   public SourceProductArtifactPlan compileStructuredArchiveModuleWithTargetView(
+    long targetKind,
     borrow byteview archive,
     long sourceStart,
     long sourceLength,
@@ -442,6 +450,21 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(bufferLength(callableNameLengths) == 4096);
     assert(bufferLength(artifact) == 32768);
     assert(bufferLength(identity) == 32);
+    SourceEntryPlan entry = bindSourceEntry(
+      targetKind,
+      firstCallable,
+      callableCount,
+      callableNames,
+      callableNameStarts,
+      callableNameLengths,
+      callableEffects,
+      callableFirstParameters,
+      callableParameterCounts,
+      callableResultTypes,
+      parameterTypes,
+      parameterModes
+    );
+    assert(entry.valid);
     if (callableCount == 0) {
       return compileCallableFreeArchiveModule(
         archive,
@@ -488,6 +511,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     words localCallableEffects = allocate(metadata, MAX_CLOSURE_CALLABLES);
     words nameProducts = allocate(metadata, SOURCE_MODULE_NAME_ROWS);
     SourceModuleNamePlan names = materializeSourceModuleNames(
+      entry.entryCallable,
       source,
       archive,
       classNameStart,
@@ -563,6 +587,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     }
 
     SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
+      entry.entryCallable,
       names.classNameId,
       names.globalCount,
       SOURCE_MODULE_GLOBAL_START,

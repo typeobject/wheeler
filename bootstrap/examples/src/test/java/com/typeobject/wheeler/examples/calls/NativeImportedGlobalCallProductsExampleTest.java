@@ -39,6 +39,7 @@ final class NativeImportedGlobalCallProductsExampleTest {
   private static final int CALLER = 0;
   private static final int TARGET = CALLER + 1;
   private static final int ENTRY = TARGET + 1;
+  private static final int RECENT_PLAN_LIMIT = 12;
   private static final int ARTIFACT_BYTES = 32_768;
   private static final int DIGEST_BYTES = 256 / Byte.SIZE;
   private static final int CALLS = 256;
@@ -67,8 +68,20 @@ final class NativeImportedGlobalCallProductsExampleTest {
     check(0, true, false, 17, false, 8 - 1);
   }
 
+  @Test
+  void publishesEntriesWithDetachedImportsAndNoSyntheticLibrary() throws Exception {
+    check(0, true, false, 17, false, 1, true);
+    check(1, false, true, 17, false, 1, true);
+    check(0, true, false, 17, true, 7, true);
+  }
+
   private static void check(int arity, boolean qualified, boolean repeated,
       long literalResult, boolean assertionFails, int globalOrdinal) throws Exception {
+    check(arity, qualified, repeated, literalResult, assertionFails, globalOrdinal, false);
+  }
+
+  private static void check(int arity, boolean qualified, boolean repeated,
+      long literalResult, boolean assertionFails, int globalOrdinal, boolean entry) throws Exception {
     String globals = IntStream.range(0, globalOrdinal)
         .mapToObj(ordinal -> "state long G" + ordinal + " = -9223372036854775808;")
         .collect(Collectors.joining("\n"));
@@ -86,23 +99,28 @@ final class NativeImportedGlobalCallProductsExampleTest {
         classical class StructuredCall {
           %s
           state long Alpha = 8;
-          public long recurse(long value) {
+          %s {
+            %s
             long previous = value;
             %s
             assert(%s);
-            return Alpha;
+            %s
           }
         }
-        """.formatted(globals, call.repeat(repeated ? 2 : 1), predicate);
+        """.formatted(globals, entry ? "entry void main()" : "public long recurse(long value)",
+            entry ? "long value = " + literalResult + ";" : "",
+            call.repeat(repeated ? 2 : 1), predicate, entry ? "" : "return Alpha;");
     String dependency = "module dep.alpha; classical class Alpha { public long remote("
         + parameters + ") { return " + (arity == 0 ? Long.toString(literalResult) : "p0") + "; } }";
-    Program compiled = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("Root.w", source, "Dependency.w", dependency), MODULE);
-    FunctionBody sourceCaller = compiled.functions().stream().filter(f -> f.name().equals(SUBJECT))
+    var inputs = Map.of("Root.w", source, "Dependency.w", dependency);
+    Program compiled = entry ? new WheelerCompiler().compileModuleFiles(inputs, MODULE)
+        : new WheelerCompiler().compileLibraryModuleFiles(inputs, MODULE);
+    String subject = entry ? MODULE + "::main" : SUBJECT;
+    FunctionBody sourceCaller = compiled.functions().stream().filter(f -> f.name().equals(subject))
         .findFirst().orElseThrow();
     FunctionBody realTarget = compiled.functions().stream().filter(f -> f.name().equals("dep.alpha::remote"))
         .findFirst().orElseThrow();
-    FunctionBody caller = new FunctionBody(CALLER, SUBJECT, false, sourceCaller.parameterCount(),
+    FunctionBody caller = new FunctionBody(CALLER, subject, false, sourceCaller.parameterCount(),
         sourceCaller.localTypes(), sourceCaller.resultType(), sourceCaller.forward().stream()
             .map(instruction -> {
               if (instruction.opcode() != Opcode.CALL_VALUE) return instruction;
@@ -114,9 +132,9 @@ final class NativeImportedGlobalCallProductsExampleTest {
     FunctionBody stub = new FunctionBody(TARGET, "~00", false, arity, stubTypes, ValueType.SIGNED,
         List.of(Instruction.of(Opcode.LOCAL_CONST, arity, 0),
             Instruction.of(Opcode.RETURN_VALUE, arity)), List.of());
-    Program transientOracle = program(compiled.globals(), caller, stub);
+    Program transientOracle = program(compiled.globals(), caller, stub, entry);
     byte[] expected = new BytecodeWriter().write(transientOracle);
-    int bodyStart = source.indexOf('{', source.indexOf("recurse("));
+    int bodyStart = source.indexOf('{', source.indexOf(entry ? "main(" : "recurse("));
     // The last non-class brace ends this sole callable. Count its exact immutable byte range.
     int bodyClose = source.lastIndexOf('}', source.lastIndexOf('}') - 1);
     int bodyLength = bodyClose - bodyStart + 1;
@@ -128,14 +146,23 @@ final class NativeImportedGlobalCallProductsExampleTest {
       assertTrue(start >= prefix.length());
       return source.substring(0, start).getBytes(StandardCharsets.UTF_8).length;
     }).toArray();
-    Program driver = StructuredCallSourceProductDriver.driverWithGlobals(
-        bodyStart, bodyLength, types, ValueType.SIGNED.code(), compiled.globals(), declarationStarts);
+    Program driver = entry ? StructuredCallSourceProductDriver.driverWithEntryGlobals(
+        bodyStart, bodyLength, types, ValueType.SIGNED.code(), compiled.globals(), declarationStarts)
+        : StructuredCallSourceProductDriver.driverWithGlobals(
+            bodyStart, bodyLength, types, ValueType.SIGNED.code(), compiled.globals(), declarationStarts);
     var machine = new VirtualMachine(driver, source.getBytes(StandardCharsets.UTF_8), ARTIFACT_BYTES);
     Set<Integer> borrowed = machine.snapshot().regions().stream()
         .map(r -> r.id()).collect(Collectors.toSet());
     while (machine.global("prepared") == 0) machine.stepWithoutRewindHistory();
     var before = machine.snapshot();
-    while (machine.global("published") == 0) machine.stepWithoutRewindHistory();
+    try {
+      while (machine.global("published") == 0) machine.stepWithoutRewindHistory();
+    } catch (RuntimeException failure) {
+      var plans = machine.snapshot().records().stream()
+          .filter(record -> driver.recordTypes().get(record.typeId()).name().contains("Plan")).toList();
+      throw new AssertionError(plans.stream().skip(Math.max(0, plans.size() - RECENT_PLAN_LIMIT))
+          .map(record -> driver.recordTypes().get(record.typeId()).name() + record.fields()).toList().toString(), failure);
+    }
     var published = machine.snapshot();
     var publication = published.regions().stream().filter(r -> !r.dropped()
         && r.maxBytes() == ARTIFACT_BYTES + DIGEST_BYTES && r.maxObjects() == 2)
@@ -181,7 +208,7 @@ final class NativeImportedGlobalCallProductsExampleTest {
     while (machine.status() != MachineStatus.HALTED) machine.stepWithoutRewindHistory();
     assertEquals(calls, machine.global("relocationCount"));
     assertEquals(1, machine.global("retainedFunctionCount"));
-    assertEquals(2, machine.global("excludedFunctionCount"));
+    assertEquals(entry ? 1 : 2, machine.global("excludedFunctionCount"));
     assertArrayEquals(expected, machine.hostOutput());
     assertTrue(machine.snapshot().buffers().stream().filter(b -> !borrowed.contains(b.regionId()))
         .allMatch(BufferValue::dropped));
@@ -192,19 +219,24 @@ final class NativeImportedGlobalCallProductsExampleTest {
     // This is oracle-side body binding, not native retained linking. The native caller stays intact.
     FunctionBody executableTarget = new FunctionBody(TARGET, stub.name(), false, arity,
         realTarget.localTypes(), realTarget.resultType(), realTarget.forward(), List.of());
-    Program runtimeOracle = program(compiled.globals(), caller, executableTarget);
+    Program runtimeOracle = program(compiled.globals(), caller, executableTarget, entry);
     Program nativeProduct = new BytecodeReader().read(machine.hostOutput());
     assertEquals(caller, nativeProduct.function(CALLER));
-    Program nativeExecutable = program(nativeProduct.globals(), nativeProduct.function(CALLER), executableTarget);
-    NativeGlobalExecutionAssertions.assertExecution(
-        new BytecodeWriter().write(nativeExecutable), runtimeOracle, SUBJECT, assertionFails);
+    Program nativeExecutable = program(nativeProduct.globals(), nativeProduct.function(CALLER), executableTarget, entry);
+    if (entry) {
+      NativeGlobalExecutionAssertions.assertEntryExecution(
+          new BytecodeWriter().write(nativeExecutable), runtimeOracle, assertionFails);
+    } else {
+      NativeGlobalExecutionAssertions.assertExecution(
+          new BytecodeWriter().write(nativeExecutable), runtimeOracle, subject, assertionFails);
+    }
   }
 
-  private static Program program(List<Global> globals, FunctionBody caller, FunctionBody target) {
+  private static Program program(List<Global> globals, FunctionBody caller, FunctionBody target, boolean entry) {
     FunctionBody library = new FunctionBody(ENTRY, "$library", false, 0, List.of(), null,
         List.of(Instruction.of(Opcode.HALT)), List.of());
-    Program result = Program.classical("StructuredCall", ENTRY, globals, List.of(), List.of(),
-        List.of(), List.of(), List.of(caller, target, library), List.of());
+    Program result = Program.classical("StructuredCall", entry ? CALLER : ENTRY, globals, List.of(), List.of(),
+        List.of(), List.of(), entry ? List.of(caller, target) : List.of(caller, target, library), List.of());
     BytecodeVerifier.verify(result);
     return result;
   }

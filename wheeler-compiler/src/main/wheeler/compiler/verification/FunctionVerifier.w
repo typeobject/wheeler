@@ -1,6 +1,7 @@
 //! Verifies bounded function descriptors, scalar type windows, and code ranges.
 module wheeler.compiler.function_verifier;
 
+import wheeler.compiler.entry_signatures;
 import wheeler.compiler.instruction_verifier;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.type_codes;
@@ -192,7 +193,11 @@ classical class FunctionVerifier {
       return 0;
     }
 
-    if (differs(entryFunction, functionCount - 1)) {
+    if (entryFunction < 0) {
+      return 0;
+    }
+
+    if (functionCount - 1 < entryFunction) {
       return 0;
     }
 
@@ -311,6 +316,24 @@ classical class FunctionVerifier {
       }
 
       long activeTypes = typeTable + (typeOffset + resultCount) * 4;
+      if (function == entryFunction) {
+        long firstEntryType = 0;
+        long secondEntryType = 0;
+        if (0 < parameterCount) {
+          firstEntryType = readUnsigned(artifact, activeTypes, 4);
+        }
+
+        if (1 < parameterCount) {
+          secondEntryType = readUnsigned(artifact, activeTypes + 4, 4);
+        }
+
+        if (
+          entryParameterTypesValid(parameterCount, firstEntryType, secondEntryType) == false
+        ) {
+          return 0;
+        }
+      }
+
       long resultSlotBody = 0;
       boolean resultSlotDescriptor = flags == 12;
       if (flags == 13) {

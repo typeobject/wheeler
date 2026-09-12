@@ -444,10 +444,6 @@ classical class Verifier {
       return 0;
     }
 
-    if (differs(entryFunction, functionCount - 1)) {
-      return 0;
-    }
-
     if (differs(readUnsigned(artifact, manifestOffset + 8, 4), 4000000)) {
       return 0;
     }
@@ -476,7 +472,6 @@ classical class Verifier {
         functionsOffset,
         codeOffset,
         functionCount,
-        entryFunction,
         stringCount,
         readUnsigned(artifact, manifestOffset + 16, 8)
       ) == 0

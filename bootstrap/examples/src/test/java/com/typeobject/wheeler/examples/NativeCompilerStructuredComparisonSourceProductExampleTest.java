@@ -881,6 +881,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             set(functionNameIds, 0, 2);
             CONSTANT_PRODUCT_SETUP
             SourceProductArtifactPlan plan = compileStructuredSourceModule(
+              /* entryCallable= */ -1,
               /* classNameId= */ 1, /* globalCount= */ 0, /* globalProductStart= */ 0,
               globals,
               input,

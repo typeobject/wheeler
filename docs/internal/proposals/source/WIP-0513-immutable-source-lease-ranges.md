@@ -93,8 +93,22 @@ archive. A locked consumer publishes a 952-byte recursive call/store artifact
 with a canonical global/literal assertion. Complete bytes, digest, inactive tail,
 retained intake, execution, cleanup, and replay agree with an independent oracle.
 The final affected-adapter selections pass. Workspace check and build cover all
-181 targets. Source, documentation, and six-root syntax gates pass. Exact-tree
-and hosted gates remain open.
+181 targets. Source, documentation, and six-root syntax gates pass.
+
+## Committed evidence
+
+Commit `3b32e73f2f72624fabd1c1abd9cbf08cae66df43` contains WIP-0511 through
+WIP-0513. Its tree is `d902b05e372ab9ef4388c1f6152cda6112c8ea0e`. The remote
+`master` reference check after publication confirmed this commit.
+
+Bootstrap run `34705959881`, attempt two, completes successfully with all
+52 jobs successful, including `compare-bootstrap-outputs`. Attempt one lost a
+connection during Java setup before the affected shard ran tests. The exact-commit
+retry passes. README quickstart run `34705959876`, documentation-site run
+`34705959897`, and CodeQL run `34705959768` also complete successfully.
+
+These checks do not establish every-physical-owner compilation, a native compiler
+fixed point, or completion of the parent self-hosting contracts.
 
 ## Acceptance
 
@@ -103,4 +117,4 @@ and hosted gates remain open.
 - [x] Complete range/schedule rejection, allocation counts, cleanup, and replay pass.
 - [x] The original physical check passes with the unchanged VM and source limits.
 - [x] Source budgets, packages, locks, adapters, and documentation agree.
-- [ ] An exact verified feature tree is committed, pushed, and checked remotely.
+- [x] An exact verified feature tree is committed, pushed, and checked remotely.

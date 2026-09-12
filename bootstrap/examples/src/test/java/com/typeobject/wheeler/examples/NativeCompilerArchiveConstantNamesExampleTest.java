@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.examples.globals.NativeGlobalExecutionAssertions;
@@ -15,6 +16,7 @@ import com.typeobject.wheeler.examples.globals.NativeGlobalRetentionAssertions;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -390,12 +392,89 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
     assertEquals(before, machine.snapshot());
   }
 
+  @Test
+  void publishesDeclaredEntriesWithRealHelpersStateAndBoundClaims() throws Exception {
+    for (String target : List.of("PACKAGE_TARGET_DEPLOYABLE", "PACKAGE_TARGET_TOOL")) {
+      for (boolean fails : new boolean[] {false, true}) {
+        String members = "// café 𝄞\nstate long observed = 0;\n"
+            + "entry void main() { long mod = 0; observed = compute(mod); assert(observed == "
+            + (fails ? 4 : 3) + "); }\ntheorem Bound proves steps(compute, 8);";
+        Fixture source = fixture("return LIMIT;", "LIMIT", 1, 1, 1, null, members,
+            "set(effects, 0, MEMBER_ENTRY);", new Helper("main", 0, 0), target, true);
+        Fixture selected = new Fixture(source.program(), source.input(), source.source(), source.name(), fails);
+        Program expected = new WheelerCompiler().compileModuleFiles(Map.of("Source.w", source.source(),
+            "Values.w", "module example.values; classical class Values { public const long LIMIT = 3; }"), MODULE);
+        assertEquals(MODULE + "::main", expected.function(expected.entryFunctionId()).name());
+        assertArtifact(selected, expected);
+      }
+    }
+  }
+
+  @Test
+  void publishesEveryEntryLoanSignatureWithoutLosingHostBindings() throws Exception {
+    for (String signature : List.of("", "borrow utf8 input", "borrow byteview input",
+        "borrow mut bytes output", "borrow utf8 input, borrow mut bytes output",
+        "borrow byteview input, borrow mut bytes output")) {
+      String members = "state long observed = 0; entry void main(" + signature
+          + ") { long mod = 0; observed = compute(mod); assert(observed == 3); }";
+      String[] parameters = signature.isEmpty() ? new String[0] : signature.split(", ");
+      StringBuilder setup = new StringBuilder("set(effects, 1, MEMBER_ENTRY);\n");
+      for (int index = 0; index < parameters.length; index++) {
+        int type = parameters[index].contains("utf8") ? ValueType.UTF8.code()
+            : parameters[index].contains("byteview") ? ValueType.BYTE_VIEW.code() : ValueType.BYTES.code();
+        setup.append("set(parameterTypes, ").append(index + 1).append(", ").append(type).append(");\n");
+        setup.append("set(parameterModes, ").append(index + 1).append(", ")
+            .append(type == ValueType.BYTES.code() ? 2 : 1).append(");\n");
+      }
+      Fixture source = fixture("return LIMIT;", "LIMIT", 1, 1, 1, null, members,
+          setup.toString(), new Helper("main", parameters.length, 0), "PACKAGE_TARGET_DEPLOYABLE");
+      Program expected = new WheelerCompiler().compileModuleFiles(Map.of("Source.w", source.source(),
+          "Values.w", "module example.values; classical class Values { public const long LIMIT = 3; }"), MODULE);
+      assertArtifact(source, expected);
+    }
+  }
+
+  @Test
+  void publishesAnEntryClaimAgainstItsActualHaltCode() throws Exception {
+    Fixture source = fixture("return LIMIT;", "LIMIT", 1, 1, 1, null,
+        "entry void main() {} theorem Bound proves steps(main, 1);",
+        "set(effects, 1, MEMBER_ENTRY);", new Helper("main", 0, 0), "PACKAGE_TARGET_DEPLOYABLE");
+    Program expected = new WheelerCompiler().compileModuleFiles(Map.of("Source.w", source.source(),
+        "Values.w", "module example.values; classical class Values { public const long LIMIT = 3; }"), MODULE);
+    assertEquals(1, expected.proofCertificates().size());
+    assertArtifact(source, expected);
+  }
+
+  @Test
+  void rejectsEntryIntentAndActualCodeClaimsWithoutChangingPreparedProducts() throws Exception {
+    for (String target : List.of("PACKAGE_TARGET_LIBRARY", "PACKAGE_TARGET_DEPLOYABLE", "4")) {
+      String members = "state long observed = 0; entry void main() { long mod = 0; observed = compute(mod); }"
+          + " theorem Bound proves steps(compute, 1);";
+      Fixture source = fixture("return LIMIT;", "LIMIT", 1, 1, 1, null, members,
+          "set(effects, 1, MEMBER_ENTRY);", new Helper("main", 0, 0), target);
+      VirtualMachine machine = source.machine();
+      while (machine.global("prepared") == 0) machine.stepWithoutRewindHistory();
+      var before = machine.snapshot();
+      assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+      assertEquals(0, machine.global("published"));
+      var after = machine.snapshot();
+      for (var buffer : before.buffers()) assertEquals(buffer, after.buffers().get(buffer.id()));
+      for (var region : before.regions()) assertEquals(region, after.regions().get(region.id()));
+    }
+  }
+
   private static void assertArtifact(Fixture fixture) throws Exception {
     String dependency = "module example.values; classical class Values { public const long "
         + fixture.name() + " = 3; }";
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
         Map.of("Source.w", fixture.source(), "Values.w", dependency), MODULE);
+    assertArtifact(fixture, expected);
+  }
+
+  private static void assertArtifact(Fixture fixture, Program expected) throws Exception {
     VirtualMachine machine = fixture.machine();
+    var initial = machine.snapshot();
+    var borrowedRegions = initial.regions().stream().map(row -> row.id()).toList();
     // The preemptive deadline bounds this API test. It does not certify the driver manifest's step bound.
     while (machine.global("published") == 0) {
       machine.stepWithoutRewindHistory();
@@ -422,10 +501,22 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
     }
     CompilerMachineRunner.runWithoutRewindHistory(machine);
     assertArrayEquals(expectedBytes, machine.hostOutput());
+    var halted = machine.snapshot();
+    assertEquals(initial.buffers().getFirst(), halted.buffers().getFirst());
+    assertTrue(halted.buffers().stream().filter(row -> !borrowedRegions.contains(row.regionId()))
+        .allMatch(row -> row.dropped()));
+    assertTrue(halted.regions().stream().filter(row -> !borrowedRegions.contains(row.id()))
+        .allMatch(row -> row.dropped()));
     if (!expected.globals().isEmpty()) {
       NativeGlobalRetentionAssertions.assertRetained(machine.hostOutput(), expected);
-      NativeGlobalExecutionAssertions.assertExecution(
-          machine.hostOutput(), expected, MODULE + "::compute", fixture.assertionFails());
+    }
+    if (expected.function(expected.entryFunctionId()).name().equals("$library")) {
+      if (!expected.globals().isEmpty()) {
+        NativeGlobalExecutionAssertions.assertExecution(
+            machine.hostOutput(), expected, MODULE + "::compute", fixture.assertionFails());
+      }
+    } else {
+      NativeGlobalExecutionAssertions.assertEntryExecution(machine.hostOutput(), expected, fixture.assertionFails());
     }
   }
 
@@ -474,11 +565,25 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
 
   private static Fixture fixture(String body, String name, int type, int resolved, int count,
       Long nameStart, String claims, String productMutation, Helper helper) throws Exception {
-    String source = "module " + MODULE + ";\nimport example.values;\n"
-        + "classical class ConstantNames { public long compute(long mod) {\n"
-        + body + "\n}\n" + claims + "\n}\n";
+    return fixture(body, name, type, resolved, count, nameStart, claims, productMutation, helper,
+        "PACKAGE_TARGET_LIBRARY");
+  }
+
+  private static Fixture fixture(String body, String name, int type, int resolved, int count,
+      Long nameStart, String claims, String productMutation, Helper helper, String targetKind) throws Exception {
+    return fixture(body, name, type, resolved, count, nameStart, claims, productMutation, helper, targetKind, false);
+  }
+
+  private static Fixture fixture(String body, String name, int type, int resolved, int count,
+      Long nameStart, String claims, String productMutation, Helper helper, String targetKind, boolean entryFirst)
+      throws Exception {
+    String primaryDeclaration = "public long compute(long mod) {\n" + body + "\n}\n";
+    String source = "module " + MODULE + ";\nimport example.values;\nclassical class ConstantNames { "
+        + (entryFirst ? claims + "\n" + primaryDeclaration : primaryDeclaration + claims + "\n") + "}\n";
     String input = PREFIX + source + "outside tail\n";
-    int bodyStart = input.indexOf('{', input.indexOf("compute("));
+    int primaryName = input.indexOf("public long compute(long mod)") + "public long ".length();
+    int primaryRow = entryFirst ? 1 : 0;
+    int bodyStart = input.indexOf('{', primaryName);
     int bodyEnd = SourceRanges.matchingClose(input, bodyStart) + 1;
     String helperSetup = "";
     if (helper != null) {
@@ -486,10 +591,10 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
       int helperBody = input.indexOf('{', helperName);
       int helperEnd = SourceRanges.matchingClose(input, helperBody) + 1;
       helperSetup = """
-          set(bodyStarts, 1, %d); set(bodyLengths, 1, %d);
-          set(nameStarts, 1, %d); set(nameLengths, 1, %d);
-          set(firstParameters, 1, 1); set(parameterCounts, 1, %d);
-          set(resultTypes, 1, %d);
+          set(bodyStarts, HELPER_ROW, %d); set(bodyLengths, HELPER_ROW, %d);
+          set(nameStarts, HELPER_ROW, %d); set(nameLengths, HELPER_ROW, %d);
+          set(firstParameters, HELPER_ROW, 1); set(parameterCounts, HELPER_ROW, %d);
+          set(resultTypes, HELPER_ROW, %d);
           long helperParameter = 0;
           while (helperParameter < %d) limit 64 {
             set(parameterTypes, 1 + helperParameter, 1);
@@ -498,7 +603,8 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
           """.formatted(SourceRanges.utf8Offset(input, helperBody),
               SourceRanges.utf8Length(input, helperBody, helperEnd - helperBody),
               SourceRanges.utf8Offset(input, helperName), helper.name().length(),
-              helper.parameters(), helper.resultType(), helper.parameters());
+              helper.parameters(), helper.resultType(), helper.parameters())
+          .replace("HELPER_ROW", Integer.toString(1 - primaryRow));
     }
     var sources = new LinkedHashMap<>(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.archive_structured_source_module_compiler"));
@@ -512,6 +618,8 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
         import wheeler.compiler.closure.scoped_constant_products;
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.constant_product_schema;
+        import wheeler.compiler.packages.manifest_kinds;
+        import wheeler.compiler.source_member_modifiers;
         classical class ArchiveConstantNames {
           private const long NAME_BYTES = 4096;
           private const long QUALIFIER_START = MAX_CONSTANT_NAME_BYTES / 2;
@@ -539,6 +647,7 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
           private const long SCOPED_BYTES = CONSTANT_PRODUCT_ROWS * WORD_BYTES + NAME_BYTES
             + MAX_CONSTANT_NAME_BYTES;
           state long published = 0;
+          state long prepared = 0;
           entry void main(borrow byteview archive, borrow mut bytes output) {
             region metadata = new region(METADATA_BYTES, METADATA_BUFFERS);
             words bodyStarts = allocate(metadata, MAX_CALLABLES);
@@ -555,12 +664,12 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
             words nameLengths = allocate(metadata, MAX_CALLABLES);
             bytes names = allocateBytes(metadata, NAME_BYTES);
             writeAscii(names, 2048, "%s");
-            set(bodyStarts, 0, %d);
-            set(bodyLengths, 0, %d);
-            set(nameStarts, 0, %d);
-            set(nameLengths, 0, 7);
-            set(parameterCounts, 0, 1);
-            set(resultTypes, 0, 1);
+            set(bodyStarts, PRIMARY_ROW, %d);
+            set(bodyLengths, PRIMARY_ROW, %d);
+            set(nameStarts, PRIMARY_ROW, %d);
+            set(nameLengths, PRIMARY_ROW, 7);
+            set(parameterCounts, PRIMARY_ROW, 1);
+            set(resultTypes, PRIMARY_ROW, 1);
             set(parameterTypes, 0, 1);
             HELPER_SETUP
             long imported = 0;
@@ -606,8 +715,9 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
               detached += 1;
             }
             PRODUCT_MUTATION
+            prepared = 1;
             SourceProductArtifactPlan plan = compileStructuredArchiveModule(
-              archive, %d, %d, 0, archive, %d, %d, %d, 13, 0, LOCAL_CALLABLE_COUNT,
+              TARGET_KIND, archive, %d, %d, 0, archive, %d, %d, %d, 13, 0, LOCAL_CALLABLE_COUNT,
               bodyStarts, bodyLengths, %d, scopedRows, scopedNames, importedStarts,
               firstParameters, parameterCounts, resultTypes, effects, parameterTypes,
               parameterModes, archive, nameStarts, nameLengths, artifact, identity
@@ -631,11 +741,13 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
             name,
             SourceRanges.utf8Offset(input, bodyStart),
             SourceRanges.utf8Length(input, bodyStart, bodyEnd - bodyStart),
-            SourceRanges.utf8Offset(input, input.indexOf("compute(")),
+            SourceRanges.utf8Offset(input, primaryName),
             count, nameStart == null ? 2048 : nameStart, name.length(), type, resolved,
             PREFIX.length(), source.getBytes(StandardCharsets.UTF_8).length,
             input.indexOf(MODULE), MODULE.length(), input.indexOf("ConstantNames {"), count)
         .replace("PRODUCT_MUTATION", productMutation)
+        .replace("TARGET_KIND", targetKind)
+        .replace("PRIMARY_ROW", Integer.toString(primaryRow))
         .replace("HELPER_SETUP", helperSetup)
         .replace("LOCAL_CALLABLE_COUNT", Integer.toString(1 + (helper == null ? 0 : 1))));
     return new Fixture(new WheelerCompiler().compileModuleFiles(

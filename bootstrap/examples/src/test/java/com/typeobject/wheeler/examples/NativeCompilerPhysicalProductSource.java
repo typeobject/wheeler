@@ -303,6 +303,7 @@ final class NativeCompilerPhysicalProductSource {
               );
               if (PHYSICAL_COMPARABLE_COUNT < physicalProduct + 1) {
                 directArtifact = compileStructuredArchiveModuleWithImportedTargets(
+                  PACKAGE_TARGET_LIBRARY,
                   archive,
                   archiveSourceStarts[physicalOwner],
                   archiveSourceLengths[physicalOwner],

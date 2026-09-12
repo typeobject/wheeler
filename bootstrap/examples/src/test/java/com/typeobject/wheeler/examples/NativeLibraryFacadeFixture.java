@@ -60,6 +60,7 @@ final class NativeLibraryFacadeFixture {
         module example.facade_product;
         import wheeler.compiler.closure.archive_structured_source_module_compiler;
         import wheeler.compiler.closure.source_product_artifact;
+        import wheeler.compiler.packages.manifest_kinds;
         import wheeler.core.encoding.binary;
         classical class FacadeProduct {
           private const long WORD_BYTES = 8;
@@ -125,7 +126,7 @@ final class NativeLibraryFacadeFixture {
             }
             prepared = 1;
             SourceProductArtifactPlan plan = compileStructuredArchiveModule(
-              archive, sourceStart, sourceLength, /* moduleOwner= */ 0,
+              PACKAGE_TARGET_LIBRARY, archive, sourceStart, sourceLength, /* moduleOwner= */ 0,
               archive, moduleStart, moduleLength, classStart, classLength,
               /* firstCallable= */ 0, /* callableCount= */ 0, bodyStarts, bodyLengths,
               /* importedCount= */ 0, importedRows, archive, importedStarts,

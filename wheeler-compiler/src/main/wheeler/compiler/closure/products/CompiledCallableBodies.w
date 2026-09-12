@@ -18,6 +18,7 @@ import wheeler.compiler.closure.source_call_relocation_link_products;
 import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.packages.manifest_kinds;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 
@@ -249,6 +250,7 @@ classical class CompiledCallableBodies {
     borrow mut bytes identity
   ) {
     return compileStructuredArchiveModule(
+      PACKAGE_TARGET_LIBRARY,
       archive,
       sourceStart,
       sourceLength,

@@ -301,7 +301,9 @@ classical class SourceClassicalProofs {
       long effect = callableEffects[callable];
       if (effect != 0) {
         if (effect != MEMBER_REV) {
-          return new SourceClassicalProofPlan(0, 0, false);
+          if (effect != MEMBER_ENTRY) {
+            return new SourceClassicalProofPlan(0, 0, false);
+          }
         }
       }
 

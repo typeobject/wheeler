@@ -142,7 +142,7 @@ final class NativeCompilerEmptyArchiveNamesExampleTest {
     String input = PREFIX + source + "outside tail\n";
     long classStart = range == null ? input.indexOf(name + " {") : range[0];
     long classLength = range == null ? name.length() : range[1];
-    String prefix = "archive, SOURCE_START, SOURCE_LENGTH, 0, archive, MODULE_START, MODULE_LENGTH, "
+    String prefix = "PACKAGE_TARGET_LIBRARY, archive, SOURCE_START, SOURCE_LENGTH, 0, archive, MODULE_START, MODULE_LENGTH, "
         + "CLASS_START, CLASS_LENGTH, 0, 0, ";
     String targetView = "0, targets, targetParameters, archive, archive, archive, "
         + "qualifierStarts, qualifierLengths, qualifierRanks, ";
@@ -162,6 +162,7 @@ final class NativeCompilerEmptyArchiveNamesExampleTest {
         import wheeler.compiler.closure.archive_structured_source_module_compiler;
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.constant_product_schema;
+        import wheeler.compiler.packages.manifest_kinds;
         classical class EmptyArchive {
           state long published = 0;
           entry void main(borrow byteview archive, borrow mut bytes output) {

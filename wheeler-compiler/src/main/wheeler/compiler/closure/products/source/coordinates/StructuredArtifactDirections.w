@@ -24,6 +24,8 @@ classical class StructuredArtifactDirections {
 
   /// Stages forward products and publishes exactly one selected direction layout.
   public SourceProductArtifactPlan publishStructuredArtifactDirections(
+    long entryCallable,
+    long relocationCount,
     long classNameId,
     long globalCount,
     long globalProductStart,
@@ -78,6 +80,8 @@ classical class StructuredArtifactDirections {
     bytes forwardArtifact = allocateBytes(publication, ARTIFACT_BYTES);
     bytes forwardIdentity = allocateBytes(publication, IDENTITY_BYTES);
     SourceProductArtifactPlan forwardResult = publishClassicalSourceModuleArtifactWithStubs(
+      entryCallable,
+      relocationCount,
       classNameId,
       globalCount,
       globalProductStart,
@@ -140,6 +144,7 @@ classical class StructuredArtifactDirections {
       }
 
       result = publishClassicalSourceProductArtifact(
+        relocationCount,
         forwardArtifact,
         forwardResult.length,
         callableCount,

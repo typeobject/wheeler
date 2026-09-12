@@ -15,10 +15,11 @@ import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Executes unchanged native bodies through a separate fixture entry and compares full replay state. */
+/** Executes native library helpers and declared entries, including full replay state. */
 public final class NativeGlobalExecutionAssertions {
   private static final String RESULT = "__fixture_result";
   private static final int ARGUMENT = 0;
@@ -49,6 +50,38 @@ public final class NativeGlobalExecutionAssertions {
       while (actual.historySize() > 0) actual.rewindOne();
       assertEquals(before, actual.snapshot());
     }
+  }
+
+  /** Runs the declared entry with matching host loans and unchanged body and manifest selection. */
+  public static void assertEntryExecution(byte[] artifact, Program oracle, boolean assertionFails) {
+    Program nativeProgram = new BytecodeReader().read(artifact);
+    assertTrue(nativeProgram.functions().stream().noneMatch(function -> function.name().equals("$library")));
+    VirtualMachine expected = withDeclaredHost(oracle);
+    VirtualMachine actual = withDeclaredHost(nativeProgram);
+    var before = actual.snapshot();
+    run(expected, oracle.maxSteps(), assertionFails);
+    run(actual, nativeProgram.maxSteps(), assertionFails);
+    var after = actual.snapshot();
+    assertEquals(expected.snapshot(), after);
+    while (actual.historySize() > 0) actual.rewindOne();
+    assertEquals(before, actual.snapshot());
+    run(actual, nativeProgram.maxSteps(), assertionFails);
+    assertEquals(after, actual.snapshot());
+    while (actual.historySize() > 0) actual.rewindOne();
+    assertEquals(before, actual.snapshot());
+  }
+
+  private static VirtualMachine withDeclaredHost(Program program) {
+    FunctionBody entry = program.function(program.entryFunctionId());
+    byte[] payload = "café 𝄞".getBytes(StandardCharsets.UTF_8);
+    boolean utf8Input = entry.parameterCount() > 0 && entry.localType(0).equals(ValueType.UTF8_BORROW);
+    boolean binaryInput = entry.parameterCount() > 0 && entry.localType(0).equals(ValueType.BYTE_VIEW);
+    boolean output = entry.parameterCount() > 0
+        && entry.localType(entry.parameterCount() - 1).equals(ValueType.BYTES_BORROW);
+    byte[] input = utf8Input || binaryInput ? payload : null;
+    int outputBytes = output ? payload.length : -1;
+    return binaryInput ? VirtualMachine.withBinaryInput(program, input, outputBytes)
+        : new VirtualMachine(program, input, outputBytes);
   }
 
   private static void run(VirtualMachine machine, long limit, boolean assertionFails) {

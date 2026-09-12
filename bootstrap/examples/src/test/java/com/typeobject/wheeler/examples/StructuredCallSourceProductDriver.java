@@ -35,7 +35,7 @@ public final class StructuredCallSourceProductDriver {
   static Program driverWithResultProduct(int bodyStart, int bodyLength, ResultProduct result)
       throws Exception {
     return driverWithProducts(bodyStart, bodyLength, new int[] {1}, false, new int[] {1},
-        1, 0, SymbolProduct.none(), result, List.of(), new long[0]);
+        1, 0, 0, SymbolProduct.none(), result, List.of(), new long[0], false);
   }
 
   static Program driver(
@@ -142,7 +142,8 @@ public final class StructuredCallSourceProductDriver {
       SymbolProduct symbol,
       int resultType) throws Exception {
     return driverWithProducts(bodyStart, bodyLength, parameterTypes, imported, importedTypes,
-        importedResultType, callableEffect, symbol, new ResultProduct(1, 64, 0, resultType), List.of(), new long[0]);
+        importedResultType, callableEffect, callableEffect, symbol,
+        new ResultProduct(1, 64, 0, resultType), List.of(), new long[0], false);
   }
 
   /** Supplies detached imported signatures and declaration-ordered globals, never dependency bodies. */
@@ -150,20 +151,30 @@ public final class StructuredCallSourceProductDriver {
       int bodyStart, int bodyLength, int[] importedTypes, int importedResultType,
       List<Global> globals, long[] declarationStarts) throws Exception {
     return driverWithProducts(bodyStart, bodyLength, new int[] {1}, true, importedTypes,
-        importedResultType, 0, SymbolProduct.none(), new ResultProduct(1, 64, 0, 1), globals,
-        declarationStarts);
+        importedResultType, 0, 0, SymbolProduct.none(), new ResultProduct(1, 64, 0, 1), globals,
+        declarationStarts, false);
+  }
+
+  /** Supplies an explicit entry and detached imported signatures without dependency bodies. */
+  public static Program driverWithEntryGlobals(
+      int bodyStart, int bodyLength, int[] importedTypes, int importedResultType,
+      List<Global> globals, long[] declarationStarts) throws Exception {
+    return driverWithProducts(bodyStart, bodyLength, new int[0], true, importedTypes,
+        importedResultType, 1, 0, SymbolProduct.none(), new ResultProduct(1, 64, 0, 0), globals,
+        declarationStarts, true);
   }
 
   private static Program driverWithProducts(
       int bodyStart, int bodyLength, int[] parameterTypes, boolean imported, int[] importedTypes,
-      int importedResultType, int callableEffect, SymbolProduct symbol, ResultProduct result,
-      List<Global> globals, long[] declarationStarts) throws Exception {
+      int importedResultType, int callableEffect, int importedEffect, SymbolProduct symbol, ResultProduct result,
+      List<Global> globals, long[] declarationStarts, boolean entry) throws Exception {
     if (globals.size() != declarationStarts.length) {
       throw new IllegalArgumentException("fixture declarations must cover every global");
     }
     String className = "StructuredCall";
-    String callableName = "example.structured_call::recurse";
-    var names = new TreeSet<>(List.of("$library", className, callableName));
+    String callableName = "example.structured_call::" + (entry ? "main" : "recurse");
+    var names = new TreeSet<>(List.of(className, callableName));
+    if (!entry) names.add("$library");
     for (Global global : globals) {
       if (!global.name().matches("[A-Za-z_][A-Za-z0-9_]{0,255}")) {
         throw new IllegalArgumentException("fixture globals require ASCII identifiers");
@@ -329,6 +340,7 @@ public final class StructuredCallSourceProductDriver {
             CONSTANT_PRODUCT_SETUP
             prepared = 1;
             SourceProductArtifactPlan plan = compileStructuredSourceModuleWithTargets(
+              /* entryCallable= */ ENTRY_CALLABLE,
               /* classNameId= */ CLASS_NAME_ID, /* globalCount= */ GLOBAL_COUNT,
               /* globalProductStart= */ 0,
               globals,
@@ -521,6 +533,7 @@ public final class StructuredCallSourceProductDriver {
             .replace("DECLARED_RESULT", Integer.toString(result.type()))
             .replace("CALLABLE_COUNT", Integer.toString(result.callableCount()))
             .replace("CALLABLE_EFFECT", Integer.toString(callableEffect))
+            .replace("ENTRY_CALLABLE", entry ? "0" : "-1")
             .replace("IMPORTED_COUNT", imported ? "2" : "0")
             .replace("IMPORTED_SETUP", imported
                 ? "writeAscii(importedNames, 0, \"remoteunused\");\n"
@@ -531,14 +544,14 @@ public final class StructuredCallSourceProductDriver {
                     + "set(importedRows, 12288, 6);\n"
                     + "set(importedRows, 20480, IMPORTED_PARAMETER_COUNT);\n"
                     + "set(importedRows, 24576, IMPORTED_RESULT_TYPE);\n"
-                    + "set(importedRows, 28672, " + callableEffect + ");\n"
+                    + "set(importedRows, 28672, " + importedEffect + ");\n"
                     + "set(importedRows, 4097, 1);\n"
                     + "set(importedRows, 8193, 6);\n"
                     + "set(importedRows, 12289, 6);\n"
                     + "set(importedRows, 16385, IMPORTED_PARAMETER_COUNT);\n"
                     + "set(importedRows, 20481, IMPORTED_PARAMETER_COUNT);\n"
                     + "set(importedRows, 24577, IMPORTED_RESULT_TYPE);\n"
-                    + "set(importedRows, 28673, " + callableEffect + ");\n"
+                    + "set(importedRows, 28673, " + importedEffect + ");\n"
                     + importedParameterRows(importedTypes)
                     + "setByte(importedIdentities, 0, 42);\n"
                     + "setByte(importedIdentities, 32, 43);"

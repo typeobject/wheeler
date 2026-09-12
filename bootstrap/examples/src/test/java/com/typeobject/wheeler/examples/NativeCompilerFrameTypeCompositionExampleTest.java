@@ -116,6 +116,7 @@ final class NativeCompilerFrameTypeCompositionExampleTest {
             }
             MUTATION
             CallableSourceCompositionPlan plan = composeCallableSourceProducts(
+              /* entryCallable= */ -1,
               1, 0, statements,
               0, directRows, emptyCode,
               0, callStatements, callWindows, emptyCode,

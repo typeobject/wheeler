@@ -217,6 +217,7 @@ classical class ClassicalSourceProductArtifact {
   /// Rebuilds canonical sections with retained claims and optional generated inverse windows.
   /// Caller artifacts, claim rows, code, and output storage remain unchanged on rejection.
   public SourceProductArtifactPlan publishClassicalSourceProductArtifact(
+    long relocationCount,
     borrow byteview forwardArtifact,
     long forwardArtifactLength,
     long callableCount,
@@ -518,6 +519,7 @@ classical class ClassicalSourceProductArtifact {
     }
 
     SourceProductArtifactPlan result = publishSourceProductArtifact(
+      relocationCount,
       sectionArchive,
       cursor,
       outputSectionCount,

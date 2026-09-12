@@ -17,10 +17,12 @@ import org.junit.jupiter.api.Test;
 
 /** Native evidence for direct source-product artifact publication. */
 final class NativeCompilerSourceProductArtifactExampleTest {
+  private static final int SOURCE_CALL_LIMIT = 256;
+
   @Test
   void rebuildsAndHashesACompleteSourceLocalArtifact() throws Exception {
     byte[] artifact = fixtureArtifact();
-    VirtualMachine machine = VirtualMachine.withBinaryInput(program(), artifact, 32_768);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(program(0), artifact, 32_768);
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
@@ -38,10 +40,44 @@ final class NativeCompilerSourceProductArtifactExampleTest {
   void rejectsMalformedProductsBeforePublishingOneByte() throws Exception {
     byte[] artifact = fixtureArtifact();
     artifact[Math.toIntExact(sectionStart(artifact, 6))] = (byte) 0xff;
-    VirtualMachine machine = VirtualMachine.withBinaryInput(program(), artifact, 32_768);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(program(0), artifact, 32_768);
 
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
     assertArrayEquals(new byte[32_768], machine.hostOutput());
+  }
+
+  @Test
+  void publishesCompleteRelocationReportsAndRejectsTheFirstExcessCount() throws Exception {
+    for (int count : new int[] {1, SOURCE_CALL_LIMIT}) {
+      byte[] artifact = new WheelerCompiler().compileToBytecode(
+          "classical class Report { void tick() {} entry void main() { " + "tick();".repeat(count) + " } }");
+      VirtualMachine machine = VirtualMachine.withBinaryInput(program(count), artifact, 32_768);
+      var initial = machine.snapshot();
+      while (machine.global("published") == 0) machine.stepWithoutRewindHistory();
+      assertEquals(count, machine.global("relocationCount"));
+      assertArrayEquals(artifact, machine.hostOutput());
+      var output = machine.snapshot().buffers().get(initial.buffers().getLast().id());
+      for (int index = artifact.length; index < output.length(); index++) assertEquals(0, output.elements().get(index));
+      byte[] digest = MessageDigest.getInstance("SHA-256").digest(artifact);
+      var identity = machine.snapshot().buffers().stream()
+          .filter(buffer -> !buffer.dropped() && buffer.length() == digest.length).findFirst().orElseThrow();
+      for (int index = 0; index < digest.length; index++) {
+        assertEquals(Byte.toUnsignedInt(digest[index]), identity.elements().get(index));
+      }
+      assertEquals(initial.buffers().getFirst(), machine.snapshot().buffers().getFirst());
+      CompilerMachineRunner.runWithoutRewindHistory(machine);
+    }
+    for (long count : new long[] {-1, SOURCE_CALL_LIMIT + 1, Long.MAX_VALUE}) {
+      VirtualMachine machine = VirtualMachine.withBinaryInput(program(count), fixtureArtifact(), 32_768);
+      var input = machine.snapshot().buffers();
+      assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+      assertEquals(0, machine.global("published"));
+      assertEquals(0, machine.global("relocationCount"));
+      for (var buffer : input) assertEquals(buffer, machine.snapshot().buffers().get(buffer.id()));
+      var identity = machine.snapshot().buffers().stream()
+          .filter(buffer -> !buffer.dropped() && buffer.length() == 256 / Byte.SIZE).findFirst().orElseThrow();
+      for (long cell : identity.elements()) assertEquals(0, cell);
+    }
   }
 
   private static byte[] fixtureArtifact() throws Exception {
@@ -64,7 +100,7 @@ final class NativeCompilerSourceProductArtifactExampleTest {
     throw new AssertionError("missing section " + type);
   }
 
-  private static Program program() throws Exception {
+  private static Program program(long relocationCount) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_product_artifact"));
@@ -78,6 +114,16 @@ final class NativeCompilerSourceProductArtifactExampleTest {
         import wheeler.core.encoding.binary;
 
         classical class SourceProductArtifactExample {
+          private const long ARTIFACT_BYTES = 32768;
+          private const long DIRECTORY_ROWS = 64;
+          private const long DIRECTORY_COLUMNS = 2;
+          private const long IDENTITY_BYTES = 32;
+          private const long WORD_BYTES = 8;
+          private const long PRODUCT_BYTES = ARTIFACT_BYTES + IDENTITY_BYTES
+            + DIRECTORY_ROWS * DIRECTORY_COLUMNS * WORD_BYTES;
+          private const long PRODUCT_BUFFERS = DIRECTORY_COLUMNS + 2;
+          state long published = 0;
+          state long relocationCount = 0;
           state long artifactLength = 0;
           state long codeStart = 0;
           state long functionCount = 0;
@@ -85,11 +131,11 @@ final class NativeCompilerSourceProductArtifactExampleTest {
           state long identityFirst = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 33824, /* allocations= */ 4);
-            bytes sectionArchive = allocateBytes(products, /* length= */ 32768);
-            words sectionStarts = allocate(products, /* length= */ 64);
-            words sectionLengths = allocate(products, /* length= */ 64);
-            bytes identity = allocateBytes(products, /* length= */ 32);
+            region products = new region(/* bytes= */ PRODUCT_BYTES, /* allocations= */ PRODUCT_BUFFERS);
+            bytes sectionArchive = allocateBytes(products, ARTIFACT_BYTES);
+            words sectionStarts = allocate(products, DIRECTORY_ROWS);
+            words sectionLengths = allocate(products, DIRECTORY_ROWS);
+            bytes identity = allocateBytes(products, IDENTITY_BYTES);
             long sectionBytes = 0;
             long section = 0;
             while (section < 6) limit 6 {
@@ -100,7 +146,7 @@ final class NativeCompilerSourceProductArtifactExampleTest {
               set(sectionStarts, section, sectionBytes);
               set(sectionLengths, section, length);
               long sectionByte = 0;
-              while (sectionByte < length) limit 32768 {
+              while (sectionByte < length) limit ARTIFACT_BYTES {
                 setByte(
                   sectionArchive,
                   sectionBytes + sectionByte,
@@ -112,6 +158,7 @@ final class NativeCompilerSourceProductArtifactExampleTest {
               section += 1;
             }
             SourceProductArtifactPlan plan = publishSourceProductArtifact(
+              /* relocationCount= */ RELOCATION_COUNT,
               sectionArchive,
               sectionBytes,
               /* sectionCount= */ 6,
@@ -125,7 +172,9 @@ final class NativeCompilerSourceProductArtifactExampleTest {
             functionCount = plan.functionCount;
             maxLocalCount = plan.maxLocalCount;
             identityFirst = identity[0];
+            relocationCount = plan.relocationCount;
             setOutputLength(output, plan.length);
+            published = 1;
             drop(identity);
             drop(sectionLengths);
             drop(sectionStarts);
@@ -133,7 +182,7 @@ final class NativeCompilerSourceProductArtifactExampleTest {
             drop(products);
           }
         }
-        """);
+        """.replace("RELOCATION_COUNT", Long.toString(relocationCount)));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.source_product_artifact");
   }

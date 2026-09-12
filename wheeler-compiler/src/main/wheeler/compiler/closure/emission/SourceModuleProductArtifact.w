@@ -7,6 +7,8 @@ import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.closure.source_global_section;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.encoding;
+import wheeler.compiler.encoding_widths;
+import wheeler.compiler.instruction_forms;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.type_codes;
 
@@ -17,6 +19,13 @@ classical class SourceModuleProductArtifact {
   private const long MAX_CODE_BYTES = 262144;
   private const long MAX_STRINGS = 256;
   private const long TYPE_ROWS = 12288;
+  private const long FUNCTION_DESCRIPTOR_FIELDS = 10;
+  private const long FUNCTION_DESCRIPTOR_BYTES = FUNCTION_DESCRIPTOR_FIELDS * ENCODING_WIDTH_U32;
+  private const long SECTION_ROWS = 64;
+  private const long SECTION_COLUMNS = 2;
+  private const long SECTION_BUFFERS = 1 + SECTION_COLUMNS;
+  private const long SECTION_BYTES = ARTIFACT_BYTES + SECTION_ROWS * SECTION_COLUMNS
+    * ENCODING_WIDTH_U64;
 
   private void writeUnsigned(borrow mut bytes output, long cursor, long width, long value) {
     assert(-1 < value);
@@ -33,15 +42,21 @@ classical class SourceModuleProductArtifact {
 
   private long stubCodeLength(long resultType) {
     if (resultType == 0) {
-      return 8;
+      return ENCODING_INSTRUCTION_HEADER_BYTES;
     }
 
+    long constantOperands = expectedOperandCount(OPCODE_LOCAL_CONST);
+    long returnOperands = expectedOperandCount(OPCODE_RETURN_VALUE);
     if (resultType == TYPE_SIGNED) {
-      return 40;
+      return ENCODING_INSTRUCTION_HEADER_BYTES * 2 + (constantOperands + returnOperands)
+        * ENCODING_WIDTH_U64;
     }
 
     assert(resultType == TYPE_BOOLEAN);
-    return 96;
+    long comparisonOperands = expectedOperandCount(OPCODE_LOCAL_EQ);
+    return ENCODING_INSTRUCTION_HEADER_BYTES * 4 + (
+      constantOperands * 2 + comparisonOperands + returnOperands
+    ) * ENCODING_WIDTH_U64;
   }
 
   private long writeStubCode(
@@ -157,6 +172,7 @@ classical class SourceModuleProductArtifact {
 
   /// Builds one local-only canonical artifact.
   public SourceProductArtifactPlan publishClassicalSourceModuleArtifact(
+    long entryCallable,
     long classNameId,
     long globalCount,
     long globalProductStart,
@@ -185,6 +201,8 @@ classical class SourceModuleProductArtifact {
     words stubResultTypes = allocate(emptyStubs, /* length= */ 4096);
     words stubEffects = allocate(emptyStubs, /* length= */ 4096);
     SourceProductArtifactPlan result = publishClassicalSourceModuleArtifactWithStubs(
+      entryCallable,
+      /* relocationCount= */ 0,
       classNameId,
       globalCount,
       globalProductStart,
@@ -224,6 +242,8 @@ classical class SourceModuleProductArtifact {
 
   /// Builds canonical sections with verifier-only imported signature stubs.
   public SourceProductArtifactPlan publishClassicalSourceModuleArtifactWithStubs(
+    long entryCallable,
+    long relocationCount,
     long classNameId,
     long globalCount,
     long globalProductStart,
@@ -254,9 +274,12 @@ classical class SourceModuleProductArtifact {
   ) {
     assert(-1 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
+    assert(-2 < entryCallable);
+    assert(entryCallable < callableCount);
     assert(-1 < reversibleCallableCount);
     if (0 < reversibleCallableCount) {
       assert(reversibleCallableCount == callableCount);
+      assert(entryCallable < 0);
     }
 
     assert(-1 < stubCount);
@@ -281,16 +304,25 @@ classical class SourceModuleProductArtifact {
 
     assert(-1 < classNameId);
     assert(classNameId < stringCount);
-    region sections = new region(/* bytes= */ 33792, /* allocations= */ 3);
+    long libraryCount = 0;
+    long entryFunction = entryCallable;
+    if (entryCallable < 0) {
+      libraryCount = 1;
+      entryFunction = callableCount + stubCount;
+    } else {
+      assert(functionResultTypes[entryCallable] == 0);
+    }
+
+    region sections = new region(/* bytes= */ SECTION_BYTES, /* allocations= */ SECTION_BUFFERS);
     bytes sectionArchive = allocateBytes(sections, ARTIFACT_BYTES);
-    words sectionStarts = allocate(sections, /* length= */ 64);
-    words sectionLengths = allocate(sections, /* length= */ 64);
+    words sectionStarts = allocate(sections, SECTION_ROWS);
+    words sectionLengths = allocate(sections, SECTION_ROWS);
     long cursor = 0;
 
     set(sectionStarts, 0, cursor);
     ModuleManifestProduct manifest = new ModuleManifestProduct(
       /* nameString= */ classNameId,
-      /* entryFunction= */ callableCount + stubCount,
+      entryFunction,
       /* maxHistory= */ 4000000,
       /* kind= */ 0,
       /* maxStepsLow= */ 4000000,
@@ -332,16 +364,16 @@ classical class SourceModuleProductArtifact {
     cursor += 4;
 
     set(sectionStarts, 4, cursor);
-    long functionCount = callableCount + stubCount + 1;
+    long functionCount = callableCount + stubCount + libraryCount;
     writeUnsigned(sectionArchive, cursor, 4, functionCount);
     long descriptorStart = cursor + 4;
-    long functionTypeStart = descriptorStart + functionCount * 40;
+    long functionTypeStart = descriptorStart + functionCount * FUNCTION_DESCRIPTOR_BYTES;
     long codeOffset = 0;
     long typeOffset = 0;
     long resultTypeCount = 0;
     long function = 0;
     while (function < callableCount) limit MAX_CALLABLES {
-      long descriptor = descriptorStart + function * 40;
+      long descriptor = descriptorStart + function * FUNCTION_DESCRIPTOR_BYTES;
       long functionCodeStart = callableRows[function];
       long functionCodeLength = callableRows[64 + function];
       long functionLocalCount = callableRows[256 + function];
@@ -411,7 +443,7 @@ classical class SourceModuleProductArtifact {
     long stubParameterTypeCount = 0;
     long stub = 0;
     while (stub < stubCount) limit MAX_CALLABLES {
-      long stubDescriptor = descriptorStart + (callableCount + stub) * 40;
+      long stubDescriptor = descriptorStart + (callableCount + stub) * FUNCTION_DESCRIPTOR_BYTES;
       long stubTarget = callableCount + stub;
       long stubFirstParameter = stubParameterStarts[stubTarget];
       long stubParameterCount = stubParameterCounts[stubTarget];
@@ -520,18 +552,27 @@ classical class SourceModuleProductArtifact {
     }
 
     assert(typeOffset == localTypeCount + resultTypeCount + stubParameterTypeCount);
-    long libraryDescriptor = descriptorStart + (callableCount + stubCount) * 40;
-    writeUnsigned(sectionArchive, libraryDescriptor, 4, callableCount + stubCount);
-    writeUnsigned(sectionArchive, libraryDescriptor + 4, 4, 0);
-    writeUnsigned(sectionArchive, libraryDescriptor + 8, 4, 0);
-    writeUnsigned(sectionArchive, libraryDescriptor + 12, 4, codeOffset);
-    writeUnsigned(sectionArchive, libraryDescriptor + 16, 4, 8);
-    writeUnsigned(sectionArchive, libraryDescriptor + 20, 4, 4294967295);
-    writeUnsigned(sectionArchive, libraryDescriptor + 24, 4, 0);
-    writeUnsigned(sectionArchive, libraryDescriptor + 28, 4, 0);
-    writeUnsigned(sectionArchive, libraryDescriptor + 32, 4, 0);
-    writeUnsigned(sectionArchive, libraryDescriptor + 36, 4, typeOffset);
-    long functionSectionLength = 4 + functionCount * 40 + typeOffset * 4;
+    if (0 < libraryCount) {
+      long libraryDescriptor = descriptorStart + entryFunction * FUNCTION_DESCRIPTOR_BYTES;
+      writeUnsigned(sectionArchive, libraryDescriptor, 4, entryFunction);
+      writeUnsigned(sectionArchive, libraryDescriptor + 4, 4, 0);
+      writeUnsigned(sectionArchive, libraryDescriptor + 8, 4, 0);
+      writeUnsigned(sectionArchive, libraryDescriptor + 12, 4, codeOffset);
+      writeUnsigned(
+        sectionArchive,
+        libraryDescriptor + 16,
+        ENCODING_WIDTH_U32,
+        ENCODING_INSTRUCTION_HEADER_BYTES
+      );
+      writeUnsigned(sectionArchive, libraryDescriptor + 20, 4, 4294967295);
+      writeUnsigned(sectionArchive, libraryDescriptor + 24, 4, 0);
+      writeUnsigned(sectionArchive, libraryDescriptor + 28, 4, 0);
+      writeUnsigned(sectionArchive, libraryDescriptor + 32, 4, 0);
+      writeUnsigned(sectionArchive, libraryDescriptor + 36, 4, typeOffset);
+    }
+
+    long functionSectionLength = ENCODING_WIDTH_U32 + functionCount * FUNCTION_DESCRIPTOR_BYTES
+      + typeOffset * ENCODING_WIDTH_U32;
     set(sectionLengths, 4, functionSectionLength);
     cursor += functionSectionLength;
 
@@ -568,18 +609,22 @@ classical class SourceModuleProductArtifact {
 
     assert(emittedCodeCursor == codeOffset);
 
-    setByte(sectionArchive, cursor + codeOffset, 1);
-    setByte(sectionArchive, cursor + codeOffset + 1, 0);
-    setByte(sectionArchive, cursor + codeOffset + 2, 0);
-    setByte(sectionArchive, cursor + codeOffset + 3, 0);
-    setByte(sectionArchive, cursor + codeOffset + 4, 8);
-    setByte(sectionArchive, cursor + codeOffset + 5, 0);
-    setByte(sectionArchive, cursor + codeOffset + 6, 0);
-    setByte(sectionArchive, cursor + codeOffset + 7, 0);
-    set(sectionLengths, 5, codeOffset + 8);
-    cursor += codeOffset + 8;
+    if (0 < libraryCount) {
+      long terminalEnd = writeInstructionHeader(
+        sectionArchive,
+        cursor + codeOffset,
+        OPCODE_HALT,
+        INSTRUCTION_FORM_NULLARY
+      );
+      assert(terminalEnd == cursor + codeOffset + ENCODING_INSTRUCTION_HEADER_BYTES);
+    }
+
+    long publishedCodeLength = codeOffset + libraryCount * ENCODING_INSTRUCTION_HEADER_BYTES;
+    set(sectionLengths, 5, publishedCodeLength);
+    cursor += publishedCodeLength;
 
     SourceProductArtifactPlan result = publishSourceProductArtifact(
+      relocationCount,
       sectionArchive,
       cursor,
       /* sectionCount= */ 6,

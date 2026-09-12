@@ -58,6 +58,7 @@ final class NativeRetainedResultFixture {
         module example.retained_results;
         import wheeler.compiler.closure.archive_structured_source_module_compiler;
         import wheeler.compiler.closure.source_product_artifact;
+        import wheeler.compiler.packages.manifest_kinds;
         import wheeler.core.encoding.binary;
         classical class RetainedResults {
           state long prepared = 0;
@@ -104,7 +105,7 @@ final class NativeRetainedResultFixture {
             }
             prepared = 1;
             SourceProductArtifactPlan plan = compileStructuredArchiveModule(
-              archive, sourceStart, sourceLength, 511, archive, sourceStart + 7, 15,
+              PACKAGE_TARGET_LIBRARY, archive, sourceStart, sourceLength, 511, archive, sourceStart + 7, 15,
               readSigned(archive, 56), 7, firstCallable, 1, bodyStarts, bodyLengths,
               0, importedRows, archive, importedStarts, firstParameters, parameterCounts,
               resultTypes, effects, parameterTypes, parameterModes, archive, nameStarts,

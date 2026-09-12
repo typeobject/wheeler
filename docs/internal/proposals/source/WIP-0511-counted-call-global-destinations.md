@@ -148,7 +148,8 @@ and fresh archive, graph, and lock measurements agree. A locked consumer publish
 and independently checks the recursive call/store and literal assertion in a
 952-byte artifact. The final affected selections pass 131, 64, and 32 examples
 with no failures, errors, or skips. They cover the shared driver and state-free
-adapters. Exact-commit and hosted verification remain open.
+adapters. The [committed evidence](WIP-0513-immutable-source-lease-ranges.md#committed-evidence)
+identifies the exact tree and completed hosted checks.
 
 ## Required evidence
 
@@ -178,4 +179,4 @@ fixed point or complete source-independent global relocation.
 - [x] Invalid later inputs preserve complete caller publication.
 - [x] Frame, code, arity, name, cleanup, and replay boundaries have direct evidence.
 - [x] Affected adapters, physical budgets, packages, locks, and a locked consumer agree.
-- [ ] Documentation and hosted verification identify the exact committed tree.
+- [x] Documentation and hosted verification identify the exact committed tree.

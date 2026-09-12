@@ -44,6 +44,7 @@ classical class StructuredSourceModuleCompiler {
   /// Retains complete scoped constants beside the reduced body columns for claim binding.
   /// Rejects any body result that conflicts with its declared signed, Boolean, or void type.
   public SourceProductArtifactPlan compileStructuredSourceModuleWithTargets(
+    long entryCallable,
     long classNameId,
     long globalCount,
     long globalProductStart,
@@ -218,6 +219,7 @@ classical class StructuredSourceModuleCompiler {
     bytes callCode = allocateBytes(products, /* length= */ 262144);
 
     SourceClassicalCoveragePlan coverage = materializeSourceClassicalCoverage(
+      entryCallable,
       source,
       firstCallable,
       callableCount,
@@ -810,6 +812,7 @@ classical class StructuredSourceModuleCompiler {
     );
     assert(returnPlan.valid);
     CallableSourceCompositionPlan composition = composeCallableSourceProducts(
+      entryCallable,
       callableCount,
       loopPlan.statementCount,
       statements,
@@ -840,6 +843,8 @@ classical class StructuredSourceModuleCompiler {
     );
     assert(composition.valid);
     SourceProductArtifactPlan result = publishStructuredArtifactDirections(
+      entryCallable,
+      resolvedCallCount,
       classNameId,
       globalCount,
       globalProductStart,
@@ -881,14 +886,6 @@ classical class StructuredSourceModuleCompiler {
       publishedRelocations,
       publishedRelocationOwners,
       publishedRelocationIdentities
-    );
-
-    SourceProductArtifactPlan publishedResult = new SourceProductArtifactPlan(
-      result.length,
-      result.codeStart,
-      result.functionCount,
-      result.maxLocalCount,
-      resolvedCallCount
     );
 
     drop(callCode);
@@ -964,6 +961,6 @@ classical class StructuredSourceModuleCompiler {
     drop(targetEffects);
     drop(localTargetEffects);
     drop(targetEffectProducts);
-    return publishedResult;
+    return result;
   }
 }

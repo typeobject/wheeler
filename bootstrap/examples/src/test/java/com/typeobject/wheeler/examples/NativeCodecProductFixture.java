@@ -73,6 +73,7 @@ final class NativeCodecProductFixture {
         import wheeler.compiler.closure.callable_function_rows;
         import wheeler.compiler.closure.imported_structured_archive_module_compiler;
         import wheeler.compiler.closure.source_product_artifact;
+        import wheeler.compiler.packages.manifest_kinds;
         classical class CodecProduct {
           state long prepared = 0;
           state long published = 0;
@@ -164,7 +165,7 @@ final class NativeCodecProductFixture {
             }
             prepared = 1;
             SourceProductArtifactPlan plan = compileStructuredArchiveModuleWithImportedTargets(
-              archive, 0, SOURCE_LENGTH, 1, CLASS_START, 13, 0, 1, bodyStarts, bodyLengths,
+              PACKAGE_TARGET_LIBRARY, archive, 0, SOURCE_LENGTH, 1, CLASS_START, 13, 0, 1, bodyStarts, bodyLengths,
               0, importedRows, archive, importedStarts, 1, dependencies, firstParameters,
               parameterCounts, resultTypes, effects, parameterTypes, parameterModes,
               archive, nameStarts, nameLengths, identities, owners, archive,

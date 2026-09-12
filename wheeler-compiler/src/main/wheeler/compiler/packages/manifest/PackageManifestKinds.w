@@ -6,6 +6,13 @@ import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.manifest_words;
 
 classical class PackageManifestKinds {
+  /// Selects a deployable package target.
+  public const long PACKAGE_TARGET_DEPLOYABLE = 1;
+  /// Selects a library package target.
+  public const long PACKAGE_TARGET_LIBRARY = 2;
+  /// Selects a tool package target.
+  public const long PACKAGE_TARGET_TOOL = 3;
+
   /// Decodes one canonical Boolean token or returns minus one.
   public long manifestBooleanToken(
     borrow utf8 source,
@@ -40,15 +47,15 @@ classical class PackageManifestKinds {
 
     long word = manifestQuotedWord(source, starts, lengths, token);
     if (word == WORD_DEPLOYABLE) {
-      return 1;
+      return PACKAGE_TARGET_DEPLOYABLE;
     }
 
     if (word == WORD_LIBRARY) {
-      return 2;
+      return PACKAGE_TARGET_LIBRARY;
     }
 
     if (word == WORD_TOOL) {
-      return 3;
+      return PACKAGE_TARGET_TOOL;
     }
 
     return 0;

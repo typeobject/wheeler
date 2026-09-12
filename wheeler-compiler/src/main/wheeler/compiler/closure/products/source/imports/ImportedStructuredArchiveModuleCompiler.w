@@ -31,6 +31,7 @@ classical class ImportedStructuredArchiveModuleCompiler {
 
   /// Publishes one archive module from closed value and direct-callable products.
   public SourceProductArtifactPlan compileStructuredArchiveModuleWithImportedTargets(
+    long targetKind,
     borrow byteview archive,
     long sourceStart,
     long sourceLength,
@@ -129,6 +130,7 @@ classical class ImportedStructuredArchiveModuleCompiler {
     bytes importedRelocationIdentities = allocateBytes(publication, /* length= */ 8192);
     words stagedInstructionTargets = allocate(publication, /* length= */ 131072);
     SourceProductArtifactPlan result = compileStructuredArchiveModuleWithTargetView(
+      targetKind,
       archive,
       sourceStart,
       sourceLength,

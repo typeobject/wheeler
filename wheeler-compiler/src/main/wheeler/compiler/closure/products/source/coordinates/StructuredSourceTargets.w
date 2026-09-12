@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.structured_source_targets;
 
+import wheeler.compiler.source_member_modifiers;
 import wheeler.compiler.type_codes;
 import wheeler.crypto.sha256;
 
@@ -118,7 +119,13 @@ classical class StructuredSourceTargets {
       writeTargetIdentity(strings, nameStart, nameLength, callable, targetIdentities);
       set(targetParameterStarts, callable, parameterCursor);
       set(targetParameterCounts, callable, parameterCounts[callable]);
-      set(targetEffects, callable, callableEffects[firstCallable + callable]);
+      // Target binding consumes the entry role. Its callable ABI remains ordinary.
+      long targetEffect = callableEffects[firstCallable + callable];
+      if (targetEffect == MEMBER_ENTRY) {
+        targetEffect = 0;
+      }
+
+      set(targetEffects, callable, targetEffect);
       long parameter = 0;
       while (parameter < parameterCounts[callable]) limit 256 {
         long type = signatureTypeAt(callable, parameter, signatureTypeCount, signatureTypes);

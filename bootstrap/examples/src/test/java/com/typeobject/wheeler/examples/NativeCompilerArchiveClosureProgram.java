@@ -112,6 +112,7 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.symbol_identities;
         import wheeler.compiler.constant_product_schema;
+        import wheeler.compiler.packages.manifest_kinds;
 
         classical class ArchiveClosureExample {
           private const long MAX_ARCHIVE_BYTES = 16777216;

@@ -29,6 +29,7 @@ classical class SourceClassicalCoverage {
   ) {}
 
   private long reversibleCallableCount(
+    long entryCallable,
     long firstCallable,
     long callableCount,
     borrow mut words callableEffects
@@ -36,17 +37,25 @@ classical class SourceClassicalCoverage {
     assert(-1 < firstCallable);
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
+    assert(-2 < entryCallable);
+    assert(entryCallable < callableCount);
     assert(bufferLength(callableEffects) == MAX_CLOSURE_CALLABLES);
     assert(callableCount < MAX_CLOSURE_CALLABLES - firstCallable + 1);
     long reversible = 0;
     long callable = 0;
     while (callable < callableCount) limit MAX_CALLABLES {
       long effect = callableEffects[firstCallable + callable];
-      if (effect == MEMBER_REV) {
-        reversible += 1;
-      } else {
-        if (effect != 0) {
+      if (callable == entryCallable) {
+        if (effect != MEMBER_ENTRY) {
           return -1;
+        }
+      } else {
+        if (effect == MEMBER_REV) {
+          reversible += 1;
+        } else {
+          if (effect != 0) {
+            return -1;
+          }
         }
       }
 
@@ -66,6 +75,7 @@ classical class SourceClassicalCoverage {
   /// Claim-free ordinary modules reuse empty private scratch without new owned buffers.
   /// Effects: clears selected private scratch and publishes only a complete claim batch.
   public SourceClassicalCoveragePlan materializeSourceClassicalCoverage(
+    long entryCallable,
     borrow utf8 source,
     long firstCallable,
     long callableCount,
@@ -85,7 +95,12 @@ classical class SourceClassicalCoverage {
     borrow mut bytes proofNames,
     borrow mut words proofs
   ) {
-    long reversible = reversibleCallableCount(firstCallable, callableCount, callableEffects);
+    long reversible = reversibleCallableCount(
+      entryCallable,
+      firstCallable,
+      callableCount,
+      callableEffects
+    );
     if (reversible < 0) {
       return new SourceClassicalCoveragePlan(0, 0, false);
     }

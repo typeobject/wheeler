@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.source_product_artifact;
 
 import wheeler.compiler.closure.linked_container;
+import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.verifier;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
@@ -24,6 +25,7 @@ classical class SourceProductArtifact {
 
   /// Assembles, verifies, hashes, and atomically publishes canonical product sections.
   public SourceProductArtifactPlan publishSourceProductArtifact(
+    long relocationCount,
     borrow byteview sectionArchive,
     long sectionBytes,
     long sectionCount,
@@ -32,6 +34,8 @@ classical class SourceProductArtifact {
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
+    assert(-1 < relocationCount);
+    assert(relocationCount < SOURCE_CALL_COUNT_LIMIT + 1);
     assert(-1 < sectionBytes);
     assert(sectionBytes < ARTIFACT_BYTES + 1);
     assert(sectionBytes < bufferLength(sectionArchive) + 1);
@@ -90,6 +94,13 @@ classical class SourceProductArtifact {
 
     long codeDirectory = 40 + 5 * 32;
     long codeStart = readUnsigned(stagedArtifact, codeDirectory + 8, 8);
+    SourceProductArtifactPlan result = new SourceProductArtifactPlan(
+      artifactLength,
+      codeStart,
+      functionCount,
+      maxLocalCount,
+      relocationCount
+    );
     long outputByte = 0;
     while (outputByte < artifactLength) limit ARTIFACT_BYTES {
       setByte(output, outputByte, stagedArtifact[outputByte]);
@@ -102,13 +113,6 @@ classical class SourceProductArtifact {
       identityByte += 1;
     }
 
-    SourceProductArtifactPlan result = new SourceProductArtifactPlan(
-      artifactLength,
-      codeStart,
-      functionCount,
-      maxLocalCount,
-      /* relocationCount= */ 0
-    );
     drop(hashArena);
     drop(stagedIdentity);
     drop(stagedArtifact);

@@ -5,6 +5,7 @@ module wheeler.compiler.closure.callable_source_composition;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.encoding;
+import wheeler.compiler.encoding_widths;
 import wheeler.compiler.opcodes;
 
 classical class CallableSourceComposition {
@@ -22,6 +23,11 @@ classical class CallableSourceComposition {
   private const long MAX_TYPES = 4096;
   private const long SOURCE_STATEMENT_ORDINAL_ROW = 8192;
   private const long TYPE_ROWS = 12288;
+  private const long WORD_BYTES = 8;
+  private const long STAGED_WORD_BUFFERS = 2;
+  private const long STAGED_CODE_BUFFERS = 1;
+  private const long STAGING_BYTES = (CALLABLE_ROWS + TYPE_ROWS) * WORD_BYTES + MAX_CODE_BYTES;
+  private const long STAGING_BUFFERS = STAGED_WORD_BUFFERS + STAGED_CODE_BUFFERS;
 
   /// Reports complete function code and local-type windows.
   public record CallableSourceCompositionPlan(
@@ -125,6 +131,7 @@ classical class CallableSourceComposition {
 
   /// Publishes callable-local code and types only after every source product is consumed once.
   public CallableSourceCompositionPlan composeCallableSourceProducts(
+    long entryCallable,
     long callableCount,
     long statementCount,
     borrow mut words statementRows,
@@ -155,6 +162,8 @@ classical class CallableSourceComposition {
   ) {
     assert(-1 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
+    assert(-2 < entryCallable);
+    assert(entryCallable < callableCount);
     assert(-1 < statementCount);
     assert(statementCount < MAX_PRODUCTS + 1);
     assert(bufferLength(statementRows) == LOOP_STATEMENT_ROWS);
@@ -190,7 +199,11 @@ classical class CallableSourceComposition {
     assert(bufferLength(outputTypes) == TYPE_ROWS);
     assert(bufferLength(outputCode) == MAX_CODE_BYTES);
 
-    region staging = new region(/* bytes= */ 363008, /* allocations= */ 3);
+    if (-1 < entryCallable) {
+      assert(functionResultTypes[entryCallable] == 0);
+    }
+
+    region staging = new region(/* bytes= */ STAGING_BYTES, /* allocations= */ STAGING_BUFFERS);
     words stagedCallables = allocate(staging, CALLABLE_ROWS);
     words stagedTypes = allocate(staging, TYPE_ROWS);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
@@ -327,15 +340,20 @@ classical class CallableSourceComposition {
           valid = false;
         }
 
-        if (MAX_CODE_BYTES - codeCursor < 8) {
+        if (MAX_CODE_BYTES - codeCursor < ENCODING_INSTRUCTION_HEADER_BYTES) {
           valid = false;
         }
 
         if (valid) {
+          long terminalOpcode = OPCODE_RETURN;
+          if (callable == entryCallable) {
+            terminalOpcode = OPCODE_HALT;
+          }
+
           codeCursor = writeInstructionHeader(
             stagedCode,
             codeCursor,
-            OPCODE_RETURN,
+            terminalOpcode,
             INSTRUCTION_FORM_NULLARY
           );
           callableInstructionCount += 1;
@@ -499,6 +517,18 @@ classical class CallableSourceComposition {
       valid = false;
     }
 
+    if (valid == false) {
+      instructionCount = 0;
+      codeCursor = 0;
+      typeCount = 0;
+    }
+
+    CallableSourceCompositionPlan result = new CallableSourceCompositionPlan(
+      instructionCount,
+      codeCursor,
+      typeCount,
+      valid
+    );
     if (valid) {
       long column = 0;
       while (column < 5) limit 5 {
@@ -541,10 +571,6 @@ classical class CallableSourceComposition {
     drop(stagedTypes);
     drop(stagedCallables);
     drop(staging);
-    if (valid == false) {
-      return new CallableSourceCompositionPlan(0, 0, 0, false);
-    }
-
-    return new CallableSourceCompositionPlan(instructionCount, codeCursor, typeCount, true);
+    return result;
   }
 }

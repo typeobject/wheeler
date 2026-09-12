@@ -158,6 +158,7 @@ final class ClassicalArtifactFixture {
             %s
             prepared = 1;
             SourceProductArtifactPlan artifact = publishClassicalSourceProductArtifact(
+              /* relocationCount= */ 0,
               input, artifactBytes, %d, generatedCount, callables, inverses, inverseCode,
               input, claimedCount, proofs, output, identity
             );

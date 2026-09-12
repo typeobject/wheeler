@@ -83,6 +83,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
         import wheeler.compiler.closure.source_statement_products;
         import wheeler.compiler.closure.source_value_products;
         import wheeler.compiler.constant_product_schema;
+        import wheeler.compiler.packages.manifest_kinds;
         import wheeler.core.encoding.binary;
 
         classical class CoreParsingSourceProductsExample {
@@ -492,6 +493,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             );
             assert(returnPlan.valid);
             CallableSourceCompositionPlan compositionPlan = composeCallableSourceProducts(
+              /* entryCallable= */ -1,
               2,
               loopPlan.statementCount,
               statements,
@@ -524,6 +526,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
               compositionValid = 1;
             }
             SourceProductArtifactPlan artifactPlan = publishClassicalSourceModuleArtifact(
+              /* entryCallable= */ -1,
               /* classNameId= */ 1, /* globalCount= */ 0, /* globalProductStart= */ 0,
               globals,
               2,
@@ -548,6 +551,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             }
             CONSTANT_PRODUCT_SETUP
             SourceProductArtifactPlan structuredPlan = compileStructuredSourceModule(
+              /* entryCallable= */ -1,
               /* classNameId= */ 1, /* globalCount= */ 0, /* globalProductStart= */ 0,
               globals,
               input,
@@ -628,6 +632,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             set(callableNameStarts, 1, %d);
             set(callableNameLengths, 1, 20);
             SourceProductArtifactPlan archiveArtifactPlan = compileStructuredArchiveModule(
+              PACKAGE_TARGET_LIBRARY,
               binarySource,
               /* sourceStart= */ 0,
               bufferLength(input),

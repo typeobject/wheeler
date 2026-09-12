@@ -174,7 +174,6 @@ classical class ProofVerifier {
     long functionsOffset,
     long codeOffset,
     long functionCount,
-    long entryFunction,
     long stringCount,
     long maxSteps
   ) {
@@ -213,10 +212,6 @@ classical class ProofVerifier {
       long rule = readUnsigned(artifact, proofRow + 8, 4);
       long subject = readUnsigned(artifact, proofRow + 12, 4);
       if (subject < functionCount) {} else {
-        return 0;
-      }
-
-      if (subject < entryFunction) {} else {
         return 0;
       }
 
