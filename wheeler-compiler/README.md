@@ -146,10 +146,21 @@ and values from canonical name IDs. Callable and callable-free archive paths
 share name ordering and emit every global before final-container verification.
 Class, callable, and global names receive their actual canonical IDs, including
 shared class/global/proof spellings. Invalid later states preserve publication.
-This retains unused state, not global access instructions. Those remain open in
-[WIP-0507](../docs/internal/proposals/source/WIP-0507-native-source-global-access-products.md).
 [WIP-0506](../docs/internal/proposals/source/WIP-0506-native-source-global-products.md)
-records the products, calculated workspace bounds, and focused evidence.
+records the declaration products, calculated workspace bounds, and focused evidence.
+
+Root scalar accesses now bind explicit frame/global locations. Reads emit actual
+loads, and stores keep declaration ordinals rather than string IDs or temporary
+local indices. The scalar relation and destination emitters handle arithmetic,
+comparisons, declarations, returns, and root stores without another constant
+resolver. Publication stages complete products and constructs its result before
+copying caller-visible rows or bytes.
+
+[WIP-0509](../docs/internal/proposals/source/WIP-0509-root-scalar-global-locations.md)
+records that root boundary. Access-time shadow rejection is not full scope
+admission. Global conditions/assertions, helper-result stores, nested accesses,
+entry/nominal composition, and source-independent instruction relocation remain
+open in [WIP-0507](../docs/internal/proposals/source/WIP-0507-native-source-global-access-products.md).
 
 The scanner owns source whitespace rather than requiring each frontend to filter
 trivia. Tabs, carriage returns, and admitted Unicode separators split tokens.

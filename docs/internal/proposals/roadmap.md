@@ -38,6 +38,7 @@ refer to the required products, not a demand that every umbrella finish first.
 | [WIP-0505](WIP-0505-nominal-carrier-frame-coordinates.md) | Restore nominal frame locals without consuming serialized result types |
 | [WIP-0506](source/WIP-0506-native-source-global-products.md) | Retain declared globals and verify the source artifact boundary without claiming access lowering |
 | [WIP-0507](source/WIP-0507-native-source-global-access-products.md) | Bind source global reads and writes through declaration ordinals and counted instructions |
+| [WIP-0509](source/WIP-0509-root-scalar-global-locations.md) | Join root scalar locations, stores, and frame widths without closing the wider global access contract |
 | [WIP-0508](WIP-0508-checked-imported-nominal-fragments.md) | Share nominal fragments without kind-tag aliases or partial publication |
 
 Keep the distinction between implementation and evidence. WIP-0049 owns source

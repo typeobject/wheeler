@@ -69,6 +69,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
         import wheeler.compiler.closure.callable_source_composition;
         import wheeler.compiler.closure.compiled_body_archive;
         import wheeler.compiler.closure.direct_statement_products;
+        import wheeler.compiler.closure.direct_statement_publication;
         import wheeler.compiler.closure.local_structured_source_module_compiler;
         import wheeler.compiler.closure.loop_instruction_products;
         import wheeler.compiler.closure.loop_local_type_products;
@@ -389,6 +390,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             DirectStatementPlan directPlan = materializeDirectStatementProducts(
               input,
               binarySource,
+              strings, /* globalCount= */ 0, /* globalProductStart= */ 0, globals,
               /* moduleOwner= */ 0,
               /* reversibleCallableCount= */ 0,
               /* functionCount= */ 2,

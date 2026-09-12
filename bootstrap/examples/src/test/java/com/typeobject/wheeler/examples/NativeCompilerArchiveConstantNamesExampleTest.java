@@ -10,12 +10,15 @@ import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import com.typeobject.wheeler.examples.globals.NativeGlobalExecutionAssertions;
 import com.typeobject.wheeler.examples.globals.NativeGlobalRetentionAssertions;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Archive emission resolves constants from packed names, never guessed source uses. */
 final class NativeCompilerArchiveConstantNamesExampleTest {
@@ -60,6 +63,65 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
   void resolvesTheLastAdmittedNameLength() throws Exception {
     String name = "A".repeat(256);
     assertArtifact(fixture("return " + name + ";", name, 1, 1, 1, null));
+  }
+
+  @Test
+  void readsADeclaredGlobalThroughItsDeclarationOrdinal() throws Exception {
+    assertArtifact(fixture("return Alpha;", "LIMIT", 1, 1, 1, null, """
+        state long Zulu = -9223372036854775808;
+        state long Alpha = example.values::LIMIT + 5;
+        """));
+  }
+
+  @Test
+  void readsTheValueWrittenToADeclaredGlobal() throws Exception {
+    assertArtifact(fixture("Alpha = mod; return Alpha;", "LIMIT", 1, 1, 1, null, """
+        state long Zulu = -9223372036854775808;
+        state long Alpha = example.values::LIMIT + 5;
+        """));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "return zulu;",
+      "return alpha + mod;",
+      "return mod + alpha;",
+      "return alpha + zulu;",
+      "long local = alpha; return local;",
+      "long local = alpha + LIMIT; return local;",
+      "boolean equal = alpha == mod; if (equal == true) { return alpha; } return mod;",
+      "alpha = alpha + mod; return alpha;",
+      "alpha = -9223372036854775808; return alpha;",
+      "alpha = zulu; return alpha;",
+      "alpha = LIMIT; return alpha;",
+      "zulu = mod; alpha = zulu + LIMIT; return alpha;"
+  })
+  void composesDeclaredLocationsWithScalarValues(String body) throws Exception {
+    assertArtifact(fixture(body, "LIMIT", 1, 1, 1, null, """
+        state long zulu = -9223372036854775808;
+        state long alpha = example.values::LIMIT + 5;
+        """));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "alpha = true; return mod;",
+      "missing = mod; return alpha;",
+      "alpha = mod; missing = mod; return alpha;",
+      "long alpha = mod; return alpha;",
+      "alpha = mod; return missing;"
+  })
+  void rejectsInvalidOrShadowedAccessBeforePublication(String body) throws Exception {
+    assertUnpublished(fixture(body, "LIMIT", 1, 1, 1, null, """
+        state long zulu = -9223372036854775808;
+        state long alpha = example.values::LIMIT + 5;
+        """));
+  }
+
+  @Test
+  void rejectsConstantStateCollisionsInsteadOfSubstitutingAnInitializer() throws Exception {
+    assertUnpublished(fixture("return mod;", "LIMIT", 1, 1, 1, null,
+        "state long LIMIT = 8;"));
   }
 
   @Test
@@ -188,16 +250,16 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
   }
 
   private static void assertArtifact(Fixture fixture) throws Exception {
+    String dependency = "module example.values; classical class Values { public const long "
+        + fixture.name() + " = 3; }";
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("Source.w", fixture.source(), "Values.w", dependency), MODULE);
     VirtualMachine machine = fixture.machine();
     long transitions = 0;
     while (machine.global("published") == 0 && transitions < fixture.program().maxSteps()) {
       machine.stepWithoutRewindHistory();
       transitions++;
     }
-    String dependency = "module example.values; classical class Values { public const long "
-        + fixture.name() + " = 3; }";
-    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("Source.w", fixture.source(), "Values.w", dependency), MODULE);
     assertEquals(1, machine.global("published"));
     byte[] expectedBytes = new BytecodeWriter().write(expected);
     var snapshot = machine.snapshot();
@@ -221,6 +283,7 @@ final class NativeCompilerArchiveConstantNamesExampleTest {
     assertArrayEquals(expectedBytes, machine.hostOutput());
     if (!expected.globals().isEmpty()) {
       NativeGlobalRetentionAssertions.assertRetained(machine.hostOutput(), expected);
+      NativeGlobalExecutionAssertions.assertExecution(machine.hostOutput(), expected);
     }
   }
 

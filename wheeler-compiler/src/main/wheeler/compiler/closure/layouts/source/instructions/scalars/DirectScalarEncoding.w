@@ -2,19 +2,31 @@
 
 module wheeler.compiler.closure.direct_scalar_encoding;
 
-import wheeler.compiler.closure.imported_constant_values;
 import wheeler.compiler.closure.module_symbols;
+import wheeler.compiler.closure.source_global_schema;
 import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.opcodes;
+import wheeler.compiler.source_identifier_ranges;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 
 classical class DirectScalarEncoding {
   private const long MAX_CODE_BYTES = 262144;
   private const long U64 = ENCODING_WIDTH_U64;
+  private const long MAX_FRAME_LOCALS = 256;
+  private const long SOURCE_LOAD_BYTES = ENCODING_INSTRUCTION_HEADER_BYTES + INSTRUCTION_FORM_BINARY
+    * U64;
+  private const long RESULT_OPERATION_BYTES = ENCODING_INSTRUCTION_HEADER_BYTES
+    + INSTRUCTION_FORM_TERNARY * U64;
+  private const long RETURN_BYTES = ENCODING_INSTRUCTION_HEADER_BYTES + INSTRUCTION_FORM_UNARY
+    * U64;
+  private const long SOURCE_RETURN_BYTES = SOURCE_LOAD_BYTES + RETURN_BYTES;
+  private const long BINARY_RETURN_BYTES = SOURCE_LOAD_BYTES * 2 + RESULT_OPERATION_BYTES
+    + RETURN_BYTES;
+  private const long BINARY_DECLARATION_BYTES = SOURCE_LOAD_BYTES * 3 + RESULT_OPERATION_BYTES;
 
   /// Reports one exact imported constant use.
   public record DirectReturnConstant(long value, boolean found, boolean valid) {}
@@ -27,13 +39,29 @@ classical class DirectScalarEncoding {
     boolean valid
   ) {}
 
-  /// Reports the exact code, instruction, and local extent of one return.
-  public record DirectReturnExtent(
-    long next,
-    long instructionCount,
-    long localCount,
-    boolean valid
-  ) {}
+  private boolean scalarLoadOpcodeValid(long opcode) {
+    if (opcode == OPCODE_LOCAL_MOVE) {
+      return true;
+    }
+
+    return opcode == OPCODE_LOCAL_LOAD_GLOBAL;
+  }
+
+  private boolean scalarLoadValid(long opcode, long operand) {
+    if (operand < 0) {
+      return false;
+    }
+
+    if (opcode == OPCODE_LOCAL_MOVE) {
+      return operand < MAX_FRAME_LOCALS;
+    }
+
+    if (opcode == OPCODE_LOCAL_LOAD_GLOBAL) {
+      return operand < MAX_SOURCE_GLOBALS;
+    }
+
+    return false;
+  }
 
   private boolean comparisonOperation(long operation) {
     if (operation == OPCODE_LOCAL_EQ) {
@@ -118,7 +146,7 @@ classical class DirectScalarEncoding {
     while (symbol < symbolCount) limit 16384 {
       if (symbolOwners[symbol] == moduleOwner) {
         if (
-          matchesConstantName(
+          matchesSourceIdentifier(
             source,
             tokenStart,
             tokenLength,
@@ -263,6 +291,8 @@ classical class DirectScalarEncoding {
     borrow mut bytes output,
     long cursor,
     long kind,
+    long leftLoadOpcode,
+    long rightLoadOpcode,
     long localBase,
     long left,
     long leftType,
@@ -273,6 +303,20 @@ classical class DirectScalarEncoding {
     long immediate
   ) {
     assert(bufferLength(output) == MAX_CODE_BYTES);
+    if (scalarLoadOpcodeValid(leftLoadOpcode) == false) {
+      return new DirectScalarExtent(0, 0, 0, false);
+    }
+
+    if (scalarLoadOpcodeValid(rightLoadOpcode) == false) {
+      return new DirectScalarExtent(0, 0, 0, false);
+    }
+
+    if (kind != RESULT_RELATION_BINARY_SOURCES) {
+      if (rightLoadOpcode != OPCODE_LOCAL_MOVE) {
+        return new DirectScalarExtent(0, 0, 0, false);
+      }
+    }
+
     if (cursor < 0) {
       return new DirectScalarExtent(0, 0, 0, false);
     }
@@ -312,20 +356,12 @@ classical class DirectScalarEncoding {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    if (left < 0) {
-      return new DirectScalarExtent(0, 0, 0, false);
-    }
-
-    if (255 < left) {
+    if (scalarLoadValid(leftLoadOpcode, left) == false) {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
     if (kind == RESULT_RELATION_BINARY_SOURCES) {
-      if (right < 0) {
-        return new DirectScalarExtent(0, 0, 0, false);
-      }
-
-      if (255 < right) {
+      if (scalarLoadValid(rightLoadOpcode, right) == false) {
         return new DirectScalarExtent(0, 0, 0, false);
       }
     } else {
@@ -334,16 +370,17 @@ classical class DirectScalarEncoding {
       }
     }
 
-    if (MAX_CODE_BYTES - 104 < cursor) {
+    if (MAX_CODE_BYTES - BINARY_DECLARATION_BYTES < cursor) {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    long next = writeInstructionHeader(
-      output,
-      cursor,
-      OPCODE_LOCAL_MOVE,
-      INSTRUCTION_FORM_BINARY
+    DirectScalarExtent resultPlan = new DirectScalarExtent(
+      cursor + BINARY_DECLARATION_BYTES,
+      4,
+      4,
+      true
     );
+    long next = writeInstructionHeader(output, cursor, leftLoadOpcode, INSTRUCTION_FORM_BINARY);
     next = writeUnsignedLittleEndian(output, next, localBase, U64);
     next = writeUnsignedLittleEndian(output, next, left, U64);
     long rightDestination = localBase + 1;
@@ -352,7 +389,7 @@ classical class DirectScalarEncoding {
       next = writeUnsignedLittleEndian(output, next, rightDestination, U64);
       next = writeSignedLittleEndian(output, next, immediate, U64);
     } else {
-      next = writeInstructionHeader(output, next, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
+      next = writeInstructionHeader(output, next, rightLoadOpcode, INSTRUCTION_FORM_BINARY);
       next = writeUnsignedLittleEndian(output, next, rightDestination, U64);
       next = writeUnsignedLittleEndian(output, next, right, U64);
     }
@@ -365,14 +402,39 @@ classical class DirectScalarEncoding {
     next = writeInstructionHeader(output, next, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
     next = writeUnsignedLittleEndian(output, next, localBase + 3, U64);
     next = writeUnsignedLittleEndian(output, next, result, U64);
-    return new DirectScalarExtent(next, 4, 4, true);
+    assert(next == resultPlan.next);
+    return resultPlan;
   }
 
-  /// Writes one copied source or one binary source relation.
-  public DirectReturnExtent writeDirectReturn(
+  private long writeDestination(
     borrow mut bytes output,
     long cursor,
+    long opcode,
+    long target,
+    long value
+  ) {
+    long form = INSTRUCTION_FORM_UNARY;
+    if (opcode == OPCODE_LOCAL_STORE_GLOBAL) {
+      form = INSTRUCTION_FORM_BINARY;
+    }
+
+    long next = writeInstructionHeader(output, cursor, opcode, form);
+    if (opcode == OPCODE_LOCAL_STORE_GLOBAL) {
+      next = writeUnsignedLittleEndian(output, next, target, U64);
+    }
+
+    return writeUnsignedLittleEndian(output, next, value, U64);
+  }
+
+  /// Writes one scalar value and its checked return or global-store destination.
+  public DirectScalarExtent writeDirectScalarDestination(
+    borrow mut bytes output,
+    long cursor,
+    long destinationOpcode,
+    long destinationOperand,
     long kind,
+    long leftLoadOpcode,
+    long rightLoadOpcode,
     long destination,
     long left,
     long operation,
@@ -380,29 +442,66 @@ classical class DirectScalarEncoding {
     long immediate
   ) {
     assert(bufferLength(output) == MAX_CODE_BYTES);
+    if (scalarLoadOpcodeValid(leftLoadOpcode) == false) {
+      return new DirectScalarExtent(0, 0, 0, false);
+    }
+
+    if (scalarLoadOpcodeValid(rightLoadOpcode) == false) {
+      return new DirectScalarExtent(0, 0, 0, false);
+    }
+
+    if (materializedReturn(kind)) {
+      if (leftLoadOpcode != OPCODE_LOCAL_MOVE) {
+        return new DirectScalarExtent(0, 0, 0, false);
+      }
+    }
+
+    if (kind != RESULT_RELATION_BINARY_SOURCES) {
+      if (rightLoadOpcode != OPCODE_LOCAL_MOVE) {
+        return new DirectScalarExtent(0, 0, 0, false);
+      }
+    }
+
     if (cursor < 0) {
-      return new DirectReturnExtent(0, 0, 0, false);
+      return new DirectScalarExtent(0, 0, 0, false);
     }
 
     if (destination < 0) {
-      return new DirectReturnExtent(0, 0, 0, false);
+      return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    if (255 < destination) {
-      return new DirectReturnExtent(0, 0, 0, false);
+    if (MAX_FRAME_LOCALS - 1 < destination) {
+      return new DirectScalarExtent(0, 0, 0, false);
     }
 
     if (materializedReturn(kind) == false) {
-      if (left < 0) {
-        return new DirectReturnExtent(0, 0, 0, false);
-      }
-
-      if (255 < left) {
-        return new DirectReturnExtent(0, 0, 0, false);
+      if (scalarLoadValid(leftLoadOpcode, left) == false) {
+        return new DirectScalarExtent(0, 0, 0, false);
       }
     }
 
-    long length = 40;
+    long destinationBytes = RETURN_BYTES;
+    if (destinationOpcode == OPCODE_LOCAL_STORE_GLOBAL) {
+      if (destinationOperand < 0) {
+        return new DirectScalarExtent(0, 0, 0, false);
+      }
+
+      if (MAX_SOURCE_GLOBALS - 1 < destinationOperand) {
+        return new DirectScalarExtent(0, 0, 0, false);
+      }
+
+      destinationBytes = SOURCE_LOAD_BYTES;
+    } else {
+      if (destinationOpcode != OPCODE_RETURN_VALUE) {
+        return new DirectScalarExtent(0, 0, 0, false);
+      }
+
+      if (destinationOperand != 0) {
+        return new DirectScalarExtent(0, 0, 0, false);
+      }
+    }
+
+    long length = SOURCE_RETURN_BYTES - RETURN_BYTES + destinationBytes;
     long localCount = 1;
     long instructionCount = 2;
     boolean binaryRelation = kind != RESULT_RELATION_SOURCE;
@@ -412,37 +511,39 @@ classical class DirectScalarEncoding {
 
     if (binaryRelation) {
       if (returnOperation(operation) == false) {
-        return new DirectReturnExtent(0, 0, 0, false);
+        return new DirectScalarExtent(0, 0, 0, false);
       }
 
-      if (253 < destination) {
-        return new DirectReturnExtent(0, 0, 0, false);
+      if (MAX_FRAME_LOCALS - 3 < destination) {
+        return new DirectScalarExtent(0, 0, 0, false);
       }
 
       if (kind == RESULT_RELATION_BINARY_SOURCES) {
-        if (right < 0) {
-          return new DirectReturnExtent(0, 0, 0, false);
-        }
-
-        if (255 < right) {
-          return new DirectReturnExtent(0, 0, 0, false);
+        if (scalarLoadValid(rightLoadOpcode, right) == false) {
+          return new DirectScalarExtent(0, 0, 0, false);
         }
       } else {
         if (kind != RESULT_RELATION_BINARY) {
-          return new DirectReturnExtent(0, 0, 0, false);
+          return new DirectScalarExtent(0, 0, 0, false);
         }
       }
 
-      length = 96;
+      length = BINARY_RETURN_BYTES - RETURN_BYTES + destinationBytes;
       localCount = 3;
       instructionCount = 4;
     }
 
     if (MAX_CODE_BYTES - length < cursor) {
-      return new DirectReturnExtent(0, 0, 0, false);
+      return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    long sourceOpcode = OPCODE_LOCAL_MOVE;
+    DirectScalarExtent resultPlan = new DirectScalarExtent(
+      cursor + length,
+      instructionCount,
+      localCount,
+      true
+    );
+    long sourceOpcode = leftLoadOpcode;
     if (materializedReturn(kind)) {
       sourceOpcode = OPCODE_LOCAL_CONST;
     }
@@ -455,16 +556,10 @@ classical class DirectScalarEncoding {
       next = writeUnsignedLittleEndian(output, next, left, U64);
     }
 
-    if (kind == RESULT_RELATION_SOURCE) {
-      next = writeInstructionHeader(output, next, OPCODE_RETURN_VALUE, INSTRUCTION_FORM_UNARY);
-      next = writeUnsignedLittleEndian(output, next, destination, U64);
-      return new DirectReturnExtent(next, instructionCount, localCount, true);
-    }
-
-    if (materializedReturn(kind)) {
-      next = writeInstructionHeader(output, next, OPCODE_RETURN_VALUE, INSTRUCTION_FORM_UNARY);
-      next = writeUnsignedLittleEndian(output, next, destination, U64);
-      return new DirectReturnExtent(next, instructionCount, localCount, true);
+    if (binaryRelation == false) {
+      next = writeDestination(output, next, destinationOpcode, destinationOperand, destination);
+      assert(next == resultPlan.next);
+      return resultPlan;
     }
 
     long rightDestination = destination + 1;
@@ -473,7 +568,7 @@ classical class DirectScalarEncoding {
       next = writeUnsignedLittleEndian(output, next, rightDestination, U64);
       next = writeSignedLittleEndian(output, next, immediate, U64);
     } else {
-      next = writeInstructionHeader(output, next, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
+      next = writeInstructionHeader(output, next, rightLoadOpcode, INSTRUCTION_FORM_BINARY);
       next = writeUnsignedLittleEndian(output, next, rightDestination, U64);
       next = writeUnsignedLittleEndian(output, next, right, U64);
     }
@@ -483,8 +578,8 @@ classical class DirectScalarEncoding {
     next = writeUnsignedLittleEndian(output, next, result, U64);
     next = writeUnsignedLittleEndian(output, next, destination, U64);
     next = writeUnsignedLittleEndian(output, next, rightDestination, U64);
-    next = writeInstructionHeader(output, next, OPCODE_RETURN_VALUE, INSTRUCTION_FORM_UNARY);
-    next = writeUnsignedLittleEndian(output, next, result, U64);
-    return new DirectReturnExtent(next, instructionCount, localCount, true);
+    next = writeDestination(output, next, destinationOpcode, destinationOperand, result);
+    assert(next == resultPlan.next);
+    return resultPlan;
   }
 }

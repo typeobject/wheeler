@@ -99,8 +99,24 @@ scanner or delete useful documentation to make it fit.
 - Physical compiler owners advance without projected-away state or erased members.
 - The original mixed-member test remains intact while the real counted dispatcher advances.
 
-No implementation or acceptance evidence exists for these access products yet.
-The bounded one-global helper assignment in
-[WIP-0499](../WIP-0499-native-global-call-assignments.md) does not satisfy this
-contract. Full physical compilation and compiler fixed-point acceptance remain
-open in the parent contracts.
+## Root scalar work
+
+[WIP-0509](WIP-0509-root-scalar-global-locations.md) owns the first root scalar
+join. The original archive regressions failed the direct statement plan's
+failure-coordinate assertion. They now pass complete independent artifact and
+callable execution comparisons through the root product path. Twelve additional bodies
+exercise real loads, stores, arithmetic, comparisons, and local declarations.
+The source declarations and failing statements remain intact.
+
+Stage 0 also mistook uppercase assignment destinations for nominal declarations.
+The assignment front now checks punctuation before selecting that branch. The
+original uppercase store passes alongside dedicated front regressions.
+
+This is not the complete access contract. Global conditions and assertions,
+helper-result stores, nested accesses, entry/nominal composition, source-independent
+instruction relocation, and physical-owner advancement still need their joins
+and acceptance evidence. WIP-0509 records the completed root boundary and local
+package checks separately from hosted verification. The bounded one-global helper assignment in
+[WIP-0499](../WIP-0499-native-global-call-assignments.md) does not discharge those
+requirements. Full physical compilation and compiler fixed-point acceptance
+remain open in the parent contracts.

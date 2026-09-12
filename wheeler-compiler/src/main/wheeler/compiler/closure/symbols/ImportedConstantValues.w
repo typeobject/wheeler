@@ -8,62 +8,6 @@ import wheeler.compiler.constant_product_schema;
 classical class ImportedConstantValues {
   private const long MAX_LOCAL_MODULES = 512;
   private const long MAX_DIRECT_IMPORTS = 64;
-  private const long ASCII_LIMIT = 128;
-
-  /// Matches one ASCII source token against an independently owned constant name.
-  public boolean matchesConstantName(
-    borrow utf8 source,
-    long start,
-    long length,
-    borrow byteview names,
-    long nameStart,
-    long nameLength
-  ) {
-    if (start < 0) {
-      return false;
-    }
-
-    if (length < 1) {
-      return false;
-    }
-
-    if (MAX_CONSTANT_NAME_BYTES < length) {
-      return false;
-    }
-
-    if (bufferLength(source) - length < start) {
-      return false;
-    }
-
-    if (nameStart < 0) {
-      return false;
-    }
-
-    if (nameLength != length) {
-      return false;
-    }
-
-    if (bufferLength(names) - length < nameStart) {
-      return false;
-    }
-
-    long offset = 0;
-    while (offset < length) limit MAX_CONSTANT_NAME_BYTES {
-      long value = names[nameStart + offset];
-      if (ASCII_LIMIT < value + 1) {
-        return false;
-      }
-
-      if (utf8Scalar(source, start + offset) != value) {
-        return false;
-      }
-
-      offset += 1;
-    }
-
-    return true;
-  }
-
   /// Appends one selected module's own scalar products in declaration order.
   public long appendDirectLocalValues(
     long moduleOwner,

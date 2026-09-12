@@ -70,6 +70,10 @@ classical class DirectConditionalReturnProducts {
   public DirectConditionalReturnProduct writeDirectConditionalReturn(
     borrow utf8 source,
     borrow byteview symbolNames,
+    borrow byteview globalNames,
+    long globalCount,
+    long globalProductStart,
+    borrow mut words globals,
     long token,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -418,6 +422,8 @@ classical class DirectConditionalReturnProducts {
     long childImmediate = 0;
     long childLeftType = 0;
     long childRightType = 0;
+    long childLeftLoadOpcode = OPCODE_LOCAL_MOVE;
+    long childRightLoadOpcode = OPCODE_LOCAL_MOVE;
     long childLocalCount = 1;
     long childInstructionCount = 2;
     long childResultType = TYPE_BOOLEAN;
@@ -425,6 +431,10 @@ classical class DirectConditionalReturnProducts {
       DirectScalarRelationProduct childRelation = resolveDirectReturnRelation(
         source,
         symbolNames,
+        globalNames,
+        globalCount,
+        globalProductStart,
+        globals,
         childToken + 1,
         tokenCount,
         tokenKinds,
@@ -481,6 +491,8 @@ classical class DirectConditionalReturnProducts {
       childImmediate = childRelation.immediate;
       childLeftType = childRelation.leftType;
       childRightType = childRelation.rightType;
+      childLeftLoadOpcode = childRelation.leftLoadOpcode;
+      childRightLoadOpcode = childRelation.rightLoadOpcode;
       boolean binaryChild = childKind != RESULT_RELATION_SOURCE;
       if (childKind == RESULT_RELATION_CONSTANT) {
         binaryChild = false;
@@ -566,10 +578,14 @@ classical class DirectConditionalReturnProducts {
       next = writeInstructionHeader(output, next, OPCODE_RETURN_VALUE, INSTRUCTION_FORM_UNARY);
       next = writeUnsignedLittleEndian(output, next, childLocal, U64);
     } else {
-      DirectReturnExtent childExtent = writeDirectReturn(
+      DirectScalarExtent childExtent = writeDirectScalarDestination(
         output,
         next,
+        OPCODE_RETURN_VALUE,
+        /* destinationOperand= */ 0,
         childKind,
+        childLeftLoadOpcode,
+        childRightLoadOpcode,
         childLocal,
         childLeft,
         childOperation,

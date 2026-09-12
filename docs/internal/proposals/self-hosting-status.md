@@ -416,15 +416,36 @@ rejection, cleanup, native digest bytes, and representative phase replay. Native
 intake retains all five global columns from those emitted artifacts and checks
 caller prefixes and tails against independent names and values.
 
-The new archive intake and both selected physical methods pass with 470 modules,
+At `65648229e`, archive intake and both selected physical methods passed with 470 modules,
 2,316 constants, and 1,868 callables. Independent packages, four dependent locks,
 and the 2,235-import graph agree. The 603,784-byte selected linked reference stays
 unchanged. A locked and vendored external consumer emits a complete 632-byte
 artifact with three globals and a step claim. Its bytes and execution agree with
 independent stage 0. The 181-target workspace check and build pass.
 [WIP-0507](source/WIP-0507-native-source-global-access-products.md) retains the
-missing global read/write contract. These declaration products do not complete
+wider global read/write contract. These declaration products do not complete
 entry or nominal composition, the mixed-member runner, or every physical body.
+
+[WIP-0509](source/WIP-0509-root-scalar-global-locations.md) adds root scalar
+locations to the existing relation and instruction owners. Complete artifact,
+identity, and callable execution checks cover actual loads and stores, changed
+values, arithmetic, comparisons, and local declarations. Whole-window name
+validation and private publication reject malformed later inputs without exposing
+earlier stores. Raw terminal frame/code checks retain real emission replay.
+
+The access profile rejects ambiguous global/local references and overlapping
+scalar/global names. It does not implement complete scope admission. Nested
+global accesses, conditions/assertions, helper-result stores, source-independent
+instruction linking, and the original mixed-member runner remain open. Replacing
+the synthetic library entry in an execution fixture is not native entry lowering.
+
+The root-location archive and selected physical checks pass with 476 modules,
+2,341 constants, and 1,880 callables. Independent repacking, four locks, and the
+2,273-import graph agree. The selected linked reference remains 603,784 bytes.
+A locked consumer stores an imported-constant expression into a global, loads the
+changed value, and publishes a complete 752-byte stage-0-identical artifact.
+The 181-target workspace and 138 stage-0 tests pass. None of these checks closes
+the missing parent joins or establishes every physical compiler body.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate

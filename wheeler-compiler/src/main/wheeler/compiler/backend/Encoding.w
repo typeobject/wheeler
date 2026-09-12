@@ -5,9 +5,6 @@ module wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 
 classical class Encoding {
-  /// Names the canonical instruction-header width.
-  private const long INSTRUCTION_HEADER_WIDTH = 8;
-
   /// Writes `unsignedLittleEndian` into caller-owned bounded output.
   public long writeUnsignedLittleEndian(
     borrow mut bytes output,
@@ -188,7 +185,7 @@ classical class Encoding {
   ) {
     offset = writeUnsignedLittleEndian(output, offset, opcode, ENCODING_WIDTH_U16);
     offset = writeUnsignedLittleEndian(output, offset, operandCount, ENCODING_WIDTH_U16);
-    long byteLength = INSTRUCTION_HEADER_WIDTH + operandCount * ENCODING_WIDTH_U64;
+    long byteLength = ENCODING_INSTRUCTION_HEADER_BYTES + operandCount * ENCODING_WIDTH_U64;
     return writeUnsignedLittleEndian(output, offset, byteLength, ENCODING_WIDTH_U32);
   }
 

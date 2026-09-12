@@ -1,4 +1,4 @@
-//! Emits roots.
+//! Stages complete root-statement code, types, and physical coordinates before publication.
 
 module wheeler.compiler.closure.direct_statement_products;
 
@@ -6,14 +6,18 @@ import wheeler.compiler.closure.direct_boolean_declaration_products;
 import wheeler.compiler.closure.direct_buffer_mutation_products;
 import wheeler.compiler.closure.direct_call_conditional_returns;
 import wheeler.compiler.closure.direct_conditional_return_products;
+import wheeler.compiler.closure.direct_global_store_products;
 import wheeler.compiler.closure.direct_long_declaration_products;
+import wheeler.compiler.closure.direct_return_instructions;
 import wheeler.compiler.closure.direct_scalar_encoding;
 import wheeler.compiler.closure.direct_scalar_relations;
 import wheeler.compiler.closure.direct_statement_coordinates;
+import wheeler.compiler.closure.direct_statement_publication;
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.source_call_layout_products;
+import wheeler.compiler.closure.source_global_references;
 import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.closure.structured_source_coordinates;
 import wheeler.compiler.compiler_token_limits;
@@ -22,7 +26,6 @@ import wheeler.compiler.encoding_widths;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.opcodes;
-import wheeler.compiler.result_slot_codegen;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.storage_opcodes;
 import wheeler.compiler.tokens;
@@ -30,27 +33,16 @@ import wheeler.compiler.type_codes;
 import wheeler.lexer.scanner;
 
 classical class DirectStatementProducts {
-  private const long DIRECT_ROWS = 28672;
-  private const long MAX_CODE_BYTES = 262144;
-  private const long MAX_STATEMENTS = 4096;
-  private const long TYPE_ROWS = 12288;
   private const long U64 = ENCODING_WIDTH_U64;
-
-  /// Reports extents.
-  public record DirectStatementPlan(
-    long productCount,
-    long instructionCount,
-    long length,
-    long typeCount,
-    long failureStatement,
-    long failureCode,
-    boolean valid
-  ) {}
 
   /// Emits roots in source order.
   public DirectStatementPlan materializeDirectStatementProducts(
     borrow utf8 source,
     borrow byteview symbolNames,
+    borrow byteview globalNames,
+    long globalCount,
+    long globalProductStart,
+    borrow mut words globals,
     long moduleOwner,
     long reversibleCallableCount,
     long functionCount,
@@ -116,19 +108,31 @@ classical class DirectStatementProducts {
     assert(bufferLength(typeRows) == TYPE_ROWS);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
-    region staging = new region(/* bytes= */ 890368, /* allocations= */ 13);
+    requireSourceGlobalScope(
+      globalNames,
+      globalCount,
+      globalProductStart,
+      globals,
+      symbolNames,
+      moduleOwner,
+      symbolCount,
+      symbolOwners,
+      symbolStarts,
+      symbolLengths
+    );
+    region staging = new region(DIRECT_STAGING_BYTES, DIRECT_STAGING_BUFFERS);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedRows = allocate(staging, DIRECT_ROWS);
     words assertionBody = allocate(staging, BODY_ROWS);
     words stagedTypes = allocate(staging, TYPE_ROWS);
-    words stagedResultTypes = allocate(staging, /* length= */ 64);
-    words stagedCallKinds = allocate(staging, /* length= */ 256);
-    words stagedCallConditionalValues = allocate(staging, /* length= */ 256);
+    words stagedResultTypes = allocate(staging, DIRECT_FUNCTIONS);
+    words stagedCallKinds = allocate(staging, DIRECT_CALLS);
+    words stagedCallConditionalValues = allocate(staging, DIRECT_CALLS);
     words stagedPhysicalWidths = allocate(staging, MAX_STATEMENTS);
-    words functionInstructionCounts = allocate(staging, /* length= */ 64);
-    words functionPrefixesComplete = allocate(staging, /* length= */ 64);
+    words functionInstructionCounts = allocate(staging, DIRECT_FUNCTIONS);
+    words functionPrefixesComplete = allocate(staging, DIRECT_FUNCTIONS);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
     long stagedCall = 0;
     while (stagedCall < callCount) limit 256 {
@@ -289,6 +293,10 @@ classical class DirectStatementProducts {
                   DirectConditionalReturnProduct conditional = writeDirectConditionalReturn(
                     source,
                     symbolNames,
+                    globalNames,
+                    globalCount,
+                    globalProductStart,
+                    globals,
                     token,
                     semanticCount,
                     tokenKinds,
@@ -340,6 +348,10 @@ classical class DirectStatementProducts {
                 DirectBooleanDeclarationProduct booleanDeclaration = writeDirectBooleanDeclaration(
                   source,
                   symbolNames,
+                  globalNames,
+                  globalCount,
+                  globalProductStart,
+                  globals,
                   token,
                   semanticCount,
                   tokenKinds,
@@ -379,6 +391,10 @@ classical class DirectStatementProducts {
                   DirectLongDeclarationProduct declaration = writeDirectLongDeclaration(
                     source,
                     symbolNames,
+                    globalNames,
+                    globalCount,
+                    globalProductStart,
+                    globals,
                     token,
                     semanticCount,
                     tokenKinds,
@@ -562,6 +578,10 @@ classical class DirectStatementProducts {
                         DirectScalarRelationProduct relation = resolveDirectReturnRelation(
                           source,
                           symbolNames,
+                          globalNames,
+                          globalCount,
+                          globalProductStart,
+                          globals,
                           token + 1,
                           semanticCount,
                           tokenKinds,
@@ -604,18 +624,6 @@ classical class DirectStatementProducts {
                           }
                         }
 
-                        if (
-                          directReturnTypesValid(
-                            reversibleCallableCount,
-                            relation.kind,
-                            relation.operation,
-                            relation.leftType,
-                            relation.rightType
-                          ) == false
-                        ) {
-                          statementValid = false;
-                        }
-
                         long returnLocal = physicalStatementBase;
                         if (returnLocal < 0) {
                           statementValid = false;
@@ -626,58 +634,19 @@ classical class DirectStatementProducts {
                         }
 
                         if (statementValid) {
-                          long returnWidth = 1;
-                          if (0 < reversibleCallableCount) {
-                            if (relation.kind == RESULT_RELATION_SOURCE) {
-                              cursor = writeResultSlotSourceBody(
-                                stagedCode,
-                                cursor,
-                                returnLocal,
-                                relation.left
-                              );
-                            }
-
-                            if (relation.kind == RESULT_RELATION_BINARY) {
-                              cursor = writeResultSlotBinaryBody(
-                                stagedCode,
-                                cursor,
-                                returnLocal,
-                                relation.left,
-                                relation.operation,
-                                relation.immediate
-                              );
-                            }
-
-                            if (relation.kind == RESULT_RELATION_BINARY_SOURCES) {
-                              cursor = writeResultSlotBinarySourcesBody(
-                                stagedCode,
-                                cursor,
-                                returnLocal,
-                                relation.left,
-                                relation.operation,
-                                relation.right
-                              );
-                            }
-
-                            productInstructions = 2;
+                          DirectScalarExtent written = writeDirectReturnInstructions(
+                            relation,
+                            reversibleCallableCount,
+                            stagedCode,
+                            cursor,
+                            returnLocal
+                          );
+                          long returnWidth = written.localCount;
+                          if (written.valid) {
+                            cursor = written.next;
+                            productInstructions = written.instructionCount;
                           } else {
-                            DirectReturnExtent written = writeDirectReturn(
-                              stagedCode,
-                              cursor,
-                              relation.kind,
-                              returnLocal,
-                              relation.left,
-                              relation.operation,
-                              relation.right,
-                              relation.immediate
-                            );
-                            if (written.valid) {
-                              cursor = written.next;
-                              productInstructions = written.instructionCount;
-                              returnWidth = written.localCount;
-                            } else {
-                              statementValid = false;
-                            }
+                            statementValid = false;
                           }
 
                           if (statementValid) {
@@ -704,6 +673,58 @@ classical class DirectStatementProducts {
                         }
                       } else {
                         statementValid = false;
+                        if (reversibleCallableCount == 0) {
+                          DirectScalarExtent stored = writeDirectGlobalStore(
+                            source,
+                            symbolNames,
+                            globalNames,
+                            globalCount,
+                            globalProductStart,
+                            globals,
+                            token,
+                            semanticCount,
+                            tokenKinds,
+                            tokenStarts,
+                            tokenLengths,
+                            moduleOwner,
+                            owner,
+                            statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
+                            statementCount,
+                            statementRows,
+                            statementLocalRows,
+                            statementPhysicalStarts,
+                            valueCount,
+                            valueRows,
+                            symbolCount,
+                            symbolOwners,
+                            symbolStarts,
+                            symbolLengths,
+                            symbolTypes,
+                            symbolValues,
+                            symbolResolved,
+                            stagedCode,
+                            cursor,
+                            physicalStatementBase
+                          );
+                          if (stored.valid) {
+                            cursor = stored.next;
+                            productInstructions = stored.instructionCount;
+                            long storeLocal = 0;
+                            while (storeLocal < stored.localCount) limit 3 {
+                              set(stagedTypes, typeCount, owner);
+                              set(
+                                stagedTypes,
+                                MAX_STATEMENTS + typeCount,
+                                physicalStatementBase + storeLocal
+                              );
+                              set(stagedTypes, MAX_STATEMENTS * 2 + typeCount, TYPE_SIGNED);
+                              typeCount += 1;
+                              storeLocal += 1;
+                            }
+
+                            statementValid = true;
+                          }
+                        }
                       }
                     }
                   }
@@ -767,52 +788,32 @@ classical class DirectStatementProducts {
       valid = false;
     }
 
-    if (valid) {
-      long row = 0;
-      while (row < productCount) limit MAX_STATEMENTS {
-        set(directRows, row, stagedRows[row]);
-        set(directRows, 4096 + row, stagedRows[4096 + row]);
-        set(directRows, 8192 + row, stagedRows[8192 + row]);
-        set(directRows, 12288 + row, stagedRows[12288 + row]);
-        set(directRows, 16384 + row, stagedRows[16384 + row]);
-        set(directRows, 20480 + row, stagedRows[20480 + row]);
-        set(directRows, 24576 + row, stagedRows[24576 + row]);
-        row += 1;
-      }
-
-      row = 0;
-      while (row < callCount) limit 256 {
-        set(callRows, 256 + row, stagedCallKinds[row]);
-        set(callConditionalValues, row, stagedCallConditionalValues[row]);
-        row += 1;
-      }
-
-      row = 0;
-      while (row < functionCount) limit 64 {
-        set(functionResultTypes, row, stagedResultTypes[row]);
-        row += 1;
-      }
-
-      row = 0;
-      while (row < typeCount) limit 4096 {
-        set(typeRows, row, stagedTypes[row]);
-        set(typeRows, 4096 + row, stagedTypes[4096 + row]);
-        set(typeRows, 8192 + row, stagedTypes[8192 + row]);
-        row += 1;
-      }
-
-      row = 0;
-      while (row < statementCount) limit MAX_STATEMENTS {
-        set(statementPhysicalWidths, row, stagedPhysicalWidths[row]);
-        row += 1;
-      }
-
-      long codeByte = 0;
-      while (codeByte < cursor) limit MAX_CODE_BYTES {
-        setByte(output, codeByte, stagedCode[codeByte]);
-        codeByte += 1;
-      }
-    }
+    DirectStatementPlan result = publishDirectStatements(
+      productCount,
+      instructionCount,
+      cursor,
+      typeCount,
+      callCount,
+      functionCount,
+      statementCount,
+      failureStatement,
+      failureCode,
+      valid,
+      stagedRows,
+      stagedCallKinds,
+      stagedCallConditionalValues,
+      stagedResultTypes,
+      stagedTypes,
+      stagedPhysicalWidths,
+      stagedCode,
+      directRows,
+      callRows,
+      callConditionalValues,
+      functionResultTypes,
+      typeRows,
+      statementPhysicalWidths,
+      output
+    );
 
     drop(stagedCode);
     drop(functionPrefixesComplete);
@@ -828,18 +829,6 @@ classical class DirectStatementProducts {
     drop(tokenStarts);
     drop(tokenKinds);
     drop(staging);
-    if (valid == false) {
-      return new DirectStatementPlan(0, 0, 0, 0, failureStatement, failureCode, false);
-    }
-
-    return new DirectStatementPlan(
-      productCount,
-      instructionCount,
-      cursor,
-      typeCount,
-      -1,
-      0,
-      true
-    );
+    return result;
   }
 }

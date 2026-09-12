@@ -2,9 +2,9 @@
 
 module wheeler.compiler.closure.resolved_loop_products;
 
-import wheeler.compiler.closure.imported_constant_values;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.source_identifier_ranges;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 import wheeler.lexer.scanner;
@@ -162,7 +162,7 @@ classical class ResolvedLoopProducts {
     while (symbol < symbolCount) limit SYMBOL_COUNT_LIMIT {
       if (symbolOwners[symbol] == moduleOwner) {
         if (
-          matchesConstantName(
+          matchesSourceIdentifier(
             source,
             start,
             length,

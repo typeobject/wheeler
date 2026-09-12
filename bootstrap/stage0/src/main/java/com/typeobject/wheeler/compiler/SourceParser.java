@@ -931,7 +931,7 @@ final class SourceParser extends SourceStatementParser {
   }
 
   private boolean checkLocalType() {
-    return check(Type.IDENTIFIER)
+    return check(Type.IDENTIFIER) && !isAssignmentStart()
         && (peek().text().equals("Slot") || isValueType(peek().text())
             || (moduleName != null
                 && (isNominalName(peek().text())

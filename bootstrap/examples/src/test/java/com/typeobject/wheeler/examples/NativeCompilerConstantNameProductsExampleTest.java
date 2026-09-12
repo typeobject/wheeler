@@ -53,7 +53,7 @@ final class NativeCompilerConstantNameProductsExampleTest {
     for (int index = 0; index < cases.size(); index++) {
       Case row = cases.get(index);
       expected[index] = row.matches() ? (byte) 1 : 0;
-      checks.append("boolean matched").append(index).append(" = matchesConstantName(input, ")
+      checks.append("boolean matched").append(index).append(" = matchesSourceIdentifier(input, ")
           .append(literal(row.start())).append(", ").append(literal(row.length()))
           .append(", names, ").append(literal(row.nameStart())).append(", ")
           .append(literal(row.nameLength())).append(");\n")
@@ -61,10 +61,10 @@ final class NativeCompilerConstantNameProductsExampleTest {
           .append(index).append(", 1); }\n");
     }
     var sources = new LinkedHashMap<>(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.imported_constant_values"));
+        "wheeler.compiler.source_identifier_ranges"));
     sources.put("ConstantNames.w", """
         module example.constant_name_products;
-        import wheeler.compiler.closure.imported_constant_values;
+        import wheeler.compiler.source_identifier_ranges;
         classical class ConstantNames {
           entry void main(borrow utf8 input, borrow mut bytes output) {
             region storage = new region(265, 1);

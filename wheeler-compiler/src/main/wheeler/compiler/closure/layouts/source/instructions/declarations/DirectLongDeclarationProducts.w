@@ -40,6 +40,10 @@ classical class DirectLongDeclarationProducts {
   public DirectLongDeclarationProduct writeDirectLongDeclaration(
     borrow utf8 source,
     borrow byteview symbolNames,
+    borrow byteview globalNames,
+    long globalCount,
+    long globalProductStart,
+    borrow mut words globals,
     long token,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -324,6 +328,10 @@ classical class DirectLongDeclarationProducts {
     DirectScalarRelationProduct initializer = resolveDirectScalarRelation(
       source,
       symbolNames,
+      globalNames,
+      globalCount,
+      globalProductStart,
+      globals,
       sourceToken,
       tokenCount,
       tokenKinds,
@@ -357,6 +365,8 @@ classical class DirectLongDeclarationProducts {
           output,
           cursor,
           initializer.kind,
+          initializer.leftLoadOpcode,
+          initializer.rightLoadOpcode,
           localBase,
           initializer.left,
           initializer.leftType,
@@ -426,7 +436,7 @@ classical class DirectLongDeclarationProducts {
           return invalidLongDeclaration();
         }
 
-        sourceOpcode = OPCODE_LOCAL_MOVE;
+        sourceOpcode = initializer.leftLoadOpcode;
         sourceOperand = initializer.left;
       }
     } else {
@@ -465,7 +475,7 @@ classical class DirectLongDeclarationProducts {
       INSTRUCTION_FORM_BINARY
     );
     finalNext = writeUnsignedLittleEndian(output, finalNext, localBase, U64);
-    if (sourceOpcode == OPCODE_LOCAL_MOVE) {
+    if (sourceOpcode != OPCODE_LOCAL_CONST) {
       finalNext = writeUnsignedLittleEndian(output, finalNext, sourceOperand, U64);
     } else {
       finalNext = writeSignedLittleEndian(output, finalNext, sourceOperand, U64);

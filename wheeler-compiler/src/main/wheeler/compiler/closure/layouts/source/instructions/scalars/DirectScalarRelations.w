@@ -1,20 +1,21 @@
-//! Resolves identifier-led scalar relations onto exact physical products.
+//! Resolves identifier-led scalar relations onto exact frame and global locations.
 
 module wheeler.compiler.closure.direct_scalar_relations;
 
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.closure.direct_scalar_encoding;
+import wheeler.compiler.closure.direct_scalar_locations;
 import wheeler.compiler.closure.loop_body_layouts;
-import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.source_global_references;
 import wheeler.compiler.closure.source_reversible_result_relations;
-import wheeler.compiler.closure.structured_source_coordinates;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.opcodes;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class DirectScalarRelations {
-  /// Carries one exact scalar relation over physical locals or an immediate.
+  /// Carries one exact relation with explicit load instructions for named operands.
   public record DirectScalarRelationProduct(
     long kind,
     long operation,
@@ -23,13 +24,23 @@ classical class DirectScalarRelations {
     long immediate,
     long leftType,
     long rightType,
+    long leftLoadOpcode,
+    long rightLoadOpcode,
     boolean valid
   ) {}
+
+  private DirectScalarRelationProduct invalidRelation() {
+    return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
+  }
 
   /// Resolves one complete identifier-led relation without reading dependency source.
   public DirectScalarRelationProduct resolveDirectScalarRelation(
     borrow utf8 source,
     borrow byteview symbolNames,
+    borrow byteview globalNames,
+    long globalCount,
+    long globalProductStart,
+    borrow mut words globals,
     long leftToken,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -71,6 +82,7 @@ classical class DirectScalarRelations {
     assert(-1 < valueCount);
     assert(valueCount < 1025);
     assert(bufferLength(valueRows) == LOOP_VALUE_ROWS);
+    requireSourceGlobalNames(globalNames, globalCount, globalProductStart, globals);
 
     SourceReversibleResultRelation relation = sourceScalarRelation(
       source,
@@ -81,61 +93,44 @@ classical class DirectScalarRelations {
       tokenLengths
     );
     if (relation.valid == false) {
-      return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+      return invalidRelation();
     }
 
-    LoopBodyValue leftValue = resolveLoopBodyValue(
+    DirectScalarLocation left = resolveDirectScalarLocation(
       source,
       tokenStarts[relation.leftToken],
       tokenLengths[relation.leftToken],
+      globalNames,
+      globalCount,
+      globalProductStart,
+      globals,
       owner,
       ordinal,
-      valueCount,
-      valueRows
-    );
-    if (leftValue.valid == false) {
-      return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
-    }
-
-    long leftType = loopBodyValueType(
-      source,
-      owner,
-      leftValue.local,
+      statementCount,
+      statementRows,
+      statementLocalRows,
+      statementPhysicalStarts,
       valueCount,
       valueRows,
       tokenCount,
       tokenStarts,
       tokenLengths
     );
-    if (leftType != TOKEN_LONG) {
-      if (leftType != TOKEN_BOOLEAN) {
-        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
-      }
-    }
-
-    long left = physicalValueLocal(
-      owner,
-      leftValue.local,
-      statementCount,
-      statementRows,
-      statementLocalRows,
-      valueCount,
-      valueRows,
-      statementPhysicalStarts
-    );
-    if (left < 0) {
-      return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+    if (left.valid == false) {
+      return invalidRelation();
     }
 
     if (relation.kind == RESULT_RELATION_SOURCE) {
       return new DirectScalarRelationProduct(
         relation.kind,
         relation.operation,
-        left,
+        left.operand,
         0,
         relation.immediate,
-        leftType,
+        left.sourceType,
         0,
+        left.loadOpcode,
+        OPCODE_LOCAL_MOVE,
         true
       );
     }
@@ -144,11 +139,13 @@ classical class DirectScalarRelations {
       return new DirectScalarRelationProduct(
         relation.kind,
         relation.operation,
-        left,
+        left.operand,
         0,
         relation.immediate,
-        leftType,
+        left.sourceType,
         TOKEN_LONG,
+        left.loadOpcode,
+        OPCODE_LOCAL_MOVE,
         true
       );
     }
@@ -169,80 +166,83 @@ classical class DirectScalarRelations {
     );
     if (constant.found) {
       if (constant.valid == false) {
-        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+        return invalidRelation();
+      }
+
+      if (
+        -1 < sourceGlobalOrdinal(
+          source,
+          tokenStarts[relation.rightToken],
+          tokenLengths[relation.rightToken],
+          globalNames,
+          globalCount,
+          globalProductStart,
+          globals
+        )
+      ) {
+        return invalidRelation();
       }
 
       return new DirectScalarRelationProduct(
         RESULT_RELATION_BINARY,
         relation.operation,
-        left,
+        left.operand,
         0,
         constant.value,
-        leftType,
+        left.sourceType,
         TOKEN_LONG,
+        left.loadOpcode,
+        OPCODE_LOCAL_MOVE,
         true
       );
     }
 
-    LoopBodyValue rightValue = resolveLoopBodyValue(
+    DirectScalarLocation right = resolveDirectScalarLocation(
       source,
       tokenStarts[relation.rightToken],
       tokenLengths[relation.rightToken],
+      globalNames,
+      globalCount,
+      globalProductStart,
+      globals,
       owner,
       ordinal,
-      valueCount,
-      valueRows
-    );
-    if (rightValue.valid == false) {
-      return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
-    }
-
-    long rightType = loopBodyValueType(
-      source,
-      owner,
-      rightValue.local,
+      statementCount,
+      statementRows,
+      statementLocalRows,
+      statementPhysicalStarts,
       valueCount,
       valueRows,
       tokenCount,
       tokenStarts,
       tokenLengths
     );
-    if (rightType != TOKEN_LONG) {
-      if (rightType != TOKEN_BOOLEAN) {
-        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
-      }
-    }
-
-    long right = physicalValueLocal(
-      owner,
-      rightValue.local,
-      statementCount,
-      statementRows,
-      statementLocalRows,
-      valueCount,
-      valueRows,
-      statementPhysicalStarts
-    );
-    if (right < 0) {
-      return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+    if (right.valid == false) {
+      return invalidRelation();
     }
 
     return new DirectScalarRelationProduct(
       relation.kind,
       relation.operation,
-      left,
-      right,
+      left.operand,
+      right.operand,
       0,
-      leftType,
-      rightType,
+      left.sourceType,
+      right.sourceType,
+      left.loadOpcode,
+      right.loadOpcode,
       true
     );
   }
 
-  /// Resolves one complete return relation with constant precedence on its left source.
+  /// Resolves a complete return without allowing a constant to replace declared state.
   public DirectScalarRelationProduct resolveDirectReturnRelation(
     borrow utf8 source,
     borrow byteview symbolNames,
+    borrow byteview globalNames,
+    long globalCount,
+    long globalProductStart,
+    borrow mut words globals,
     long leftToken,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -265,6 +265,7 @@ classical class DirectScalarRelations {
     borrow mut words symbolValues,
     borrow mut words symbolResolved
   ) {
+    requireSourceGlobalNames(globalNames, globalCount, globalProductStart, globals);
     if (-1 < leftToken) {
       if (leftToken + 1 < tokenCount) {
         long literalWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, leftToken);
@@ -283,7 +284,7 @@ classical class DirectScalarRelations {
               PUNCTUATION_SEMICOLON
             ) == false
           ) {
-            return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+            return invalidRelation();
           }
 
           long literalValue = 0;
@@ -299,6 +300,8 @@ classical class DirectScalarRelations {
             0,
             TOKEN_BOOLEAN,
             0,
+            OPCODE_LOCAL_MOVE,
+            OPCODE_LOCAL_MOVE,
             true
           );
         }
@@ -308,7 +311,7 @@ classical class DirectScalarRelations {
     long signedWidth = signedNumberWidth(source, tokenKinds, tokenStarts, leftToken);
     if (0 < signedWidth) {
       if (tokenCount < leftToken + signedWidth + 1) {
-        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+        return invalidRelation();
       }
 
       if (
@@ -320,11 +323,11 @@ classical class DirectScalarRelations {
           PUNCTUATION_SEMICOLON
         ) == false
       ) {
-        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+        return invalidRelation();
       }
 
       if (signedNumberValid(source, tokenStarts, tokenLengths, leftToken) == false) {
-        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+        return invalidRelation();
       }
 
       return new DirectScalarRelationProduct(
@@ -335,6 +338,8 @@ classical class DirectScalarRelations {
         0,
         TOKEN_LONG,
         0,
+        OPCODE_LOCAL_MOVE,
+        OPCODE_LOCAL_MOVE,
         true
       );
     }
@@ -348,7 +353,7 @@ classical class DirectScalarRelations {
       tokenLengths
     );
     if (relation.valid == false) {
-      return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+      return invalidRelation();
     }
 
     DirectReturnConstant constant = resolveDirectReturnConstant(
@@ -367,11 +372,25 @@ classical class DirectScalarRelations {
     );
     if (constant.found) {
       if (constant.valid == false) {
-        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+        return invalidRelation();
       }
 
       if (relation.kind != RESULT_RELATION_SOURCE) {
-        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+        return invalidRelation();
+      }
+
+      if (
+        -1 < sourceGlobalOrdinal(
+          source,
+          tokenStarts[relation.leftToken],
+          tokenLengths[relation.leftToken],
+          globalNames,
+          globalCount,
+          globalProductStart,
+          globals
+        )
+      ) {
+        return invalidRelation();
       }
 
       return new DirectScalarRelationProduct(
@@ -382,6 +401,8 @@ classical class DirectScalarRelations {
         0,
         TOKEN_LONG,
         0,
+        OPCODE_LOCAL_MOVE,
+        OPCODE_LOCAL_MOVE,
         true
       );
     }
@@ -389,6 +410,10 @@ classical class DirectScalarRelations {
     return resolveDirectScalarRelation(
       source,
       symbolNames,
+      globalNames,
+      globalCount,
+      globalProductStart,
+      globals,
       leftToken,
       tokenCount,
       tokenKinds,

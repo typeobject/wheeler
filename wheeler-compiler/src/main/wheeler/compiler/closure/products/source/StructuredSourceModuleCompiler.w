@@ -6,6 +6,7 @@ import wheeler.compiler.closure.callable_instruction_prefixes;
 import wheeler.compiler.closure.callable_return_products;
 import wheeler.compiler.closure.callable_source_composition;
 import wheeler.compiler.closure.direct_statement_products;
+import wheeler.compiler.closure.direct_statement_publication;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.loop_call_products;
@@ -608,6 +609,10 @@ classical class StructuredSourceModuleCompiler {
     DirectStatementPlan directPlan = materializeDirectStatementProducts(
       source,
       symbolNames,
+      strings,
+      globalCount,
+      globalProductStart,
+      globals,
       moduleOwner,
       reversibleCallableCount,
       callableCount,

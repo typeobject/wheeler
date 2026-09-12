@@ -27,6 +27,9 @@ classical class SourceValueProducts {
   private const long MAX_VALUES = 1024;
   private const long SOURCE_STATEMENT_ROWS = 24576;
   private const long VALUE_ROWS = 7168;
+  private const long SCALAR_RESULT_LOCALS = 1;
+  private const long BINARY_OPERANDS = 2;
+  private const long BINARY_VALUE_LOCALS = BINARY_OPERANDS + SCALAR_RESULT_LOCALS;
 
   /// Reports named values or the first bounded failure coordinate.
   public record SourceValueProductPlan(
@@ -534,6 +537,39 @@ classical class SourceValueProducts {
                   }
 
                   resultLocal = -1;
+                }
+              }
+            }
+
+            if (statementCall < 0) {
+              if (statementToken + 1 < semanticCount) {
+                if (tokenKinds[statementToken] == 1) {
+                  if (
+                    punctuationAt(
+                      source,
+                      tokenKinds,
+                      tokenStarts,
+                      statementToken + 1,
+                      PUNCTUATION_ASSIGN
+                    )
+                  ) {
+                    SourceReversibleResultRelation assigned = sourceScalarRelation(
+                      source,
+                      statementToken + 2,
+                      semanticCount,
+                      tokenKinds,
+                      tokenStarts,
+                      tokenLengths
+                    );
+                    localWidth = SCALAR_RESULT_LOCALS;
+                    if (assigned.valid) {
+                      if (assigned.kind != RESULT_RELATION_SOURCE) {
+                        localWidth = BINARY_VALUE_LOCALS;
+                      }
+                    }
+
+                    resultLocal = -1;
+                  }
                 }
               }
             }

@@ -146,7 +146,12 @@ scoped scalar packet, not dependency bodies. Callable and callable-free archive
 paths share canonical name ordering and write global descriptors before final
 verification. Shared spellings reuse string IDs. Adding a global also remaps
 class and callable name IDs where necessary. Invalid later declarations cannot
-publish earlier globals. Global read/write lowering, entry composition, and the
+publish earlier globals. Root scalar reads and stores now use explicit frame or
+global locations. Loads observe current state, stores keep declaration ordinals,
+and binary values reserve two operand locals plus their result. Complete artifact
+and callable execution checks compare against independent stage 0. They do not
+establish general scope admission, nested global lowering, assertions, or
+helper-result stores. Those joins, entry composition, and the
 intact mixed-member runner remain open.
 
 Root manifest facts now reach final emission as an immutable product, not a

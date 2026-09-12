@@ -178,3 +178,4 @@ Each record appears in one catalog. Cross-cutting work links its other owners fr
 | [WIP-0506](../source/WIP-0506-native-source-global-products.md) | Draft | Native source global products |
 | [WIP-0507](../source/WIP-0507-native-source-global-access-products.md) | Draft | Native source global access products |
 | [WIP-0508](../WIP-0508-checked-imported-nominal-fragments.md) | Draft | Checked imported nominal fragments |
+| [WIP-0509](../source/WIP-0509-root-scalar-global-locations.md) | Draft | Root scalar global locations |
