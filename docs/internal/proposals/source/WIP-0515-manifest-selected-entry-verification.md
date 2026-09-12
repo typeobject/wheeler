@@ -75,7 +75,13 @@ All four methods retain complete input, region, and verification rewind/replay
 checks. The same short selection passes source-budget and documentation gates.
 
 The WIP-0514 physical, package, locked-consumer, and workspace evidence also
-exercises these verifier changes. Exact-tree hosted acceptance remains open.
+exercises these verifier changes. Hosted commit `c540db0f1` exposed an older
+negative test that treated the final function index as out of range. Its unchanged
+mutation names the actual entry, which the canonical Java reader accepts. The
+fixture now keeps that mutation as a positive control and derives a separate
+invalid index from the function count. Both readers reject the latter. No source
+fixture, compiler behavior, or artifact identity changed. Exact-tree hosted
+acceptance remains open.
 
 ## Acceptance
 

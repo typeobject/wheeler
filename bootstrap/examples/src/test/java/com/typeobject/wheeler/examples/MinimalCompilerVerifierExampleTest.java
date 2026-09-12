@@ -1,8 +1,12 @@
 package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.BytecodeException;
+import com.typeobject.wheeler.core.bytecode.BytecodeReader;
+import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import java.nio.ByteBuffer;
@@ -93,8 +97,17 @@ class MinimalCompilerVerifierExampleTest {
             + "void bump() { value += 2; } "
             + "entry void main() { bump(); } }");
     assertEquals(1, verifyWithWheeler(program, call));
-    putOperand(call, 512, 0, 1);
-    assertEquals(0, verifyWithWheeler(program, call));
+    Program callProgram = new BytecodeReader().read(call);
+    assertEquals(1, callProgram.entryFunctionId());
+    byte[] entryCall = call.clone();
+    putOperand(entryCall, Opcode.CALL.code(), 0, callProgram.entryFunctionId());
+    // Preserve the old mutation. It names an existing entry, not an invalid function.
+    new BytecodeReader().read(entryCall);
+    assertEquals(1, verifyWithWheeler(program, entryCall));
+    byte[] badCall = call.clone();
+    putOperand(badCall, Opcode.CALL.code(), 0, callProgram.functions().size());
+    assertThrows(BytecodeException.class, () -> new BytecodeReader().read(badCall));
+    assertEquals(0, verifyWithWheeler(program, badCall));
 
     byte[] certified = stageZero.compileToBytecode(
         "classical class ProofCheck { state long value = 1; "
