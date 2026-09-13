@@ -582,6 +582,12 @@ No scanner input or token limit increases. The changed physical intake and
 package identities pass with WIP-0520. The selected linked reference remains
 unchanged, so its long body comparison was not rerun.
 
+Hosted `76249b327` exposed two stale negative fixtures, not a new size limit.
+The follow-up retains empty physical-name windows and the former 33 KiB graph
+as acceptance controls, then checks the actual 36 KiB linked-source boundary.
+The source-product window remains 32 KiB. Exact-tree hosted acceptance remains
+open until the repaired selection and output comparison finish.
+
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate
 string IDs, and verifies private final code before publication. Thirty-three

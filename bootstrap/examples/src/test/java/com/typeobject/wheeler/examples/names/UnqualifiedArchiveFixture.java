@@ -1,9 +1,7 @@
 package com.typeobject.wheeler.examples.names;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
-import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Program;
-import com.typeobject.wheeler.core.proof.ProofCertificate;
 import com.typeobject.wheeler.examples.CompilerSources;
 import com.typeobject.wheeler.examples.CoreSources;
 import java.nio.charset.StandardCharsets;
@@ -190,20 +188,6 @@ final class UnqualifiedArchiveFixture {
     // Only the oracle needs a module wrapper. Remove its namespace in semantic IR, not in code bytes.
     Program qualified = new WheelerCompiler().compileLibraryModuleFiles(
         Map.of("Library.w", "module " + ORACLE_MODULE + ";\n" + source), ORACLE_MODULE);
-    List<FunctionBody> functions = qualified.functions().stream().map(function -> new FunctionBody(
-        function.id(), unqualify(function.name()), function.coherent(), function.parameterCount(),
-        function.localTypes(), function.resultType(), function.implicitResultSlot(),
-        function.forward(), function.inverse())).toList();
-    List<ProofCertificate> proofs = qualified.proofCertificates().stream().map(proof -> new ProofCertificate(
-        proof.id(), unqualify(proof.name()), proof.rule(), proof.subjectId(), proof.argument())).toList();
-    return new Program(qualified.name(), qualified.kind(), qualified.entryFunctionId(), qualified.globals(),
-        qualified.recordTypes(), qualified.variantTypes(), qualified.arrayTypes(), qualified.sliceTypes(),
-        functions, proofs, qualified.quantumRegisters(), qualified.quantumCircuits(), qualified.workflow(),
-        qualified.requiredInstructionExtensions(), qualified.maxHistoryRecords(), qualified.maxSteps());
-  }
-
-  private static String unqualify(String name) {
-    String prefix = ORACLE_MODULE + "::";
-    return name.startsWith(prefix) ? name.substring(prefix.length()) : name;
+    return UnqualifiedArtifactOracle.withoutModule(qualified, ORACLE_MODULE);
   }
 }

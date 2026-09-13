@@ -8,9 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import com.typeobject.wheeler.examples.names.UnqualifiedArtifactOracle;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -39,9 +42,44 @@ final class NativeCompilerArchiveNamesExampleTest {
   }
 
   @Test
+  void acceptsAnEmptyQualifierForThePhysicalArchiveBody() throws Exception {
+    String source = CompilerSources.read("compiler/backend/core/CoreParsing.w");
+    var machine = VirtualMachine.withBinaryInput(
+        NativeCompilerCoreParsingSourceProductsProgram.program(source, 0, 0),
+        source.getBytes(StandardCharsets.UTF_8), 262_144);
+    var input = machine.snapshot().buffers().getFirst();
+    while (machine.global("archivedArtifactCount") == 0 && machine.status() != MachineStatus.HALTED) {
+      machine.stepWithoutRewindHistory();
+    }
+    assertEquals(1, machine.global("archivedArtifactCount"));
+    // This marker compares against the qualified control, which deliberately differs.
+    assertEquals(0, machine.global("archiveArtifactValid"));
+    var qualified = new WheelerCompiler().compileLibraryModuleFiles(
+        CompilerSources.moduleClosure(MODULE), MODULE);
+    byte[] expected = new BytecodeWriter().write(UnqualifiedArtifactOracle.withoutModule(qualified, MODULE));
+    int artifactCapacity = 32 * 1024;
+    int identityBytes = 256 / Byte.SIZE;
+    var snapshot = machine.snapshot();
+    var regions = snapshot.regions().stream().filter(region -> !region.dropped()
+        && region.maxBytes() == artifactCapacity + identityBytes && region.maxObjects() == 2).toList();
+    assertEquals(1, regions.size());
+    var buffers = snapshot.buffers().stream().filter(buffer -> buffer.regionId() == regions.getFirst().id()).toList();
+    assertEquals(List.of(artifactCapacity, identityBytes), buffers.stream().map(buffer -> buffer.length()).toList());
+    byte[] artifact = new byte[artifactCapacity];
+    byte[] identity = new byte[identityBytes];
+    for (int i = 0; i < artifact.length; i++) artifact[i] = buffers.getFirst().elements().get(i).byteValue();
+    for (int i = 0; i < identity.length; i++) identity[i] = buffers.getLast().elements().get(i).byteValue();
+    assertArrayEquals(Arrays.copyOf(expected, artifactCapacity), artifact);
+    assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(expected), identity);
+    assertEquals(input, snapshot.buffers().get(input.id()));
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    assertTrue(machine.snapshot().regions().get(regions.getFirst().id()).dropped());
+  }
+
+  @Test
   void rejectsInvalidModuleNameWindowsBeforeArchivePublication() throws Exception {
     String source = CompilerSources.read("compiler/backend/core/CoreParsing.w");
-    for (long[] range : new long[][] {{-1, 1}, {Long.MAX_VALUE, 1}, {0, 0}, {0, 257}, {32768, 1}}) {
+    for (long[] range : new long[][] {{-1, 1}, {Long.MAX_VALUE, 1}, {0, -1}, {0, 257}, {32768, 1}}) {
       var machine = VirtualMachine.withBinaryInput(NativeCompilerCoreParsingSourceProductsProgram.program(
           source, range[0], range[1]), source.getBytes(StandardCharsets.UTF_8), 262_144);
       assertUnpublished(machine);

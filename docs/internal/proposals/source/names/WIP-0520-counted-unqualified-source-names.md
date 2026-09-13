@@ -122,6 +122,13 @@ and report agree. Publication takes 1,707,373 transitions and termination takes
 1,707,405 under the unchanged four-million-step command bound. Cleanup rewinds
 and replays 32 transitions. This is API execution, not a compiler fixed point.
 
+Hosted run `34735909183` for `76249b327` found an older archive-name fixture
+that still rejected an empty qualifier. The follow-up keeps that physical
+`CoreParsing.w` case as an acceptance control. It compares the complete private
+artifact and identity before cleanup against an independently unqualified
+semantic oracle. Negative qualifiers now include a negative length. The shared
+test oracle changes names only, never instruction bytes or descriptors.
+
 ## Acceptance
 
 - [x] Empty qualifiers use the shared counted path without synthetic source names.

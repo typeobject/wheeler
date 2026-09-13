@@ -5,13 +5,20 @@ import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport
 import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport.rotationsAndReversals;
 import static com.typeobject.wheeler.examples.NativeModuleCompilerHarness.assertTrap;
 import static com.typeobject.wheeler.examples.NativeModuleCompilerHarness.program;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
+import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import com.typeobject.wheeler.core.vm.VmTrap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /** Differential coverage for six- and seven-module Wheeler-native constant graphs. */
@@ -443,7 +450,7 @@ class NativeImportedConstantLargeGraphExampleTest {
   }
 
   @Test
-  void rejectsLinkedSourceBeyondThirtyTwoKiB() throws Exception {
+  void acceptsTheFormerThirtyTwoKiBCommentPaddingNegative() throws Exception {
     String importedPadding = "x".repeat(14_000);
     String rootPadding = "r".repeat(5_000);
     String alpha = "module examples.alpha; classical class Alpha { "
@@ -458,7 +465,61 @@ class NativeImportedConstantLargeGraphExampleTest {
     assertTrue(beta.length() < 16_385);
     assertTrue(root.length() < 16_385);
     assertTrue(alpha.length() + beta.length() + root.length() > 32_768);
-    assertTrap(program(), List.of(alpha, beta), root);
+    assertTrue(alpha.length() + beta.length() + root.length() < linkedSourceCapacity());
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("Alpha.w", alpha, "Beta.w", beta, "Root.w", root), "examples.root"));
+    Program compiler = program();
+    for (var order : List.of(List.of(alpha, beta), List.of(beta, alpha))) {
+      assertArrayEquals(expected, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
   }
 
+  @Test
+  void matchesTheDeclaredLinkedSourceCapacityAndRejectsItsSuccessor() throws Exception {
+    int capacity = linkedSourceCapacity();
+    int sourceCount = 3;
+    String padding = "x".repeat(capacity / sourceCount);
+    String alphaDeclaration = "public const long ALPHA = 1; /*" + padding + "*/ ";
+    String betaDeclaration = "public const long BETA = 2; /*" + padding + "*/ ";
+    String alpha = "module examples.alpha; classical class Alpha { " + alphaDeclaration + "}";
+    String beta = "module examples.beta; classical class Beta { " + betaDeclaration + "}";
+    String rootPrefix = "module examples.root; import examples.alpha; import examples.beta; "
+        + "classical class Root { public const long ANSWER = ALPHA + BETA; /*";
+    String rootSuffix = "*/ }";
+    int fixedBytes = alphaDeclaration.length() + betaDeclaration.length()
+        + rootPrefix.length() + rootSuffix.length();
+    int rootPadding = capacity - fixedBytes;
+    assertTrue(rootPadding > 0);
+    Program compiler = program();
+    for (int excess : new int[] {-1, 0, 1}) {
+      String root = rootPrefix + "r".repeat(rootPadding + excess) + rootSuffix;
+      assertEquals(capacity + excess, alphaDeclaration.length() + betaDeclaration.length() + root.length());
+      var writer = NativeModuleCompilerHarness.writer(compiler, List.of(alpha, beta), root);
+      var input = writer.snapshot().buffers().getFirst();
+      if (excess > 0) {
+        VmTrap trap = assertThrows(VmTrap.class,
+            () -> CompilerMachineRunner.runWithoutRewindHistory(writer));
+        assertEquals(VmTrap.Code.ASSERTION, trap.code());
+        assertEquals(0, writer.global("published"));
+        assertTrue(writer.hostOutput().length > 0);
+        assertArrayEquals(new byte[writer.hostOutput().length], writer.hostOutput());
+      } else {
+        CompilerMachineRunner.runWithoutRewindHistory(writer);
+        assertEquals(1, writer.global("published"));
+        byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("Alpha.w", alpha, "Beta.w", beta, "Root.w", root), "examples.root"));
+        assertArrayEquals(expected, writer.hostOutput());
+      }
+      assertEquals(input, writer.snapshot().buffers().get(input.id()));
+    }
+  }
+
+  private static int linkedSourceCapacity() throws Exception {
+    String module = "wheeler.compiler.module_qualifications";
+    var sources = new LinkedHashMap<>(CompilerSources.moduleClosure(module));
+    sources.put("Limit.w", "module example.linked_source_limit; import " + module + "; "
+        + "classical class Limit { state long capacity = MAX_LINKED_SOURCE_BYTES; entry void main() {} }");
+    Program oracle = new WheelerCompiler().compileModuleFiles(sources, "example.linked_source_limit");
+    return Math.toIntExact(oracle.globals().getFirst().initialValue());
+  }
 }

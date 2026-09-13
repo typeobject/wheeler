@@ -57,6 +57,14 @@ helper's compiled frame remains 44 locals. The source-product consumer halts
 within its command bound. That does not certify command timing for the separate
 262,144-byte scanner capacity probes.
 
+Hosted run `34735909183` also exposed a misclassified graph-size negative.
+Its 33 KiB of source stayed below the linker's existing 36 KiB bound. The old
+comment loop had supplied the rejection instead. The follow-up preserves those
+intact sources as a canonical library acceptance control in both import orders.
+It reads the capacity from `ModuleQualifications.w` through the stage-0 compiler
+and checks exact linked lengths at capacity minus one, capacity, and capacity
+plus one. The final case rejects without publishing. No production limit changes.
+
 ## Acceptance
 
 - [x] The walk derives from the existing source-window bound.
