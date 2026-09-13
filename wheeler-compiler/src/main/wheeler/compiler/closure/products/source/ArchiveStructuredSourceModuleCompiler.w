@@ -63,7 +63,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(sourceLength < bufferLength(archive) - sourceStart + 1);
     assert(-1 < moduleNameStart);
     assert(moduleNameStart < bufferLength(moduleNames) + 1);
-    assert(0 < moduleNameLength);
+    assert(-1 < moduleNameLength);
     assert(moduleNameLength < 257);
     assert(moduleNameLength < bufferLength(moduleNames) - moduleNameStart + 1);
     assert(classNameStart < sourceStart + sourceLength);
@@ -149,7 +149,8 @@ classical class ArchiveStructuredSourceModuleCompiler {
     return outputStart + length;
   }
 
-  /// Publishes one local-call archive module from closed name, value, and callable products.
+  /// Publishes one local-call archive source from closed name, value, and callable products.
+  /// An empty module-name window selects unqualified callable names.
   public SourceProductArtifactPlan compileStructuredArchiveModule(
     long targetKind,
     borrow byteview archive,

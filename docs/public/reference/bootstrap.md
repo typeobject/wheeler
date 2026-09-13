@@ -58,6 +58,13 @@ separate bounded helper compiler still admits at most seven arguments per call.
 Generated inverses still reject argument-bearing calls. These are implementation
 bounds, not language arity rules.
 
+Counted archive compilation accepts the shared front's empty module qualifier
+for a class-only source. Callable and claim names remain bare, with no injected
+module declaration. Named sources keep their qualified names. The current native
+verifier accepts 24 final functions, including a library's synthetic entry, even
+though source staging admits 64 callable rows. Block comments use the scanner's
+existing 262,144-byte input bound. Source-product windows remain 32,768 bytes.
+
 The bounded helper compiler can assign a signed call result to its existing
 class-state slot. These calls admit zero through seven signed arguments. A prior
 wrong-type or ambiguous local name rejects instead of falling back to state.

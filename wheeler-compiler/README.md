@@ -99,6 +99,15 @@ until composition succeeds. The adapter constructs its report before copying
 caller outputs, including carriers, artifacts, identities, and supplemental code.
 Its calculated workspace reserves 2,268,704 bytes with 40 lifetime buffer IDs.
 
+The counted archive compiler accepts an empty qualifier from the shared source
+front. Class-only sources retain bare callable and claim names. Named modules
+retain `module::callable`, and library intent still adds `$library`. Empty ranges
+receive the same backing and endpoint checks as nonempty ranges. This removes
+one naming prerequisite for WIP-0516, not the aggregate adapter's minimal call.
+The verifier's 24-function publication bound remains distinct from 64 callable
+staging rows. Block comments use the existing scanner input bound rather than
+a separate 256-iteration cap.
+
 `SourceAggregateProducts.w` admits enums as nonempty, payload-free variants.
 Enum tags follow lexical case-name order, while ordinary variants keep declaration
 order. Source products retain the 64-aggregate and 128-case bounds. An enum's name

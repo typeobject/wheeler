@@ -558,7 +558,29 @@ report before copying any outputs. Complete-buffer rejection and publication
 replay pass. The calculated arena needs 2,268,704 bytes and 40 lifetime buffer
 identities. Its stage-0 frame still exceeds the native product's 256-local
 bound and needs coherent phase extraction. This repair does not replace the
-inner minimal compiler or close the nominal artifact and runner joins.
+inner minimal compiler or close the nominal artifact and runner joins. Commit
+`14c4ad3f949` passes all 52 hosted bootstrap jobs, including output comparison,
+plus README, site, and CodeQL.
+
+[WIP-0520](source/names/WIP-0520-counted-unqualified-source-names.md) carries
+empty qualifiers through counted archive compilation. Class-only sources keep
+bare callable and claim names without a synthetic module. Nine focused methods
+check complete artifacts, state preservation, capacities, execution, and replay.
+Coherent name-writing and ordering phases reduce the name orchestrator to 224
+locals under the unchanged 256-local bound.
+They also confirm the distinction between 64 callable staging rows and the
+verifier's 24 final functions. Original physical intake, independent packages, four locks, and all 181 workspace
+targets pass. A locked consumer independently matches its complete 4,089,176-byte
+driver and 776-byte artifact, halting after 1,707,405 transitions without a minimal
+compiler function. Aggregate integration and exact-tree acceptance remain open.
+
+[WIP-0521](source/fronts/WIP-0521-source-bounded-block-comments.md) removes the
+block-comment walk's unrelated 256-iteration limit. It derives progress from the
+existing 262,144-byte scanner input bound. Three direct methods check full-window
+success and diagnostics, UTF-8 byte coordinates, caller storage, and replay.
+No scanner input or token limit increases. The changed physical intake and
+package identities pass with WIP-0520. The selected linked reference remains
+unchanged, so its long body comparison was not rerun.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate

@@ -48,7 +48,98 @@ classical class SourceModuleNameProducts {
     return cursor + length;
   }
 
+  private long appendCallableNames(
+    borrow byteview moduleNames,
+    long moduleNameStart,
+    long moduleNameLength,
+    long firstCallable,
+    long callableCount,
+    borrow byteview callableNames,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    long firstCallableName,
+    borrow mut bytes strings,
+    long cursor,
+    borrow mut words stringStarts,
+    borrow mut words stringLengths
+  ) {
+    long callable = 0;
+    while (callable < callableCount) limit MAX_CALLABLES {
+      long original = firstCallable + callable;
+      long id = firstCallableName + callable;
+      set(stringStarts, id, cursor);
+      if (0 < moduleNameLength) {
+        cursor = copyName(moduleNames, moduleNameStart, moduleNameLength, strings, cursor);
+        writeAscii(strings, cursor, "::");
+        cursor += QUALIFIER_BYTES;
+      }
+
+      cursor = copyName(
+        callableNames,
+        callableNameStarts[original],
+        callableNameLengths[original],
+        strings,
+        cursor
+      );
+      set(stringLengths, id, cursor - stringStarts[id]);
+      callable += 1;
+    }
+
+    return cursor;
+  }
+
+  private long orderSourceNames(
+    long cursor,
+    long firstCallableName,
+    long callableCount,
+    long globalCount,
+    borrow byteview strings,
+    borrow mut words stringStarts,
+    borrow mut words stringLengths,
+    borrow mut words functionNameIds,
+    borrow mut words products
+  ) {
+    long firstGlobalName = firstCallableName + callableCount;
+    long global = 0;
+    while (global < globalCount) limit MAX_SOURCE_GLOBALS {
+      set(stringStarts, firstGlobalName + global, products[SOURCE_MODULE_GLOBAL_START + global]);
+      set(
+        stringLengths,
+        firstGlobalName + global,
+        products[SOURCE_MODULE_GLOBAL_START + SOURCE_GLOBAL_LENGTH_ROW + global]
+      );
+      global += 1;
+    }
+
+    long stringCount = materializeSourceModuleStringOrder(
+      strings,
+      cursor,
+      firstGlobalName + globalCount,
+      stringStarts,
+      stringLengths,
+      products
+    );
+    long mappedCallable = 0;
+    while (mappedCallable < callableCount) limit MAX_CALLABLES {
+      set(functionNameIds, mappedCallable, products[firstCallableName + mappedCallable]);
+      mappedCallable += 1;
+    }
+
+    long mappedGlobal = 0;
+    while (mappedGlobal < globalCount) limit MAX_SOURCE_GLOBALS {
+      set(
+        products,
+        SOURCE_MODULE_GLOBAL_START + SOURCE_GLOBAL_NAME_ID_ROW + mappedGlobal,
+        products[firstGlobalName + mappedGlobal]
+      );
+      mappedGlobal += 1;
+    }
+
+    return stringCount;
+  }
+
   /// Prepares private names and globals for either callable or callable-free publication.
+  /// An empty qualifier preserves bare callable names without inventing a module identity.
   /// Every output is compiler scratch. A rejected call must not publish any of these products.
   /// The caller lends three scanner columns and a callable-ID column for transient front indexing.
   public SourceModuleNamePlan materializeSourceModuleNames(
@@ -76,6 +167,11 @@ classical class SourceModuleNameProducts {
     borrow mut words functionNameIds,
     borrow mut words products
   ) {
+    assert(-1 < moduleNameStart);
+    assert(moduleNameStart < bufferLength(moduleNames) + 1);
+    assert(-1 < moduleNameLength);
+    assert(moduleNameLength < MAX_QUALIFIED_NAME_BYTES + 1);
+    assert(moduleNameLength < bufferLength(moduleNames) - moduleNameStart + 1);
     assert(-1 < firstCallable);
     assert(-1 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
@@ -111,60 +207,33 @@ classical class SourceModuleNameProducts {
     set(stringStarts, classNameId, cursor);
     set(stringLengths, classNameId, classNameLength);
     cursor = copyName(archive, classNameStart, classNameLength, strings, cursor);
-    long callable = 0;
-    while (callable < callableCount) limit MAX_CALLABLES {
-      long original = firstCallable + callable;
-      long id = firstCallableName + callable;
-      set(stringStarts, id, cursor);
-      cursor = copyName(moduleNames, moduleNameStart, moduleNameLength, strings, cursor);
-      writeAscii(strings, cursor, "::");
-      cursor += QUALIFIER_BYTES;
-      cursor = copyName(
-        callableNames,
-        callableNameStarts[original],
-        callableNameLengths[original],
-        strings,
-        cursor
-      );
-      set(stringLengths, id, cursor - stringStarts[id]);
-      callable += 1;
-    }
-
-    long firstGlobalName = firstCallableName + callableCount;
-    long global = 0;
-    while (global < globals.globalCount) limit MAX_SOURCE_GLOBALS {
-      set(stringStarts, firstGlobalName + global, products[SOURCE_MODULE_GLOBAL_START + global]);
-      set(
-        stringLengths,
-        firstGlobalName + global,
-        products[SOURCE_MODULE_GLOBAL_START + SOURCE_GLOBAL_LENGTH_ROW + global]
-      );
-      global += 1;
-    }
-
-    long stringCount = materializeSourceModuleStringOrder(
+    cursor = appendCallableNames(
+      moduleNames,
+      moduleNameStart,
+      moduleNameLength,
+      firstCallable,
+      callableCount,
+      callableNames,
+      callableNameStarts,
+      callableNameLengths,
+      firstCallableName,
       strings,
       cursor,
-      firstGlobalName + globals.globalCount,
+      stringStarts,
+      stringLengths
+    );
+
+    long stringCount = orderSourceNames(
+      cursor,
+      firstCallableName,
+      callableCount,
+      globals.globalCount,
+      strings,
       stringStarts,
       stringLengths,
+      functionNameIds,
       products
     );
-    long mappedCallable = 0;
-    while (mappedCallable < callableCount) limit MAX_CALLABLES {
-      set(functionNameIds, mappedCallable, products[firstCallableName + mappedCallable]);
-      mappedCallable += 1;
-    }
-
-    long mappedGlobal = 0;
-    while (mappedGlobal < globals.globalCount) limit MAX_SOURCE_GLOBALS {
-      set(
-        products,
-        SOURCE_MODULE_GLOBAL_START + SOURCE_GLOBAL_NAME_ID_ROW + mappedGlobal,
-        products[firstGlobalName + mappedGlobal]
-      );
-      mappedGlobal += 1;
-    }
 
     return new SourceModuleNamePlan(
       cursor,

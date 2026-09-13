@@ -118,6 +118,12 @@ four-million-step command bound. Its caller cleanup rewinds and replays 128
 transitions. This consumer still contains the minimal compiler. It does not
 establish counted primitive compilation or a nominal executable artifact.
 
+Commit `14c4ad3f949d70da291e9d12c55268e011e2fe4e` matches the verified feature
+tree and remote master. Bootstrap run
+[34729870051](https://github.com/typeobject/wheeler/actions/runs/34729870051)
+passes all 52 jobs, including output comparison. README, site, and CodeQL also
+pass. This acceptance covers the publication repair, not later compiler changes.
+
 ## Acceptance
 
 - [x] Late nominal rejection preserves every caller buffer and marker.
@@ -126,4 +132,4 @@ establish counted primitive compilation or a nominal executable artifact.
 - [x] Success, rejection, and cleanup have actual rewind and replay evidence.
 - [x] Calculated storage, buffer lifetimes, source bytes, and tokens fit.
 - [x] Affected identities, packages, locks, examples, and documentation agree.
-- [ ] The exact verified feature tree is committed, pushed, and checked remotely.
+- [x] The exact verified feature tree is committed, pushed, and checked remotely.

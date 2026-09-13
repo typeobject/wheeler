@@ -7,7 +7,7 @@
 | Created | 2026-09-12 |
 | Updated | 2026-09-12 |
 | Area | Self-hosting, aggregate lowering, primitive products |
-| Depends on | WIP-0049, WIP-0050, WIP-0051, WIP-0054, WIP-0514, WIP-0517, WIP-0518, WIP-0519 |
+| Depends on | WIP-0049, WIP-0050, WIP-0051, WIP-0054, WIP-0514, WIP-0517, WIP-0518, WIP-0519, WIP-0520 |
 | Supersedes | None |
 | Superseded by | None |
 
@@ -36,6 +36,8 @@ WIP-0518 retains original claim coordinates through shared binding so private
 primitive views can omit claims without losing them or deciding their truth.
 WIP-0519 stages carrier rows and constructs the aggregate report before copying
 caller outputs. It repairs publication without replacing the primitive compiler.
+WIP-0520 carries empty qualifiers through the existing counted name path so an
+intact class-only primitive view needs no synthetic module declaration.
 
 ## Contract
 
@@ -78,7 +80,10 @@ The final artifact may contain neither nominal carriers nor imported scaffolding
 Keep the current source-local limits: 32,768 source bytes, 4,096 raw tokens,
 64 callables, 64 aggregates, 128 cases, 256 members or operations, and 1,024
 aggregate arguments. Primitive artifacts remain bounded by 32,768 bytes.
-Supplemental code retains its existing 12,288-byte window.
+Supplemental code retains its existing 12,288-byte window. The existing native
+verifier admits only 24 final functions, including a library's synthetic entry.
+The 64-row staging bound does not establish 64-function artifact publication.
+Keep that distinction explicit and do not raise the interpreter limit to hide it.
 
 Describe each workspace as the sum of its named column extents and byte buffers.
 Count simultaneous storage and lifetime buffer identities separately. The current

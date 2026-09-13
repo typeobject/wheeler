@@ -50,6 +50,8 @@ refer to the required products, not a demand that every umbrella finish first.
 | [WIP-0517](source/fronts/WIP-0517-counted-callable-front-staging.md) | Share callable-front staging and retain atomic closure publication |
 | [WIP-0518](source/proofs/WIP-0518-detached-source-claim-origins.md) | Retain bound claim origins before private primitive projection |
 | [WIP-0519](source/aggregate/WIP-0519-atomic-aggregate-source-publication.md) | Keep carrier rows private and construct aggregate reports before publication |
+| [WIP-0520](source/names/WIP-0520-counted-unqualified-source-names.md) | Compile bare source names through counted archive products |
+| [WIP-0521](source/fronts/WIP-0521-source-bounded-block-comments.md) | Bound block-comment walks by the declared scanner input window |
 
 Keep the distinction between implementation and evidence. WIP-0049 owns source
 lowering, WIP-0054 owns its artifact integration, and WIP-0048 owns final linking.

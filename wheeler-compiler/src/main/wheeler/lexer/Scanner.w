@@ -428,11 +428,12 @@ classical class Scanner {
     return new ScanResult.Value(count);
   }
 
-  /// Returns the closing offset of one bounded block comment.
+  /// Returns the closing byte offset or -1 within the declared scanner input window.
+  /// Each iteration consumes at least one byte, so the input bound also bounds this walk.
   public long blockCommentEnd(borrow utf8 source, long cursor, long sourceLength) {
     cursor += utf8Width(source, cursor);
     cursor += utf8Width(source, cursor);
-    while (cursor < sourceLength) limit 256 {
+    while (cursor < sourceLength) limit MAX_SCANNER_INPUT_BYTES {
       long scalar = utf8Scalar(source, cursor);
       if (scalar == 42) {
         long next = cursor + utf8Width(source, cursor);
