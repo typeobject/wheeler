@@ -188,3 +188,4 @@ Each record appears in one catalog. Cross-cutting work links its other owners fr
 | [WIP-0516](../source/aggregate/WIP-0516-counted-aggregate-primitive-compilation.md) | Draft | Counted aggregate primitive compilation |
 | [WIP-0517](../source/fronts/WIP-0517-counted-callable-front-staging.md) | Draft | Counted callable-front staging |
 | [WIP-0518](../source/proofs/WIP-0518-detached-source-claim-origins.md) | Draft | Detached source claim origins |
+| [WIP-0519](../source/aggregate/WIP-0519-atomic-aggregate-source-publication.md) | Draft | Atomic aggregate source publication |

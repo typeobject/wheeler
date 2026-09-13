@@ -547,8 +547,18 @@ fails actual nominal code. The 81-case direct and 109-case adapter selections
 pass. Original archive intake and selected physical comparison pass in eleven
 minutes and fourteen seconds. Independent packages, four locks, and the 181-target
 workspace agree. A locked consumer retains the original claims, checks complete
-private projection, and halts after 681,286 transitions. Aggregate integration
-and exact-tree publication remain open for this new boundary.
+private projection, and halts after 681,286 transitions. Commit `ccd5dbc089`
+passes all 52 hosted bootstrap jobs, including output comparison, plus README,
+site, and CodeQL. Aggregate integration remains open.
+
+[WIP-0519](source/aggregate/WIP-0519-atomic-aggregate-source-publication.md)
+repairs the existing aggregate adapter's early carrier publication. Nested
+rewriting now receives private carrier rows, and the adapter constructs its
+report before copying any outputs. Complete-buffer rejection and publication
+replay pass. The calculated arena needs 2,268,704 bytes and 40 lifetime buffer
+identities. Its stage-0 frame still exceeds the native product's 256-local
+bound and needs coherent phase extraction. This repair does not replace the
+inner minimal compiler or close the nominal artifact and runner joins.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate

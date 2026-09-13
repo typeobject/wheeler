@@ -1,21 +1,24 @@
-package com.typeobject.wheeler.examples;
+package com.typeobject.wheeler.examples.aggregate;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
-import com.typeobject.wheeler.core.vm.VmTrap;
+import com.typeobject.wheeler.examples.CompilerMachineRunner;
+import com.typeobject.wheeler.examples.CompilerSources;
+import com.typeobject.wheeler.examples.CoreSources;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 /** Native evidence for aggregate-aware complete source-product compilation. */
 final class NativeCompilerAggregateAwareSourceProductExampleTest {
-  private static final String SOURCE = """
+  static final String SOURCE = """
       classical class Root { private record Local(long value) {} private variant Choice { case Some(long payload); } private long use(Box value, long number) { Local item = new Local(number); long extracted = item.value; Choice selected = new Choice.Some(number); long payload = selected.payload; return 7; } }
       """.strip();
 
@@ -62,18 +65,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     assertEquals(0, product.variantTypes().size());
   }
 
-  @Test
-  void rejectsAKindMismatchBeforeArtifactOrProjectionPublication() throws Exception {
-    VirtualMachine machine = VirtualMachine.withBinaryInput(
-        program(/* importedKind= */ 4), SOURCE.getBytes(StandardCharsets.US_ASCII), 32_768);
-
-    assertThrows(
-        VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
-    assertEquals(0, machine.global("published"));
-    assertArrayEquals(new byte[32_768], machine.hostOutput());
+  static Program program(int importedKind) throws Exception {
+    return program(importedKind, UnaryOperator.identity());
   }
 
-  private static Program program(int importedKind) throws Exception {
+  static Program program(int importedKind, UnaryOperator<String> driverChange) throws Exception {
     int declarationStart = SOURCE.indexOf("private record");
     int localAggregateNameStart = SOURCE.indexOf("Local(long");
     int localMemberNameStart = SOURCE.indexOf("value)");
@@ -113,6 +109,8 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
 
         classical class AggregateAwareSourceProductExample {
           state long published = 0;
+          state long prepared = 0;
+          state long completed = 0;
           state long functionCount = 0;
           state long projectionCount = 0;
           state long carrierProjectionCount = 0;
@@ -143,7 +141,7 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
           state long firstSourceStatementStart = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 2367520, /* allocations= */ 38);
+            region rows = new region(ARENA_BYTES, ARENA_BUFFERS);
             words localAggregates = allocate(rows, /* length= */ 832);
             words localCases = allocate(rows, /* length= */ 640);
             words localMembers = allocate(rows, /* length= */ 2048);
@@ -266,6 +264,7 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             set(references, 128, 3);
             set(references, 192, 1);
             set(importedAggregates, 3, %d);
+            prepared = 1;
             AggregateCompiledCallableBody compiled = compileAggregateSourceModuleProductWithImports(
               input,
               /* sourceStart= */ 0,
@@ -323,6 +322,7 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
               output,
               identity
             );
+            completed = 1;
             functionCount = compiled.functionCount;
             projectionCount = 1;
             carrierProjectionCount = 1;
@@ -426,7 +426,19 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             referenceStart,
             importedKind,
             SOURCE.length()));
+    sources.compute("AggregateAwareSourceProductExample.w", (path, source) -> driverChange.apply(calculatedArena(source)));
     return new com.typeobject.wheeler.compiler.WheelerCompiler().compileModuleFiles(
         sources, "example.aggregate_aware_source_product");
+  }
+
+  private static String calculatedArena(String source) {
+    var allocations = Pattern.compile("words \\w+ = allocate\\(rows, /\\* length= \\*/ (\\d+)\\)").matcher(source);
+    var words = new ArrayList<String>();
+    while (allocations.find()) words.add(allocations.group(1));
+    String constants = "const long ARENA_WORDS = " + String.join(" + ", words) + ";\n"
+        + "const long EXTRA_WORDS = 0;\n"
+        + "const long ARENA_BYTES = (ARENA_WORDS + EXTRA_WORDS) * " + Long.BYTES + " + 12288 + 32;\n"
+        + "const long ARENA_BUFFERS = " + words.size() + " + 2;\n";
+    return source.replace("state long published = 0;", constants + "state long published = 0;");
   }
 }

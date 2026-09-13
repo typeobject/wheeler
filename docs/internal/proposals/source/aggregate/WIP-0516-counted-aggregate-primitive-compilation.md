@@ -7,7 +7,7 @@
 | Created | 2026-09-12 |
 | Updated | 2026-09-12 |
 | Area | Self-hosting, aggregate lowering, primitive products |
-| Depends on | WIP-0049, WIP-0050, WIP-0051, WIP-0054, WIP-0514, WIP-0517, WIP-0518 |
+| Depends on | WIP-0049, WIP-0050, WIP-0051, WIP-0054, WIP-0514, WIP-0517, WIP-0518, WIP-0519 |
 | Supersedes | None |
 | Superseded by | None |
 
@@ -34,6 +34,8 @@ private delimiter parser and exposes source-local coordinates for this primitive
 view. That producer is not yet connected to the aggregate adapter's compiler.
 WIP-0518 retains original claim coordinates through shared binding so private
 primitive views can omit claims without losing them or deciding their truth.
+WIP-0519 stages carrier rows and constructs the aggregate report before copying
+caller outputs. It repairs publication without replacing the primitive compiler.
 
 ## Contract
 
@@ -80,13 +82,21 @@ Supplemental code retains its existing 12,288-byte window.
 
 Describe each workspace as the sum of its named column extents and byte buffers.
 Count simultaneous storage and lifetime buffer identities separately. The current
-aggregate orchestrator reserves 2,275,488 bytes and 39 allocations. That existing
-reservation is not permission to add unmeasured storage or assume spare capacity.
+aggregate orchestrator reserves 2,268,704 bytes and uses 40 lifetime buffer
+identities after WIP-0519. That reservation derives from 249,280 word cells,
+seven simultaneous source buffers, and three code/digest buffers. It is not
+permission to add unmeasured storage or assume spare capacity.
 
 The scalar orchestrator already uses 4,063 of 4,096 raw token slots. Extract a
 coherent owner instead of extending that file past the scanner bound. Keep
 parameter transport within the existing callable ABI. Do not solve a large
 signature by increasing argument, frame, scanner, source, or VM limits.
+
+The aggregate adapter also needs phase extraction. Its stage-0 frame has 1,247
+locals after WIP-0519, compared with 1,199 before that repair. Both exceed the
+256-local native product bound. Its 55 parameters fit the parameter limit, but
+that says nothing about its complete frame. Do not substitute buffer accounting
+or a stage-0-built consumer for native compilation of this physical owner.
 
 ## Evidence required
 
@@ -105,10 +115,9 @@ regression whose proof decision differs from the primitive placeholder decision.
 
 WIP-0518 supplies bound claim origins and private same-length erasure. The
 aggregate adapter does not consume them yet. Original global binding, projection
-coordinates, detached imported targets, and atomic composition publication
-remain required. The old adapter also constructs its result record after copying
-caller outputs. Move that allocation before the first publication rather than
-preserving the ordering defect.
+coordinates and detached imported targets remain required. WIP-0519 repairs the
+existing carrier leak and report ordering. The counted replacement must preserve
+that whole-publication contract.
 
 ## Acceptance
 

@@ -203,7 +203,10 @@ type fronts. It preserves source-relative module names and archive-relative
 callable and parameter ranges. Its mutable columns are private scratch, not
 published products. The closure owner validates every module before publishing
 rows and reports. Neither this staging boundary nor entry binding removes the
-aggregate adapter's remaining minimal compiler dependency.
+aggregate adapter's remaining minimal compiler dependency. That adapter keeps
+carrier rows private through compilation and composition. It constructs the
+complete report before publishing any caller output. Late nominal rejection
+preserves every caller buffer, not just the artifact and identity.
 
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and

@@ -94,7 +94,10 @@ the actual frame. Type-linker artifact and execution checks do not assemble the
 complete nominal source compiler. The aggregate adapter still obtains primitive
 code through the minimal compiler. WIP-0516 tracks that internal replacement.
 The outer runner handoff remains a separate join. Shared callable-front staging
-alone does not remove either dependency.
+alone does not remove either dependency. Carrier rewriting uses private rows
+until composition succeeds. The adapter constructs its report before copying
+caller outputs, including carriers, artifacts, identities, and supplemental code.
+Its calculated workspace reserves 2,268,704 bytes with 40 lifetime buffer IDs.
 
 `SourceAggregateProducts.w` admits enums as nonempty, payload-free variants.
 Enum tags follow lexical case-name order, while ordinary variants keep declaration

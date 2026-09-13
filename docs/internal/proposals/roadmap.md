@@ -49,6 +49,7 @@ refer to the required products, not a demand that every umbrella finish first.
 | [WIP-0516](source/aggregate/WIP-0516-counted-aggregate-primitive-compilation.md) | Replace minimal aggregate primitive compilation with counted products |
 | [WIP-0517](source/fronts/WIP-0517-counted-callable-front-staging.md) | Share callable-front staging and retain atomic closure publication |
 | [WIP-0518](source/proofs/WIP-0518-detached-source-claim-origins.md) | Retain bound claim origins before private primitive projection |
+| [WIP-0519](source/aggregate/WIP-0519-atomic-aggregate-source-publication.md) | Keep carrier rows private and construct aggregate reports before publication |
 
 Keep the distinction between implementation and evidence. WIP-0049 owns source
 lowering, WIP-0054 owns its artifact integration, and WIP-0048 owns final linking.

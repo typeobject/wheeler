@@ -156,8 +156,11 @@ audit finds no text file over 1,000 lines, but 19 source directories and 44
 physical directories still exceed ten files. Repository-wide layout compliance
 remains open.
 
-The aggregate adapter still uses its old primitive boundary. Exact-tree commit,
-push, and hosted acceptance remain open.
+Commit `ccd5dbc089` is on remote master. Bootstrap run
+[34726855062](https://github.com/typeobject/wheeler/actions/runs/34726855062)
+passes all 52 jobs, including output comparison. README, site, and CodeQL also
+pass on that commit. This acceptance covers the claim-origin tree, not later
+aggregate changes. The aggregate adapter still uses its old primitive boundary.
 
 ## Acceptance
 
@@ -168,4 +171,4 @@ push, and hosted acceptance remain open.
 - [x] Bounds, storage, tails, cleanup, rewind, and replay have direct evidence.
 - [x] Primitive and final proof decisions remain separate, with retained claim facts.
 - [x] Affected source products, archives, locks, examples, and documentation agree.
-- [ ] The exact verified feature tree is committed, pushed, and checked remotely.
+- [x] The exact verified feature tree is committed, pushed, and checked remotely.

@@ -30,6 +30,32 @@ classical class AggregateCompiledCallableBodies {
   private const long IDENTITY_BYTES = 32;
   private const long MAX_CALLABLE_ARTIFACT_BYTES = 32768;
   private const long MAX_CALLABLE_SOURCE_BYTES = 32768;
+  private const long WORD_BYTES = 8;
+  private const long MAX_LOCAL_REFERENCES = 512;
+  private const long CARRIER_COLUMNS = 4;
+  private const long CARRIER_ROWS = MAX_LOCAL_REFERENCES * CARRIER_COLUMNS;
+  private const long SOURCE_PRODUCT_ROWS = 4096 * 6 + 1024 * 7 + 1024 + 64 + 4096 * 2;
+  private const long LOCAL_PROJECTION_ROWS = MAX_LOCAL_REFERENCES * 8;
+  // Destinations, owners, arguments, placements, and their function/direction joins.
+  private const long BINDING_ROWS = 256 * 2 + 1024 + 256 * 3 + 256 * 2;
+  // Constructors, aggregate/case owners, projections, slice descriptors, and resolved operands.
+  private const long OPERATION_ROWS = 256 * 3 + 256 * 2 + 256 * 4 + 256 + 256 * 6;
+  // Primitive, placeholder-projected, and composed functions/instructions, then selectors.
+  private const long COMPOSITION_ROWS = 3 * (64 * 10 + 4096 * 6) + 256 * 3 + 4096;
+  private const long IMPORT_PROJECTION_ROWS = 16384 * 3 + 16384 * 4;
+  private const long STAGING_WORDS = SOURCE_PRODUCT_ROWS + LOCAL_PROJECTION_ROWS + CARRIER_ROWS
+    + BINDING_ROWS + OPERATION_ROWS + COMPOSITION_ROWS + IMPORT_PROJECTION_ROWS;
+  private const long SUPPLEMENTAL_BYTES = 12288;
+  // The original and six projected sources coexist. Drop them before exact-source compilation.
+  private const long PEAK_SOURCE_BUFFERS = 7;
+  private const long STAGING_BYTES = STAGING_WORDS * WORD_BYTES + PEAK_SOURCE_BUFFERS
+    * MAX_CALLABLE_SOURCE_BYTES + MAX_CALLABLE_ARTIFACT_BYTES + SUPPLEMENTAL_BYTES + IDENTITY_BYTES;
+  // Source products, local projections/carriers, bindings, operations, composition, imports.
+  private const long WORD_BUFFERS = 5 + 2 + 6 + 6 + 8 + 2;
+  private const long CODE_BUFFERS = 3;
+  private const long SOURCE_BUFFER_IDENTITIES = PEAK_SOURCE_BUFFERS + 1;
+  private const long STAGING_BUFFER_IDENTITIES = WORD_BUFFERS + CODE_BUFFERS
+    + SOURCE_BUFFER_IDENTITIES;
 
   /// Reports one primitive product and its source-local aggregate code product.
   public record AggregateCompiledCallableBody(
@@ -100,19 +126,23 @@ classical class AggregateCompiledCallableBodies {
     borrow mut bytes identity
   ) {
     assert(bufferLength(artifact) == MAX_CALLABLE_ARTIFACT_BYTES);
-    assert(bufferLength(supplementalCode) == 12288);
+    assert(bufferLength(supplementalCode) == SUPPLEMENTAL_BYTES);
+    assert(bufferLength(localCarrierRows) == CARRIER_ROWS);
     assert(bufferLength(identity) == IDENTITY_BYTES);
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
     assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
-    region sourceArena = new region(/* bytes= */ 2275488, /* allocations= */ 39);
+    assert(sourceStart < bufferLength(sourceArchive) + 1);
+    assert(sourceLength < bufferLength(sourceArchive) - sourceStart + 1);
+    region sourceArena = new region(STAGING_BYTES, STAGING_BUFFER_IDENTITIES);
     bytes originalSource = allocateBytes(sourceArena, sourceLength);
     words stagedStatements = allocate(sourceArena, /* length= */ 24576);
     words stagedValues = allocate(sourceArena, /* length= */ 7168);
     words stagedValueStructures = allocate(sourceArena, /* length= */ 1024);
     words stagedLocalCounts = allocate(sourceArena, /* length= */ 64);
     words stagedStatementLocals = allocate(sourceArena, /* length= */ 8192);
-    words stagedLocalProjections = allocate(sourceArena, /* length= */ 4096);
+    words stagedLocalProjections = allocate(sourceArena, LOCAL_PROJECTION_ROWS);
+    words stagedLocalCarriers = allocate(sourceArena, CARRIER_ROWS);
     words stagedDestinations = allocate(sourceArena, /* length= */ 256);
     words stagedOwners = allocate(sourceArena, /* length= */ 256);
     words stagedArguments = allocate(sourceArena, /* length= */ 1024);
@@ -354,7 +384,7 @@ classical class AggregateCompiledCallableBodies {
       localNominalReferenceCount,
       localNominalReferenceRows,
       stagedLocalProjections,
-      localCarrierRows,
+      stagedLocalCarriers,
       localCarrierSource
     );
     assert(localCarriers.valid);
@@ -486,6 +516,26 @@ classical class AggregateCompiledCallableBodies {
       stagedArtifactSelectors
     );
     assert(composition.valid);
+    AggregateCompiledCallableBody published = new AggregateCompiledCallableBody(
+      result.length,
+      result.functionCount,
+      result.maxLocalCount,
+      supplementalProduct.instructionCount,
+      supplementalProduct.length,
+      composition.instructionCount
+    );
+    long carrierColumn = 0;
+    while (carrierColumn < CARRIER_COLUMNS) limit CARRIER_COLUMNS {
+      long carrierRow = 0;
+      while (carrierRow < localNominalReferenceCount) limit MAX_LOCAL_REFERENCES {
+        long carrierCell = carrierColumn * MAX_LOCAL_REFERENCES + carrierRow;
+        set(localCarrierRows, carrierCell, stagedLocalCarriers[carrierCell]);
+        carrierRow += 1;
+      }
+
+      carrierColumn += 1;
+    }
+
     long artifactByte = 0;
     while (artifactByte < result.length) limit MAX_CALLABLE_ARTIFACT_BYTES {
       setByte(artifact, artifactByte, stagedArtifact[artifactByte]);
@@ -719,6 +769,7 @@ classical class AggregateCompiledCallableBodies {
     drop(stagedArguments);
     drop(stagedOwners);
     drop(stagedDestinations);
+    drop(stagedLocalCarriers);
     drop(stagedLocalProjections);
     drop(stagedStatementLocals);
     drop(stagedLocalCounts);
@@ -726,14 +777,7 @@ classical class AggregateCompiledCallableBodies {
     drop(stagedValues);
     drop(stagedStatements);
     drop(sourceArena);
-    return new AggregateCompiledCallableBody(
-      result.length,
-      result.functionCount,
-      result.maxLocalCount,
-      supplementalProduct.instructionCount,
-      supplementalProduct.length,
-      composition.instructionCount
-    );
+    return published;
   }
 
 }

@@ -17,7 +17,7 @@ public final class CoreSources {
   }
 
   /** Reads one canonical core source as strict host text. */
-  static String read(String logicalPath) throws IOException {
+  public static String read(String logicalPath) throws IOException {
     return Files.readString(path(logicalPath));
   }
 
