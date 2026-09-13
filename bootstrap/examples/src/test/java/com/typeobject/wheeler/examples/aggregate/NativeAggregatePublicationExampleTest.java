@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Checks aggregate publication transport, allocation order, and complete caller preservation. */
 final class NativeAggregatePublicationExampleTest {
@@ -43,7 +46,7 @@ final class NativeAggregatePublicationExampleTest {
       "localResolvedOperations", "supplementalCode", "composedFunctions", "composedInstructions",
       "artifactSelectors", "references", "carrierFunctions", "carrierLocals", "importedAggregates",
       "projections", "carrierProjections", "calls", "effects", "firstParameters", "parameterCounts",
-      "resultTypes", "parameterTypes", "parameterModes", "identity");
+      "resultTypes", "parameterTypes", "parameterModes", "identity", "scalars", "scalarNameStarts", "scalarNames");
   private record Window(String caller, String staged, int count, int stride, int columns) {}
   private static final List<Window> WORD_WINDOWS = List.of(
       new Window("localProjections", "stagedLocalProjections", 4, 512, 8),
@@ -66,21 +69,30 @@ final class NativeAggregatePublicationExampleTest {
 
   @Test
   void allocatesTheReportBeforePublishingAndReplaysEveryRowByteAndCleanup() throws Exception {
+    checkPublicationReplay(OWNER + "::compileAggregateSourceModuleProductWithImports");
+  }
+
+  @Test
+  void replaysCountedPrimitivePublicationThroughCompositionAndCallerCleanup() throws Exception {
+    checkPublicationReplay("wheeler.compiler.closure.source_product_artifact::publishSourceProductArtifact");
+  }
+
+  private static void checkPublicationReplay(String checkpointOwner) throws Exception {
     Program program = markedProgram(1);
     FunctionBody compiler = program.functions().stream()
         .filter(function -> function.name().equals(OWNER + "::compileAggregateSourceModuleProductWithImports"))
         .findFirst().orElseThrow();
-    int reportInstruction = -1;
-    for (int index = 0; index < compiler.forward().size(); index++) {
-      var instruction = compiler.forward().get(index);
-      if (instruction.opcode() == Opcode.RECORD_NEW) reportInstruction = index;
-    }
-    assertTrue(reportInstruction > 0);
-    int beforeReport = reportInstruction - 1;
-    boolean[] ready = {false};
+    int beforeReport = finalReportInstruction(compiler) - 1;
+    FunctionBody checkpointFunction = program.functions().stream()
+        .filter(function -> function.name().equals(checkpointOwner)).findFirst().orElseThrow();
+    int beforeCheckpoint = finalReportInstruction(checkpointFunction) - 1;
+    boolean[] ready = {false, false};
     var machine = VirtualMachine.withBinaryInput(program, SOURCE.getBytes(StandardCharsets.US_ASCII), SOURCE_BYTES,
-        observation -> ready[0] = observation.functionId() == compiler.id()
-            && observation.instructionIndex() == beforeReport);
+        observation -> {
+          ready[0] = observation.functionId() == compiler.id() && observation.instructionIndex() == beforeReport;
+          ready[1] = observation.functionId() == checkpointFunction.id()
+              && observation.instructionIndex() == beforeCheckpoint;
+        });
     List<Integer> borrowedRegions = machine.snapshot().regions().stream().map(RegionValue::id).toList();
     // This fixture's host ABI installs input first and output second.
     assertEquals(2, machine.snapshot().buffers().size());
@@ -89,10 +101,33 @@ final class NativeAggregatePublicationExampleTest {
     int outputBuffer = output.id();
     while (machine.global("prepared") == 0) machine.stepWithoutRewindHistory();
     MachineSnapshot prepared = machine.snapshot();
-    while (!ready[0]) machine.stepWithoutRewindHistory();
+    while (!ready[1]) machine.stepWithoutRewindHistory();
+    MachineSnapshot checkpoint = machine.snapshot();
+    assertCallerUnchanged(prepared, checkpoint);
+    assertEquals(prepared.globals(), checkpoint.globals());
+    while (!ready[0]) machine.step();
     MachineSnapshot privateProducts = machine.snapshot();
     assertCallerUnchanged(prepared, privateProducts);
     assertEquals(prepared.globals(), privateProducts.globals());
+    while (machine.global("completed") == 0) machine.step();
+    MachineSnapshot published = machine.snapshot();
+    assertPublishedBuffers(prepared, privateProducts, published, outputBuffer);
+    while (machine.status() != MachineStatus.HALTED) machine.step();
+    MachineSnapshot halted = machine.snapshot();
+    assertTrue(halted.buffers().stream().filter(buffer -> !borrowedRegions.contains(buffer.regionId()))
+        .allMatch(BufferValue::dropped));
+    assertTrue(halted.regions().stream().filter(region -> !borrowedRegions.contains(region.id()))
+        .allMatch(RegionValue::dropped));
+    while (machine.historySize() > 0) machine.rewindOne();
+    assertEquals(checkpoint, machine.snapshot());
+    while (machine.status() != MachineStatus.HALTED) machine.step();
+    assertEquals(halted, machine.snapshot());
+    while (machine.historySize() > 0) machine.rewindOne();
+    assertEquals(checkpoint, machine.snapshot());
+  }
+
+  static void assertPublishedBuffers(MachineSnapshot prepared, MachineSnapshot privateProducts,
+      MachineSnapshot published, int outputBuffer) throws Exception {
     int stagingRegion = prepared.regions().size();
     Map<String, BufferValue> caller = namedBuffers(CALLER_BUFFERS, prepared,
         prepared.regions().getLast().id());
@@ -105,13 +140,9 @@ final class NativeAggregatePublicationExampleTest {
         privateProducts.regions().get(stagingRegion).maxBytes());
     int wordBuffers = 5 + 2 + 6 + 6 + 8 + 2;
     int codeBuffers = 3;
-    int sourceIdentities = peakSourceBuffers + 1;
-    int bufferIdentities = wordBuffers + codeBuffers + sourceIdentities;
+    int bufferIdentities = wordBuffers + codeBuffers + peakSourceBuffers;
     assertEquals(bufferIdentities, staged.size());
     assertEquals(bufferIdentities, privateProducts.regions().get(stagingRegion).maxObjects());
-
-    while (machine.global("completed") == 0) machine.step();
-    MachineSnapshot published = machine.snapshot();
     Map<Integer, List<Long>> expected = new LinkedHashMap<>();
     for (BufferValue buffer : prepared.buffers()) expected.put(buffer.id(), new ArrayList<>(buffer.elements()));
     for (Window window : WORD_WINDOWS) {
@@ -138,18 +169,15 @@ final class NativeAggregatePublicationExampleTest {
     assertEquals(List.of((long) artifactLength, 2L,
         (long) primitive.functions().stream().mapToInt(FunctionBody::localCount).max().orElseThrow(),
         4L, 160L, 7L), report.fields());
-    while (machine.status() != MachineStatus.HALTED) machine.step();
-    MachineSnapshot halted = machine.snapshot();
-    assertTrue(halted.buffers().stream().filter(buffer -> !borrowedRegions.contains(buffer.regionId()))
-        .allMatch(BufferValue::dropped));
-    assertTrue(halted.regions().stream().filter(region -> !borrowedRegions.contains(region.id()))
-        .allMatch(RegionValue::dropped));
-    while (machine.historySize() > 0) machine.rewindOne();
-    assertEquals(privateProducts, machine.snapshot());
-    while (machine.status() != MachineStatus.HALTED) machine.step();
-    assertEquals(halted, machine.snapshot());
-    while (machine.historySize() > 0) machine.rewindOne();
-    assertEquals(privateProducts, machine.snapshot());
+  }
+
+  static int finalReportInstruction(FunctionBody function) {
+    int report = -1;
+    for (int index = 0; index < function.forward().size(); index++) {
+      if (function.forward().get(index).opcode() == Opcode.RECORD_NEW) report = index;
+    }
+    assertTrue(report > 0, function.name());
+    return report;
   }
 
   @Test
@@ -178,6 +206,43 @@ final class NativeAggregatePublicationExampleTest {
   }
 
   @Test
+  void rejectsPrimitiveIntentAndEveryActiveScalarRowWithoutPublishing() throws Exception {
+    List<java.util.function.UnaryOperator<String>> changes = List.of(
+        source -> source.replace("PACKAGE_TARGET_LIBRARY,", "PACKAGE_TARGET_DEPLOYABLE,"),
+        source -> source.replace("/* constantCount= */ 0,", "/* constantCount= */ 1,"),
+        source -> source.replace("/* constantCount= */ 0,", "/* constantCount= */ 1,")
+            .replace("prepared = 1;", """
+                set(scalars, 0, 1);
+                set(scalars, CONSTANT_PRODUCT_HEADER_ROWS + CONSTANT_NAME_START, 0);
+                set(scalars, CONSTANT_PRODUCT_HEADER_ROWS + CONSTANT_NAME_LENGTH, 1);
+                set(scalars, CONSTANT_PRODUCT_HEADER_ROWS + CONSTANT_TYPE, CONSTANT_SIGNED);
+                set(scalars, CONSTANT_PRODUCT_HEADER_ROWS + CONSTANT_VALUE, 7);
+                set(scalars, CONSTANT_PRODUCT_HEADER_ROWS + CONSTANT_RESOLVED, /* invalid flag= */ 2);
+                setByte(scalarNames, 0, /* ASCII_A= */ 65);
+                prepared = 1;
+                """));
+    for (var change : changes) {
+      Program program = NativeCompilerAggregateAwareSourceProductExampleTest.program(1,
+          source -> change.apply(mark(source)));
+      int primitive = program.functions().stream()
+          .filter(function -> function.name().endsWith("::compileAggregatePrimitiveSource"))
+          .mapToInt(FunctionBody::id).findFirst().orElseThrow();
+      boolean[] entered = {false};
+      var machine = VirtualMachine.withBinaryInput(program, SOURCE.getBytes(StandardCharsets.US_ASCII), SOURCE_BYTES,
+          observation -> { if (observation.functionId() == primitive) entered[0] = true; });
+      while (machine.global("prepared") == 0) machine.stepWithoutRewindHistory();
+      MachineSnapshot prepared = machine.snapshot();
+      VmTrap trap = assertThrows(VmTrap.class, () -> {
+        while (machine.status() != MachineStatus.HALTED) machine.stepWithoutRewindHistory();
+      });
+      assertEquals(VmTrap.Code.ASSERTION, trap.code());
+      assertTrue(entered[0], "the malformed product must reach the counted primitive boundary");
+      assertCallerUnchanged(prepared, machine.snapshot());
+      assertEquals(prepared.globals(), machine.snapshot().globals());
+    }
+  }
+
+  @Test
   void rejectsBothCarrierBackingSizesBeforeAllocatingPrivateStorage() throws Exception {
     int carrierCells = 512 * 4;
     for (int length : new int[] {carrierCells - 1, carrierCells + 1}) {
@@ -199,11 +264,67 @@ final class NativeAggregatePublicationExampleTest {
     }
   }
 
+  private static java.util.stream.Stream<Window> publicationWindows() {
+    return WORD_WINDOWS.stream().filter(window -> !window.caller().equals("localCarriers"));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("publicationWindows")
+  void rejectsEveryWordPublicationBackingBeforePrivateAllocation(Window window) throws Exception {
+    int cells = window.stride() * window.columns();
+    String allocation = window.caller() + " = allocate(rows, /* length= */ " + cells + ")";
+    for (int length : new int[] {cells - 1, cells + 1}) {
+      Program program = NativeCompilerAggregateAwareSourceProductExampleTest.program(1, source -> {
+        String marked = mark(source);
+        assertTrue(marked.contains(allocation), allocation);
+        return marked.replace("const long EXTRA_WORDS = 0;", "const long EXTRA_WORDS = 1;")
+            .replace(allocation, window.caller() + " = allocate(rows, /* length= */ " + length + ")");
+      });
+      var machine = VirtualMachine.withBinaryInput(program, SOURCE.getBytes(StandardCharsets.US_ASCII), SOURCE_BYTES);
+      assertBackingRejectedWithoutAllocation(machine);
+    }
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @ValueSource(strings = {"output", "identity", "supplementalCode"})
+  void rejectsEveryBytePublicationBackingBeforePrivateAllocation(String caller) throws Exception {
+    for (int excess : new int[] {-1, 1}) {
+      Program program = NativeCompilerAggregateAwareSourceProductExampleTest.program(1, source -> {
+        String marked = mark(source);
+        if (caller.equals("output")) return marked;
+        var allocation = java.util.regex.Pattern.compile(java.util.regex.Pattern.quote(caller)
+            + " = allocateBytes\\(rows, /\\* length= \\*/ (\\d+)\\)").matcher(marked);
+        assertTrue(allocation.find(), caller);
+        int length = Integer.parseInt(allocation.group(1));
+        return marked.replace("const long EXTRA_WORDS = 0;", "const long EXTRA_WORDS = 1;")
+            .replace(allocation.group(), caller + " = allocateBytes(rows, /* length= */ " + (length + excess) + ")");
+      });
+      int outputBytes = SOURCE_BYTES + (caller.equals("output") ? excess : 0);
+      var machine = VirtualMachine.withBinaryInput(program, SOURCE.getBytes(StandardCharsets.US_ASCII), outputBytes);
+      assertBackingRejectedWithoutAllocation(machine);
+    }
+  }
+
+  private static void assertBackingRejectedWithoutAllocation(VirtualMachine machine) {
+    while (machine.global("prepared") == 0) machine.stepWithoutRewindHistory();
+    MachineSnapshot prepared = machine.snapshot();
+    VmTrap trap = assertThrows(VmTrap.class, () -> {
+      while (machine.status() != MachineStatus.HALTED) machine.stepWithoutRewindHistory();
+    });
+    MachineSnapshot rejected = machine.snapshot();
+    assertEquals(VmTrap.Code.ASSERTION, trap.code());
+    assertCallerUnchanged(prepared, rejected);
+    assertEquals(prepared.globals(), rejected.globals());
+    assertEquals(prepared.regions(), rejected.regions());
+    assertEquals(prepared.buffers().size(), rejected.buffers().size());
+    assertEquals(prepared.records(), rejected.records());
+  }
+
   private static void finish(VirtualMachine machine) {
     while (machine.status() != MachineStatus.HALTED) machine.step();
   }
 
-  private static void assertCallerUnchanged(MachineSnapshot prepared, MachineSnapshot actual) {
+  static void assertCallerUnchanged(MachineSnapshot prepared, MachineSnapshot actual) {
     for (BufferValue buffer : prepared.buffers()) {
       assertEquals(buffer, actual.buffers().get(buffer.id()), "caller buffer " + buffer.id());
     }
@@ -247,20 +368,24 @@ final class NativeAggregatePublicationExampleTest {
     return NativeCompilerAggregateAwareSourceProductExampleTest.program(kind, NativeAggregatePublicationExampleTest::mark);
   }
 
-  private static String mark(String source) {
+  static String mark(String source) {
     StringBuilder initialize = new StringBuilder();
     for (Window window : WORD_WINDOWS) initialize.append("markWords(").append(window.caller()).append(");\n");
     initialize.append("markBytes(output); markBytes(identity); markBytes(supplementalCode);\n");
+    int largestWordWindow = WORD_WINDOWS.stream().mapToInt(window -> window.stride() * window.columns())
+        .max().orElseThrow();
     String helpers = """
+        const long MAX_PREPARED_WORDS = %d;
+        const long MAX_PREPARED_BYTES = %d;
         void markWords(borrow mut words data) {
           long row = 0;
-          while (row < bufferLength(data)) limit 65536 { set(data, row, 211); row += 1; }
+          while (row < bufferLength(data)) limit MAX_PREPARED_WORDS { set(data, row, 211); row += 1; }
         }
         void markBytes(borrow mut bytes data) {
           long byte = 0;
-          while (byte < bufferLength(data)) limit 32768 { setByte(data, byte, 211); byte += 1; }
+          while (byte < bufferLength(data)) limit MAX_PREPARED_BYTES { setByte(data, byte, 211); byte += 1; }
         }
-        """;
+        """.formatted(largestWordWindow + 1, SOURCE_BYTES + 1);
     return source.replace("entry void main(", helpers + "entry void main(")
         .replace("prepared = 1;", initialize + "prepared = 1;");
   }

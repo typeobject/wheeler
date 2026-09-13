@@ -344,15 +344,6 @@ classical class CompiledCallableBodies {
     return result;
   }
 
-  /// Compiles one fully projected local source after all semantic validation.
-  public CompiledCallableBody compileExactProductSource(
-    bytes source,
-    borrow mut bytes artifact,
-    borrow mut bytes identity
-  ) {
-    return compileProductSource(source, artifact, identity);
-  }
-
   /// Compiles local callable ranges against imports without dependency source.
   public CompiledCallableBody compileCallableModuleProductWithImports(
     borrow byteview archive,

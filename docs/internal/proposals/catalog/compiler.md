@@ -191,3 +191,4 @@ Each record appears in one catalog. Cross-cutting work links its other owners fr
 | [WIP-0519](../source/aggregate/WIP-0519-atomic-aggregate-source-publication.md) | Draft | Atomic aggregate source publication |
 | [WIP-0520](../source/names/WIP-0520-counted-unqualified-source-names.md) | Draft | Counted unqualified source names |
 | [WIP-0521](../source/fronts/WIP-0521-source-bounded-block-comments.md) | Draft | Source-bounded block comments |
+| [WIP-0522](../source/aggregate/WIP-0522-counted-aggregate-primitive-boundary.md) | Draft | Counted aggregate primitive boundary |

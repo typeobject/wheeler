@@ -91,22 +91,28 @@ primitive body products. Temporary scalar carriers are not final nominal types.
 Their frame-local coordinates exclude the optional serialized result-type word.
 The final type linker preserves that result prefix and rejects carriers outside
 the actual frame. Type-linker artifact and execution checks do not assemble the
-complete nominal source compiler. The aggregate adapter still obtains primitive
-code through the minimal compiler. WIP-0516 tracks that internal replacement.
-The outer runner handoff remains a separate join. Shared callable-front staging
-alone does not remove either dependency. Carrier rewriting uses private rows
-until composition succeeds. The adapter constructs its report before copying
+complete nominal source compiler. The aggregate adapter now obtains claim-free
+primitive code through shared callable fronts and the counted archive compiler.
+WIP-0516 still requires original claim and global binding, coordinate joins, and
+native frame extraction. The outer runner handoff remains separate. Carrier
+rewriting uses private rows until composition succeeds. Value binding and
+operation resolution have separate bounded phases. The adapter validates every
+output backing before owned staging allocation and constructs its report before copying
 caller outputs, including carriers, artifacts, identities, and supplemental code.
-Its calculated workspace reserves 2,268,704 bytes with 40 lifetime buffer IDs.
+Its calculated workspace reserves 2,268,704 bytes with 39 lifetime buffer IDs.
+The counted compiler borrows the selected carrier window without an additional
+exact-source allocation. The remaining adapter frame still exceeds 256 locals.
 
 The counted archive compiler accepts an empty qualifier from the shared source
 front. Class-only sources retain bare callable and claim names. Named modules
 retain `module::callable`, and library intent still adds `$library`. Empty ranges
 receive the same backing and endpoint checks as nonempty ranges. This removes
-one naming prerequisite for WIP-0516, not the aggregate adapter's minimal call.
+the naming prerequisite for the aggregate adapter's counted primitive call.
 The verifier's 24-function publication bound remains distinct from 64 callable
 staging rows. Block comments use the existing scanner input bound rather than
-a separate 256-iteration cap.
+a separate 256-iteration cap. Local target binding walks the complete qualified
+name using `256 + 2 + 256` bytes, not the bound for one component. Both the module
+qualifier and callable identifier still have independent 256-byte limits.
 
 `SourceAggregateProducts.w` admits enums as nonempty, payload-free variants.
 Enum tags follow lexical case-name order, while ordinary variants keep declaration

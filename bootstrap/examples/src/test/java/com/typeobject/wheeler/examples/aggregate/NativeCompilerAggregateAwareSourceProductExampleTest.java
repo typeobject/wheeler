@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.examples.aggregate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.Program;
@@ -11,6 +12,7 @@ import com.typeobject.wheeler.examples.CoreSources;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -25,8 +27,22 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
   @Test
   void compilesPrimitiveBodiesAfterNominalValidationWithoutRetainingScaffolding()
       throws Exception {
+    Program compiler = program(/* importedKind= */ 1);
+    assertTrue(compiler.functions().stream().noneMatch(function -> function.name().contains("compileMinimal")));
+    long frameCapacity = compiler.globals().stream().filter(global -> global.name().equals("frameCapacity"))
+        .findFirst().orElseThrow().initialValue();
+    for (String phase : List.of("aggregate_primitive_compiler::", "aggregate_source_bindings::",
+        "structured_source_targets::",
+        "aggregate_compiled_callable_bodies::copyPublished",
+        "aggregate_compiled_callable_bodies::requirePublicationBackings")) {
+      var functions = compiler.functions().stream().filter(function -> function.name().contains(phase)).toList();
+      assertTrue(!functions.isEmpty(), phase);
+      for (var function : functions) {
+        assertTrue(function.localCount() <= frameCapacity, function.name() + " locals=" + function.localCount());
+      }
+    }
     VirtualMachine machine = VirtualMachine.withBinaryInput(
-        program(/* importedKind= */ 1), SOURCE.getBytes(StandardCharsets.US_ASCII), 32_768);
+        compiler, SOURCE.getBytes(StandardCharsets.US_ASCII), 32_768);
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
@@ -106,9 +122,13 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
         module example.aggregate_aware_source_product;
 
         import wheeler.compiler.closure.aggregate_compiled_callable_bodies;
+        import wheeler.compiler.constant_product_schema;
+        import wheeler.compiler.opcodes;
+        import wheeler.compiler.packages.manifest_kinds;
 
         classical class AggregateAwareSourceProductExample {
           state long published = 0;
+          state long frameCapacity = INTERPRETER_LOCAL_WIDTH;
           state long prepared = 0;
           state long completed = 0;
           state long functionCount = 0;
@@ -180,6 +200,9 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             words parameterTypes = allocate(rows, /* length= */ 16384);
             words parameterModes = allocate(rows, /* length= */ 16384);
             bytes identity = allocateBytes(rows, /* length= */ 32);
+            words scalars = allocate(rows, /* length= */ CONSTANT_PRODUCT_ROWS);
+            words scalarNameStarts = allocate(rows, /* length= */ MAX_CONSTANT_PRODUCTS);
+            bytes scalarNames = allocateBytes(rows, /* length= */ 1);
             set(localCallableBodyStarts, 0, %d);
             set(localCallableBodyLengths, 0, %d);
             set(localAggregates, 0, 1);
@@ -264,11 +287,22 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             set(references, 128, 3);
             set(references, 192, 1);
             set(importedAggregates, 3, %d);
+            AggregateSourceRequest request = new AggregateSourceRequest(
+              PACKAGE_TARGET_LIBRARY,
+              /* sourceStart= */ 0,
+              /* sourceLength= */ %d,
+              SOURCE_CLASS_START,
+              /* classNameLength= */ 4,
+              /* constantCount= */ 0,
+              /* moduleOwner= */ 9
+            );
             prepared = 1;
             AggregateCompiledCallableBody compiled = compileAggregateSourceModuleProductWithImports(
               input,
-              /* sourceStart= */ 0,
-              /* sourceLength= */ %d,
+              request,
+              scalars,
+              scalarNames,
+              scalarNameStarts,
               /* aggregateCount= */ 2,
               localAggregates,
               /* localCaseCount= */ 1,
@@ -301,7 +335,6 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
               composedFunctions,
               composedInstructions,
               artifactSelectors,
-              /* moduleOwner= */ 9,
               /* firstRecordTypeId= */ 1,
               /* firstVariantTypeId= */ 0,
               /* nominalReferenceCount= */ 1,
@@ -353,6 +386,9 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             firstSourceStatementStart = localStatements[16384];
             published = 1;
             setOutputLength(output, compiled.length);
+            drop(scalarNames);
+            drop(scalarNameStarts);
+            drop(scalars);
             drop(identity);
             drop(parameterModes);
             drop(parameterTypes);
@@ -426,19 +462,20 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             referenceStart,
             importedKind,
             SOURCE.length()));
-    sources.compute("AggregateAwareSourceProductExample.w", (path, source) -> driverChange.apply(calculatedArena(source)));
+    sources.compute("AggregateAwareSourceProductExample.w", (path, source) -> driverChange.apply(calculatedArena(
+        source.replace("SOURCE_CLASS_START", Integer.toString(SOURCE.indexOf("Root"))))));
     return new com.typeobject.wheeler.compiler.WheelerCompiler().compileModuleFiles(
         sources, "example.aggregate_aware_source_product");
   }
 
   private static String calculatedArena(String source) {
-    var allocations = Pattern.compile("words \\w+ = allocate\\(rows, /\\* length= \\*/ (\\d+)\\)").matcher(source);
+    var allocations = Pattern.compile("words \\w+ = allocate\\(rows, /\\* length= \\*/ ([A-Z_0-9]+)\\)").matcher(source);
     var words = new ArrayList<String>();
     while (allocations.find()) words.add(allocations.group(1));
     String constants = "const long ARENA_WORDS = " + String.join(" + ", words) + ";\n"
         + "const long EXTRA_WORDS = 0;\n"
-        + "const long ARENA_BYTES = (ARENA_WORDS + EXTRA_WORDS) * " + Long.BYTES + " + 12288 + 32;\n"
-        + "const long ARENA_BUFFERS = " + words.size() + " + 2;\n";
+        + "const long ARENA_BYTES = (ARENA_WORDS + EXTRA_WORDS) * " + Long.BYTES + " + 12288 + 32 + 1;\n"
+        + "const long ARENA_BUFFERS = " + words.size() + " + 3;\n";
     return source.replace("state long published = 0;", constants + "state long published = 0;");
   }
 }

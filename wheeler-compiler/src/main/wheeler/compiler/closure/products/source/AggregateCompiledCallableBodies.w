@@ -2,35 +2,28 @@
 
 module wheeler.compiler.closure.aggregate_compiled_callable_bodies;
 
-import wheeler.compiler.closure.aggregate_constructor_targets;
 import wheeler.compiler.closure.aggregate_expression_projection;
-import wheeler.compiler.closure.aggregate_expression_temporaries;
-import wheeler.compiler.closure.aggregate_frontend_bindings;
-import wheeler.compiler.closure.aggregate_indexed_owners;
 import wheeler.compiler.closure.aggregate_instruction_composition;
 import wheeler.compiler.closure.aggregate_instruction_products;
 import wheeler.compiler.closure.aggregate_placeholder_placements;
-import wheeler.compiler.closure.aggregate_projection_targets;
-import wheeler.compiler.closure.aggregate_resolved_operands;
-import wheeler.compiler.closure.aggregate_source_owners;
+import wheeler.compiler.closure.aggregate_primitive_compiler;
+import wheeler.compiler.closure.aggregate_source_bindings;
 import wheeler.compiler.closure.aggregate_source_projection;
-import wheeler.compiler.closure.compiled_callable_bodies;
 import wheeler.compiler.closure.compiled_function_products;
 import wheeler.compiler.closure.imported_callable_stubs;
 import wheeler.compiler.closure.imported_nominal_carrier_projections;
 import wheeler.compiler.closure.imported_nominal_references;
-import wheeler.compiler.closure.local_nominal_carrier_projections;
 import wheeler.compiler.closure.local_nominal_carriers;
 import wheeler.compiler.closure.primitive_placeholder_projection;
-import wheeler.compiler.closure.resolved_aggregate_operations;
-import wheeler.compiler.closure.source_statement_products;
-import wheeler.compiler.closure.source_value_products;
+import wheeler.compiler.closure.source_product_artifact;
 
 classical class AggregateCompiledCallableBodies {
   private const long IDENTITY_BYTES = 32;
   private const long MAX_CALLABLE_ARTIFACT_BYTES = 32768;
   private const long MAX_CALLABLE_SOURCE_BYTES = 32768;
   private const long WORD_BYTES = 8;
+  private const long MAX_SOURCE_ROWS = 4096;
+  private const long FUNCTION_COLUMNS = 10;
   private const long MAX_LOCAL_REFERENCES = 512;
   private const long CARRIER_COLUMNS = 4;
   private const long CARRIER_ROWS = MAX_LOCAL_REFERENCES * CARRIER_COLUMNS;
@@ -46,16 +39,90 @@ classical class AggregateCompiledCallableBodies {
   private const long STAGING_WORDS = SOURCE_PRODUCT_ROWS + LOCAL_PROJECTION_ROWS + CARRIER_ROWS
     + BINDING_ROWS + OPERATION_ROWS + COMPOSITION_ROWS + IMPORT_PROJECTION_ROWS;
   private const long SUPPLEMENTAL_BYTES = 12288;
-  // The original and six projected sources coexist. Drop them before exact-source compilation.
+  // The original and six projected sources coexist during the admitted binding phases.
   private const long PEAK_SOURCE_BUFFERS = 7;
   private const long STAGING_BYTES = STAGING_WORDS * WORD_BYTES + PEAK_SOURCE_BUFFERS
     * MAX_CALLABLE_SOURCE_BYTES + MAX_CALLABLE_ARTIFACT_BYTES + SUPPLEMENTAL_BYTES + IDENTITY_BYTES;
   // Source products, local projections/carriers, bindings, operations, composition, imports.
   private const long WORD_BUFFERS = 5 + 2 + 6 + 6 + 8 + 2;
   private const long CODE_BUFFERS = 3;
-  private const long SOURCE_BUFFER_IDENTITIES = PEAK_SOURCE_BUFFERS + 1;
+  private const long SOURCE_BUFFER_IDENTITIES = PEAK_SOURCE_BUFFERS;
   private const long STAGING_BUFFER_IDENTITIES = WORD_BUFFERS + CODE_BUFFERS
     + SOURCE_BUFFER_IDENTITIES;
+
+  // Call only after validating every backing and producer extent and constructing the report.
+  // These copies allocate no storage and introduce no late semantic validation.
+  private void copyPublishedWords(
+    long rowCount,
+    long columnCount,
+    borrow mut words source,
+    borrow mut words output
+  ) {
+    long stride = bufferLength(source) / columnCount;
+    long column = 0;
+    while (column < columnCount) limit FUNCTION_COLUMNS {
+      long row = 0;
+      while (row < rowCount) limit MAX_SOURCE_ROWS {
+        long cell = column * stride + row;
+        set(output, cell, source[cell]);
+        row += 1;
+      }
+
+      column += 1;
+    }
+  }
+
+  private void copyPublishedBytes(long length, borrow byteview source, borrow mut bytes output) {
+    long byte = 0;
+    while (byte < length) limit MAX_CALLABLE_ARTIFACT_BYTES {
+      setByte(output, byte, source[byte]);
+      byte += 1;
+    }
+  }
+
+  private void requirePublicationBackings(
+    borrow mut words localNominalProjectionRows,
+    borrow mut words localCarrierRows,
+    borrow mut words localStatementRows,
+    borrow mut words localValueRows,
+    borrow mut words localFunctionLocalCounts,
+    borrow mut words localDestinationRows,
+    borrow mut words localOwnerRows,
+    borrow mut words localArgumentRows,
+    borrow mut words localPlacementRows,
+    borrow mut words localConstructorTargetRows,
+    borrow mut words localProjectionTargetRows,
+    borrow mut words localResolvedOperationRows,
+    borrow mut words localComposedFunctionRows,
+    borrow mut words localComposedInstructionRows,
+    borrow mut words localArtifactSelectors,
+    borrow mut words nominalProjectionRows,
+    borrow mut words carrierProjectionRows,
+    borrow mut bytes supplementalCode,
+    borrow mut bytes artifact,
+    borrow mut bytes identity
+  ) {
+    assert(bufferLength(localNominalProjectionRows) == LOCAL_PROJECTION_ROWS);
+    assert(bufferLength(localCarrierRows) == CARRIER_ROWS);
+    assert(bufferLength(localStatementRows) == MAX_SOURCE_ROWS * 6);
+    assert(bufferLength(localValueRows) == 1024 * 7);
+    assert(bufferLength(localFunctionLocalCounts) == 64);
+    assert(bufferLength(localDestinationRows) == 256);
+    assert(bufferLength(localOwnerRows) == 256);
+    assert(bufferLength(localArgumentRows) == 1024);
+    assert(bufferLength(localPlacementRows) == 256 * 3);
+    assert(bufferLength(localConstructorTargetRows) == 256 * 3);
+    assert(bufferLength(localProjectionTargetRows) == 256 * 4);
+    assert(bufferLength(localResolvedOperationRows) == 256 * 6);
+    assert(bufferLength(localComposedFunctionRows) == 64 * FUNCTION_COLUMNS);
+    assert(bufferLength(localComposedInstructionRows) == MAX_SOURCE_ROWS * 6);
+    assert(bufferLength(localArtifactSelectors) == MAX_SOURCE_ROWS);
+    assert(bufferLength(nominalProjectionRows) == 16384 * 3);
+    assert(bufferLength(carrierProjectionRows) == 16384 * 4);
+    assert(bufferLength(supplementalCode) == SUPPLEMENTAL_BYTES);
+    assert(bufferLength(artifact) == MAX_CALLABLE_ARTIFACT_BYTES);
+    assert(bufferLength(identity) == IDENTITY_BYTES);
+  }
 
   /// Reports one primitive product and its source-local aggregate code product.
   public record AggregateCompiledCallableBody(
@@ -67,11 +134,25 @@ classical class AggregateCompiledCallableBodies {
     long composedInstructionCount
   ) {}
 
+  /// Names the original archive window and its closed compilation intent.
+  /// Class coordinates stay archive-relative, not relative to a rewritten body.
+  public record AggregateSourceRequest(
+    long targetKind,
+    long sourceStart,
+    long sourceLength,
+    long classNameStart,
+    long classNameLength,
+    long constantCount,
+    long moduleOwner
+  ) {}
+
   /// Compiles one aggregate-aware local class against counted import products.
   public AggregateCompiledCallableBody compileAggregateSourceModuleProductWithImports(
     borrow byteview sourceArchive,
-    long sourceStart,
-    long sourceLength,
+    AggregateSourceRequest request,
+    borrow mut words constants,
+    borrow byteview constantNames,
+    borrow mut words constantNameStarts,
     long aggregateCount,
     borrow mut words aggregateRows,
     long localCaseCount,
@@ -104,7 +185,6 @@ classical class AggregateCompiledCallableBodies {
     borrow mut words localComposedFunctionRows,
     borrow mut words localComposedInstructionRows,
     borrow mut words localArtifactSelectors,
-    long moduleOwner,
     long firstRecordTypeId,
     long firstVariantTypeId,
     long nominalReferenceCount,
@@ -125,15 +205,42 @@ classical class AggregateCompiledCallableBodies {
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
-    assert(bufferLength(artifact) == MAX_CALLABLE_ARTIFACT_BYTES);
-    assert(bufferLength(supplementalCode) == SUPPLEMENTAL_BYTES);
-    assert(bufferLength(localCarrierRows) == CARRIER_ROWS);
-    assert(bufferLength(identity) == IDENTITY_BYTES);
+    long sourceStart = request.sourceStart;
+    long sourceLength = request.sourceLength;
+    long classNameStart = request.classNameStart;
+    long classNameLength = request.classNameLength;
+    long moduleOwner = request.moduleOwner;
+    requirePublicationBackings(
+      localNominalProjectionRows,
+      localCarrierRows,
+      localStatementRows,
+      localValueRows,
+      localFunctionLocalCounts,
+      localDestinationRows,
+      localOwnerRows,
+      localArgumentRows,
+      localPlacementRows,
+      localConstructorTargetRows,
+      localProjectionTargetRows,
+      localResolvedOperationRows,
+      localComposedFunctionRows,
+      localComposedInstructionRows,
+      localArtifactSelectors,
+      nominalProjectionRows,
+      carrierProjectionRows,
+      supplementalCode,
+      artifact,
+      identity
+    );
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
     assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
     assert(sourceStart < bufferLength(sourceArchive) + 1);
     assert(sourceLength < bufferLength(sourceArchive) - sourceStart + 1);
+    assert(classNameStart < sourceStart + sourceLength);
+    assert(sourceStart < classNameStart + 1);
+    assert(0 < classNameLength);
+    assert(classNameLength < sourceStart + sourceLength - classNameStart + 1);
     region sourceArena = new region(STAGING_BYTES, STAGING_BUFFER_IDENTITIES);
     bytes originalSource = allocateBytes(sourceArena, sourceLength);
     words stagedStatements = allocate(sourceArena, /* length= */ 24576);
@@ -174,22 +281,6 @@ classical class AggregateCompiledCallableBodies {
     bytes carrierSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     words stagedProjections = allocate(sourceArena, /* length= */ 49152);
     words stagedCarrierProjections = allocate(sourceArena, /* length= */ 65536);
-    assert(bufferLength(localNominalProjectionRows) == 4096);
-    assert(bufferLength(nominalProjectionRows) == 49152);
-    assert(bufferLength(carrierProjectionRows) == 65536);
-    assert(bufferLength(localStatementRows) == 24576);
-    assert(bufferLength(localValueRows) == 7168);
-    assert(bufferLength(localFunctionLocalCounts) == 64);
-    assert(bufferLength(localDestinationRows) == 256);
-    assert(bufferLength(localOwnerRows) == 256);
-    assert(bufferLength(localArgumentRows) == 1024);
-    assert(bufferLength(localPlacementRows) == 768);
-    assert(bufferLength(localConstructorTargetRows) == 768);
-    assert(bufferLength(localProjectionTargetRows) == 1024);
-    assert(bufferLength(localResolvedOperationRows) == 1536);
-    assert(bufferLength(localComposedFunctionRows) == 640);
-    assert(bufferLength(localComposedInstructionRows) == 24576);
-    assert(bufferLength(localArtifactSelectors) == 4096);
     long sliceDescriptor = 0;
     while (sliceDescriptor < operationCount) limit 256 {
       set(stagedSliceDescriptors, sliceDescriptor, -1);
@@ -203,150 +294,61 @@ classical class AggregateCompiledCallableBodies {
     }
 
     utf8 originalUtf8 = freezeUtf8(originalSource);
-    SourceStatementProductPlan sourceStatements = materializeSourceStatementProducts(
+    AggregateSourceValuePlan sourceValues = bindAggregateSourceValues(
       originalUtf8,
+      sourceArchive,
       sourceStart,
       firstLocalCallable,
       localCallableCount,
       localCallableBodyStarts,
       localCallableBodyLengths,
-      stagedStatements
-    );
-    assert(sourceStatements.valid);
-    SourceValueProductPlan sourceValues = materializeSourceValueProducts(
-      originalUtf8,
-      /* globalNames= */ sourceArchive,
-      /* globalCount= */ 0,
-      /* globalProductStart= */ 0,
-      /* globals= */ operationRows,
-      sourceStart,
-      firstLocalCallable,
-      localCallableCount,
-      /* reversibleCallableCount= */ 0,
-      localCallableBodyStarts,
-      sourceStatements.statementCount,
-      stagedStatements,
-      /* statementStartRow= */ 16384,
-      /* statementLengthRow= */ 20480,
-      stagedValues,
-      stagedLocalCounts,
-      stagedStatementLocals
-    );
-    assert(sourceValues.valid);
-    AggregateExpressionTemporaryPlan expressionValues = appendAggregateExpressionTemporaries(
-      operationCount,
-      operationRows,
-      sourceStatements.statementCount,
-      stagedStatements,
-      sourceValues.valueCount,
-      stagedValues,
-      stagedLocalCounts
-    );
-    assert(expressionValues.valid);
-    AggregateFrontendBindingPlan frontendBindings = projectAggregateFrontendBindings(
-      originalUtf8,
       operationCount,
       operationRows,
       argumentCount,
       argumentRows,
-      expressionValues.valueCount,
-      stagedValues,
-      sourceStatements.statementCount,
-      stagedStatements,
-      stagedDestinations,
-      stagedOwners,
-      stagedArguments,
-      stagedPlacements
-    );
-    assert(frontendBindings.valid);
-    boolean constructorTargetsValid = resolveLocalAggregateConstructorTargets(
-      originalUtf8,
-      operationCount,
-      operationRows,
       aggregateCount,
       aggregateRows,
       localCaseCount,
       localCaseRows,
-      stagedConstructorTargets
-    );
-    assert(constructorTargetsValid);
-    LocalNominalCarrierProjectionPlan localProjectionPlan = publishLocalNominalCarrierProjections(
-      originalUtf8,
       localNominalReferenceCount,
       localNominalReferenceRows,
-      expressionValues.valueCount,
+      stagedStatements,
       stagedValues,
-      operationCount,
-      operationRows,
-      stagedLocalProjections
-    );
-    assert(localProjectionPlan.valid);
-    AggregateSourceOwnerPlan sourceOwners = deriveAggregateSourceOwners(
-      operationCount,
-      operationRows,
-      stagedDestinations,
-      stagedOwners,
-      stagedPlacements,
-      localProjectionPlan.projectionCount,
+      stagedLocalCounts,
+      stagedStatementLocals,
       stagedLocalProjections,
-      stagedConstructorTargets,
-      stagedOwnerAggregates,
-      stagedOwnerCases
-    );
-    assert(sourceOwners.valid);
-    AggregateIndexedOwnerPlan indexedOwners = deriveAggregateIndexedOwners(
-      originalUtf8,
-      operationCount,
-      operationRows,
       stagedDestinations,
       stagedOwners,
+      stagedArguments,
       stagedPlacements,
-      expressionValues.valueCount,
-      stagedValues,
-      stagedValueStructures,
-      aggregateCount,
-      aggregateRows,
-      localCaseCount,
-      localCaseRows,
-      localMemberCount,
-      localMemberRows,
-      stagedOwnerAggregates,
-      stagedOwnerCases,
-      stagedSliceDescriptors
+      stagedConstructorTargets
     );
-    assert(indexedOwners.valid);
-    boolean projectionTargetsValid = resolveLocalAggregateProjectionTargets(
+    AggregateInstructionProductPlan supplementalProduct = resolveAggregateSourceOperations(
       originalUtf8,
-      operationCount,
-      operationRows,
-      aggregateCount,
-      aggregateRows,
-      localCaseCount,
-      localCaseRows,
-      localMemberCount,
-      localMemberRows,
-      stagedOwnerAggregates,
-      stagedOwnerCases,
-      stagedProjectionTargets
-    );
-    assert(projectionTargetsValid);
-    boolean resolvedOperandsValid = assembleAggregateResolvedOperands(
       operationCount,
       operationRows,
       argumentCount,
       argumentRows,
-      stagedArguments,
-      stagedConstructorTargets,
-      stagedProjectionTargets,
+      aggregateCount,
+      aggregateRows,
+      localCaseCount,
+      localCaseRows,
+      localMemberCount,
+      localMemberRows,
+      sourceValues.valueCount,
+      sourceValues.projectionCount,
+      stagedValues,
+      stagedValueStructures,
+      stagedLocalProjections,
       stagedDestinations,
       stagedOwners,
+      stagedArguments,
+      stagedPlacements,
+      stagedConstructorTargets,
+      stagedOwnerAggregates,
+      stagedOwnerCases,
+      stagedProjectionTargets,
       stagedSliceDescriptors,
-      stagedResolvedOperations
-    );
-    assert(resolvedOperandsValid);
-    AggregateInstructionProductPlan supplementalProduct = writeResolvedSourceAggregateInstructions(
-      operationCount,
-      operationRows,
       stagedResolvedOperations,
       stagedSupplementalCode
     );
@@ -436,24 +438,26 @@ classical class AggregateCompiledCallableBodies {
     );
     assert(carriers.referenceCount == nominalReferenceCount);
     assert(nominals.projectionCount < nominalReferenceCount + 1);
-    bytes exactSource = allocateBytes(sourceArena, carriers.length);
-    long sourceByte = 0;
-    while (sourceByte < carriers.length) limit MAX_CALLABLE_SOURCE_BYTES {
-      setByte(exactSource, sourceByte, carrierSource[sourceByte]);
-      sourceByte += 1;
-    }
-
-    drop(carrierSource);
     drop(nominalSource);
     drop(stubSource);
     drop(localCarrierSource);
     drop(expressionSource);
     drop(projectedSource);
-    CompiledCallableBody result = compileExactProductSource(
-      exactSource,
+    SourceProductArtifactPlan result = compileAggregatePrimitiveSource(
+      request.targetKind,
+      carrierSource,
+      /* sourceStart= */ 0,
+      carriers.length,
+      classNameStart - sourceStart,
+      classNameLength,
+      request.constantCount,
+      constants,
+      constantNames,
+      constantNameStarts,
       stagedArtifact,
       stagedIdentity
     );
+    drop(carrierSource);
     CompiledFunctionPlan primitiveFunctions = indexCompiledFunctionProducts(
       stagedArtifact,
       result.length,
@@ -524,225 +528,56 @@ classical class AggregateCompiledCallableBodies {
       supplementalProduct.length,
       composition.instructionCount
     );
-    long carrierColumn = 0;
-    while (carrierColumn < CARRIER_COLUMNS) limit CARRIER_COLUMNS {
-      long carrierRow = 0;
-      while (carrierRow < localNominalReferenceCount) limit MAX_LOCAL_REFERENCES {
-        long carrierCell = carrierColumn * MAX_LOCAL_REFERENCES + carrierRow;
-        set(localCarrierRows, carrierCell, stagedLocalCarriers[carrierCell]);
-        carrierRow += 1;
-      }
-
-      carrierColumn += 1;
-    }
-
-    long artifactByte = 0;
-    while (artifactByte < result.length) limit MAX_CALLABLE_ARTIFACT_BYTES {
-      setByte(artifact, artifactByte, stagedArtifact[artifactByte]);
-      artifactByte += 1;
-    }
-
-    long identityByte = 0;
-    while (identityByte < IDENTITY_BYTES) limit IDENTITY_BYTES {
-      setByte(identity, identityByte, stagedIdentity[identityByte]);
-      identityByte += 1;
-    }
-
-    long nominalColumn = 0;
-    while (nominalColumn < 3) limit 3 {
-      long nominalProjection = 0;
-      while (nominalProjection < nominals.projectionCount) limit 4096 {
-        set(
-          nominalProjectionRows,
-          nominalColumn * 16384 + nominalProjection,
-          stagedProjections[nominalColumn * 16384 + nominalProjection]
-        );
-        nominalProjection += 1;
-      }
-
-      nominalColumn += 1;
-    }
-
-    long constructorColumn = 0;
-    while (constructorColumn < 3) limit 3 {
-      long constructorTarget = 0;
-      while (constructorTarget < operationCount) limit 256 {
-        set(
-          localConstructorTargetRows,
-          constructorColumn * 256 + constructorTarget,
-          stagedConstructorTargets[constructorColumn * 256 + constructorTarget]
-        );
-        constructorTarget += 1;
-      }
-
-      constructorColumn += 1;
-    }
-
-    long composedFunctionColumn = 0;
-    while (composedFunctionColumn < 10) limit 10 {
-      long composedFunction = 0;
-      while (composedFunction < primitiveFunctions.functionCount) limit 64 {
-        set(
-          localComposedFunctionRows,
-          composedFunctionColumn * 64 + composedFunction,
-          stagedComposedFunctions[composedFunctionColumn * 64 + composedFunction]
-        );
-        composedFunction += 1;
-      }
-
-      composedFunctionColumn += 1;
-    }
-
-    long composedInstructionColumn = 0;
-    while (composedInstructionColumn < 6) limit 6 {
-      long composedInstruction = 0;
-      while (composedInstruction < composition.instructionCount) limit 4096 {
-        set(
-          localComposedInstructionRows,
-          composedInstructionColumn * 4096 + composedInstruction,
-          stagedComposedInstructions[composedInstructionColumn * 4096 + composedInstruction]
-        );
-        composedInstruction += 1;
-      }
-
-      composedInstructionColumn += 1;
-    }
-
-    long artifactSelector = 0;
-    while (artifactSelector < composition.instructionCount) limit 4096 {
-      set(localArtifactSelectors, artifactSelector, stagedArtifactSelectors[artifactSelector]);
-      artifactSelector += 1;
-    }
-
-    long supplementalByte = 0;
-    while (supplementalByte < supplementalProduct.length) limit 12288 {
-      setByte(supplementalCode, supplementalByte, stagedSupplementalCode[supplementalByte]);
-      supplementalByte += 1;
-    }
-
-    long resolvedOperationColumn = 0;
-    while (resolvedOperationColumn < 6) limit 6 {
-      long resolvedOperation = 0;
-      while (resolvedOperation < operationCount) limit 256 {
-        set(
-          localResolvedOperationRows,
-          resolvedOperationColumn * 256 + resolvedOperation,
-          stagedResolvedOperations[resolvedOperationColumn * 256 + resolvedOperation]
-        );
-        resolvedOperation += 1;
-      }
-
-      resolvedOperationColumn += 1;
-    }
-
-    long projectionTargetColumn = 0;
-    while (projectionTargetColumn < 4) limit 4 {
-      long projectionTarget = 0;
-      while (projectionTarget < operationCount) limit 256 {
-        set(
-          localProjectionTargetRows,
-          projectionTargetColumn * 256 + projectionTarget,
-          stagedProjectionTargets[projectionTargetColumn * 256 + projectionTarget]
-        );
-        projectionTarget += 1;
-      }
-
-      projectionTargetColumn += 1;
-    }
-
-    long bindingRow = 0;
-    while (bindingRow < operationCount) limit 256 {
-      set(localDestinationRows, bindingRow, stagedDestinations[bindingRow]);
-      set(localOwnerRows, bindingRow, stagedOwners[bindingRow]);
-      bindingRow += 1;
-    }
-
-    bindingRow = 0;
-    while (bindingRow < argumentCount) limit 1024 {
-      set(localArgumentRows, bindingRow, stagedArguments[bindingRow]);
-      bindingRow += 1;
-    }
-
-    long placementColumn = 0;
-    while (placementColumn < 3) limit 3 {
-      bindingRow = 0;
-      while (bindingRow < operationCount) limit 256 {
-        set(
-          localPlacementRows,
-          placementColumn * 256 + bindingRow,
-          stagedPlacements[placementColumn * 256 + bindingRow]
-        );
-        bindingRow += 1;
-      }
-
-      placementColumn += 1;
-    }
-
-    long localProjectionColumn = 0;
-    while (localProjectionColumn < 8) limit 8 {
-      long localProjection = 0;
-      while (localProjection < localProjectionPlan.projectionCount) limit 512 {
-        set(
-          localNominalProjectionRows,
-          localProjectionColumn * 512 + localProjection,
-          stagedLocalProjections[localProjectionColumn * 512 + localProjection]
-        );
-        localProjection += 1;
-      }
-
-      localProjectionColumn += 1;
-    }
-
-    long valueColumn = 0;
-    while (valueColumn < 7) limit 7 {
-      long valueRow = 0;
-      while (valueRow < expressionValues.valueCount) limit 1024 {
-        set(
-          localValueRows,
-          valueColumn * 1024 + valueRow,
-          stagedValues[valueColumn * 1024 + valueRow]
-        );
-        valueRow += 1;
-      }
-
-      valueColumn += 1;
-    }
-
-    long localCountRow = 0;
-    while (localCountRow < localCallableCount) limit 64 {
-      set(localFunctionLocalCounts, localCountRow, stagedLocalCounts[localCountRow]);
-      localCountRow += 1;
-    }
-
-    long statementColumn = 0;
-    while (statementColumn < 6) limit 6 {
-      long statementRow = 0;
-      while (statementRow < sourceStatements.statementCount) limit 4096 {
-        set(
-          localStatementRows,
-          statementColumn * 4096 + statementRow,
-          stagedStatements[statementColumn * 4096 + statementRow]
-        );
-        statementRow += 1;
-      }
-
-      statementColumn += 1;
-    }
-
-    long carrierProjectionColumn = 0;
-    while (carrierProjectionColumn < 4) limit 4 {
-      long carrierProjection = 0;
-      while (carrierProjection < carrierProjectionPlan.projectionCount) limit 4096 {
-        set(
-          carrierProjectionRows,
-          carrierProjectionColumn * 16384 + carrierProjection,
-          stagedCarrierProjections[carrierProjectionColumn * 16384 + carrierProjection]
-        );
-        carrierProjection += 1;
-      }
-
-      carrierProjectionColumn += 1;
-    }
+    copyPublishedWords(
+      localNominalReferenceCount,
+      CARRIER_COLUMNS,
+      stagedLocalCarriers,
+      localCarrierRows
+    );
+    copyPublishedBytes(result.length, stagedArtifact, artifact);
+    copyPublishedBytes(IDENTITY_BYTES, stagedIdentity, identity);
+    copyPublishedWords(nominals.projectionCount, 3, stagedProjections, nominalProjectionRows);
+    copyPublishedWords(operationCount, 3, stagedConstructorTargets, localConstructorTargetRows);
+    copyPublishedWords(
+      primitiveFunctions.functionCount,
+      FUNCTION_COLUMNS,
+      stagedComposedFunctions,
+      localComposedFunctionRows
+    );
+    copyPublishedWords(
+      composition.instructionCount,
+      6,
+      stagedComposedInstructions,
+      localComposedInstructionRows
+    );
+    copyPublishedWords(
+      composition.instructionCount,
+      1,
+      stagedArtifactSelectors,
+      localArtifactSelectors
+    );
+    copyPublishedBytes(supplementalProduct.length, stagedSupplementalCode, supplementalCode);
+    copyPublishedWords(operationCount, 6, stagedResolvedOperations, localResolvedOperationRows);
+    copyPublishedWords(operationCount, 4, stagedProjectionTargets, localProjectionTargetRows);
+    copyPublishedWords(operationCount, 1, stagedDestinations, localDestinationRows);
+    copyPublishedWords(operationCount, 1, stagedOwners, localOwnerRows);
+    copyPublishedWords(argumentCount, 1, stagedArguments, localArgumentRows);
+    copyPublishedWords(operationCount, 3, stagedPlacements, localPlacementRows);
+    copyPublishedWords(
+      sourceValues.projectionCount,
+      8,
+      stagedLocalProjections,
+      localNominalProjectionRows
+    );
+    copyPublishedWords(sourceValues.valueCount, 7, stagedValues, localValueRows);
+    copyPublishedWords(localCallableCount, 1, stagedLocalCounts, localFunctionLocalCounts);
+    copyPublishedWords(sourceValues.statementCount, 6, stagedStatements, localStatementRows);
+    copyPublishedWords(
+      carrierProjectionPlan.projectionCount,
+      4,
+      stagedCarrierProjections,
+      carrierProjectionRows
+    );
 
     drop(stagedCarrierProjections);
     drop(stagedProjections);

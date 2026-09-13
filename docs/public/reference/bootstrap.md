@@ -209,11 +209,20 @@ Callable coordinate staging now uses the shared member, modifier, parameter, and
 type fronts. It preserves source-relative module names and archive-relative
 callable and parameter ranges. Its mutable columns are private scratch, not
 published products. The closure owner validates every module before publishing
-rows and reports. Neither this staging boundary nor entry binding removes the
-aggregate adapter's remaining minimal compiler dependency. That adapter keeps
-carrier rows private through compilation and composition. It constructs the
-complete report before publishing any caller output. Late nominal rejection
-preserves every caller buffer, not just the artifact and identity.
+rows and reports. The aggregate adapter consumes this staging boundary through
+its counted, claim-free primitive compiler. Original claims and globals still
+need their aggregate coordinate joins before final nominal publication. The
+adapter keeps carrier rows private through compilation and composition. Separate
+phases bind original values and resolve supplemental operations. The adapter
+validates every output backing before owned staging allocation, then constructs
+the complete report before publishing any caller output. The counted compiler
+borrows its selected source window without an additional exact-source copy.
+Late nominal rejection preserves every caller buffer, not just the artifact and
+identity. The remaining aggregate orchestrator still needs native frame extraction.
+
+Local target binding handles the complete qualified name. Its byte walk uses
+the sum of the qualifier bound, the `::` separator, and the identifier bound:
+`256 + 2 + 256`. Neither name component may exceed 256 bytes.
 
 Root manifest facts now reach final emission as an immutable product, not a
 borrowed artifact view. Source-local emission shares its byte encoder. Name and

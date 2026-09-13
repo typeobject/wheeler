@@ -2,12 +2,16 @@
 
 module wheeler.compiler.closure.structured_source_targets;
 
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.source_member_modifiers;
 import wheeler.compiler.type_codes;
 import wheeler.crypto.sha256;
 
 classical class StructuredSourceTargets {
   private const long MAX_CALLABLES = 64;
+  private const long QUALIFICATION_SEPARATOR_BYTES = 2;
+  private const long MAX_TARGET_NAME_BYTES = MAX_QUALIFIED_NAME_BYTES
+    + QUALIFICATION_SEPARATOR_BYTES + MAX_QUALIFIED_NAME_BYTES;
 
   /// Reports one complete local target name and signature table.
   public record LocalStructuredTargetPlan(long parameterCount, boolean valid) {}
@@ -98,11 +102,14 @@ classical class StructuredSourceTargets {
       assert(name < stringCount);
       long nameStart = stringStarts[name];
       long nameLength = stringLengths[name];
+      assert(-1 < nameStart);
       assert(nameStart < stringBytes);
+      assert(0 < nameLength);
+      assert(nameLength < MAX_TARGET_NAME_BYTES + 1);
       assert(nameLength < stringBytes - nameStart + 1);
       long simpleStart = nameStart;
       long nameByte = 0;
-      while (nameByte + 1 < nameLength) limit 256 {
+      while (nameByte + 1 < nameLength) limit MAX_TARGET_NAME_BYTES {
         if (strings[nameStart + nameByte] == 58) {
           if (strings[nameStart + nameByte + 1] == 58) {
             simpleStart = nameStart + nameByte + 2;

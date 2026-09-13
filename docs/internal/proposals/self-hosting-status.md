@@ -535,8 +535,9 @@ workspace agree. A locked consumer stages the intact mixed-member source within
 the unchanged command bound. Commit `d55adee5e` passes all 52 hosted bootstrap
 jobs, including output comparison, plus README, site, and CodeQL.
 [WIP-0516](source/aggregate/WIP-0516-counted-aggregate-primitive-compilation.md)
-still needs to replace the aggregate adapter's internal primitive compiler.
-Replacing only the runner dispatcher would leave that minimal path underneath.
+had not yet replaced the aggregate adapter's internal primitive compiler at
+that commit. Replacing only the runner dispatcher would have left that path
+underneath.
 
 [WIP-0518](source/proofs/WIP-0518-detached-source-claim-origins.md) retains
 modifier-inclusive byte origins beside the existing semantic claims. The binder
@@ -587,6 +588,32 @@ The follow-up retains empty physical-name windows and the former 33 KiB graph
 as acceptance controls, then checks the actual 36 KiB linked-source boundary.
 The source-product window remains 32 KiB. Exact-tree hosted acceptance remains
 open until the repaired selection and output comparison finish.
+
+[WIP-0522](source/aggregate/WIP-0522-counted-aggregate-primitive-boundary.md)
+splits the counted primitive call and private phases from WIP-0516. The intact
+nominal fixture reaches that call without a minimal compiler function. The
+obsolete wrapper and redundant exact-source copy are gone. All twenty output
+backings receive preallocation validation. The report still precedes every copy.
+The original global, claim, coordinate, and final nominal joins remain open.
+
+The seven new primitive, binding, preflight, and publication phases use 16 to
+234 locals. Extraction reduces the aggregate orchestrator from 1,308 to 828
+locals, still above 256. The arena keeps its 2,268,704-byte reservation and drops
+from 40 lifetime buffer IDs to 39. Forty-two example invocations, 32 source
+checks, and twelve docs pass. Physical intake covers 485 modules, 2,462 constants,
+and 1,909 callables. Independent archives, graphs, four locks, and 181 workspace
+targets agree. The selected linked reference remains byte-identical. A locked
+consumer preserves the intact source and completes within 1,455,107 transitions.
+Its inner-publication rewind/replay covers 104,456 transitions through composition
+and cleanup. Exact-tree commit and hosted evidence remain outstanding. This is
+not completed WIP or self-hosting acceptance.
+
+A new capacity probe exposed a 256-iteration walk over complete qualified target
+names. The target binder now derives its 514-byte bound from two 256-byte name
+components and `::`. The full source, final-function, and qualified-name windows
+compile without changing their limits. Full scalar-packet validation includes
+unused rows. These API probes do not establish command timing or final nominal
+compilation.
 
 The artifact publisher now consumes those shared five-column claims for either
 classical rule. It preserves complete arguments, merges names without duplicate
